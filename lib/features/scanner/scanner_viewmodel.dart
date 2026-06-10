@@ -74,9 +74,13 @@ class ScannerViewModel extends ChangeNotifier {
     // Simple local dictionary matching for high-quality mock experience
     if (lowerText.contains('niacinamide')) found.add('Niacinamide');
     if (lowerText.contains('acid') || lowerText.contains('salicylic')) {
-      if (lowerText.contains('hyaluronic')) found.add('Hyaluronic Acid');
-      else if (lowerText.contains('salicylic')) found.add('Salicylic Acid');
-      else found.add('Glycolic Acid');
+      if (lowerText.contains('hyaluronic')) {
+        found.add('Hyaluronic Acid');
+      } else if (lowerText.contains('salicylic')) {
+        found.add('Salicylic Acid');
+      } else {
+        found.add('Glycolic Acid');
+      }
     }
     if (lowerText.contains('retinol')) found.add('Retinol');
     if (lowerText.contains('centella') || lowerText.contains('asiatica')) found.add('Centella Asiatica');

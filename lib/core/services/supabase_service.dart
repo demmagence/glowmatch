@@ -13,9 +13,7 @@ class SupabaseService {
   // Mock Database in-memory cache for offline/fallback mode
   final List<Map<String, dynamic>> _mockShelf = [];
   final List<Map<String, dynamic>> _mockRoutines = [];
-  final List<Map<String, dynamic>> _mockRoutineLogs = [];
   final List<Map<String, dynamic>> _mockJournalEntries = [];
-  final List<Map<String, dynamic>> _mockBudgetLogs = [];
 
   // Initialize Supabase. If credentials are empty/default, we run in Offline/Fallback Mode.
   Future<void> initialize({required String url, required String anonKey}) async {
@@ -29,7 +27,7 @@ class SupabaseService {
     try {
       await Supabase.initialize(
         url: url,
-        anonKey: anonKey,
+        anonKey: anonKey, // ignore: deprecated_member_use
       );
       _isOfflineMode = false;
       debugPrint('Supabase: Successfully initialized in online cloud mode.');

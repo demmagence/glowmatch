@@ -294,7 +294,7 @@ class ShelfScreen extends StatelessWidget {
                       decoration: const InputDecoration(labelText: 'Brand (e.g. Skin1004)'),
                     ),
                     DropdownButtonFormField<String>(
-                      value: selectedCategory,
+                      value: selectedCategory, // ignore: deprecated_member_use
                       decoration: const InputDecoration(labelText: 'Category'),
                       items: ['Serum', 'Moisturizer', 'Cleanser', 'Sunscreen'].map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));
@@ -326,8 +326,11 @@ class ShelfScreen extends StatelessWidget {
                   onPressed: () {
                     if (nameController.text.isNotEmpty) {
                       String hexColor = '0xFFE040FB'; // default purple
-                      if (selectedCategory == 'Sunscreen') hexColor = '0xFF64DD17'; // green
-                      else if (selectedCategory == 'Moisturizer') hexColor = '0xFFD50000'; // red
+                      if (selectedCategory == 'Sunscreen') {
+                        hexColor = '0xFF64DD17'; // green
+                      } else if (selectedCategory == 'Moisturizer') {
+                        hexColor = '0xFFD50000'; // red
+                      }
 
                       vm.addProduct(
                         userId: userId,
