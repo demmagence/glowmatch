@@ -49,6 +49,7 @@ class ShelfViewModel extends ChangeNotifier {
     required double price,
     required int estimatedUses,
     required String colorHex,
+    List<String>? ingredients,
   }) async {
     final Map<String, dynamic> item = {
       'name': name,
@@ -58,7 +59,7 @@ class ShelfViewModel extends ChangeNotifier {
       'estimated_uses': estimatedUses,
       'remaining_uses': estimatedUses,
       'indicator_color': colorHex,
-      'ingredients': <String>[],
+      'ingredients': ingredients ?? <String>[],
     };
 
     try {
@@ -67,6 +68,33 @@ class ShelfViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error adding shelf product: $e');
+    }
+  }
+
+  Future<void> useProduct(String itemId) async {
+    try {
+      final updatedItem = await _supabaseService.decrementShelfItemUses(itemId);
+      if (updatedItem != null) {
+        final idx = _shelfItems.indexWhere((x) => x['id'] == itemId);
+        if (idx != -1) {
+          _shelfItems[idx] = updatedItem;
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error decrementing product uses in ViewModel: $e');
+    }
+  }
+
+  Future<void> deleteProduct(String itemId) async {
+    try {
+      final success = await _supabaseService.deleteShelfItem(itemId);
+      if (success) {
+        _shelfItems.removeWhere((x) => x['id'] == itemId);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error deleting product in ViewModel: $e');
     }
   }
 }

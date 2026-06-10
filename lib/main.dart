@@ -12,7 +12,6 @@ import 'features/main_layout.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize SupabaseService. Load via dart-define environment keys if provided, otherwise fallback to offline mock mode.
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'YOUR_SUPABASE_URL');
   const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'YOUR_SUPABASE_ANON_KEY');
 
@@ -35,7 +34,15 @@ class GlowMatchApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => RoutineViewModel()),
         ChangeNotifierProvider(create: (_) => ShelfViewModel()),
-        ChangeNotifierProvider(create: (_) => BudgetViewModel()),
+        ChangeNotifierProxyProvider<ShelfViewModel, BudgetViewModel>(
+          create: (_) => BudgetViewModel(),
+          update: (_, shelfVm, budgetVm) {
+            if (budgetVm != null) {
+              budgetVm.updateFromShelf(shelfVm.shelfItems);
+            }
+            return budgetVm!;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => ScannerViewModel()),
         ChangeNotifierProvider(create: (_) => JournalViewModel()),
       ],

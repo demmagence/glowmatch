@@ -26,18 +26,50 @@ class BudgetViewModel extends ChangeNotifier {
     return _productPrice / _estimatedUses;
   }
 
-  // Predefined or dynamic monthly categories and allocations
-  final List<CategoryAllocation> _allocations = [
-    CategoryAllocation(category: 'Serums', amount: 154.00, colorHex: '0xFFE040FB'),       // Pink / Purple
-    CategoryAllocation(category: 'Moisturizers', amount: 108.00, colorHex: '0xFFE91E63'),  // Neon Pink
-    CategoryAllocation(category: 'Cleansers', amount: 80.00, colorHex: '0xFF000000'),      // Black
-  ];
+  // Dynamic monthly categories and allocations
+  List<CategoryAllocation> _allocations = [];
+  List<Map<String, dynamic>> _shelfItems = [];
 
   List<CategoryAllocation> get allocations => _allocations;
+  List<Map<String, dynamic>> get shelfItems => _shelfItems;
 
   // Calculates total monthly spend
   double get totalMonthlySpend {
     return _allocations.fold(0.0, (sum, item) => sum + item.amount);
+  }
+
+  void updateFromShelf(List<Map<String, dynamic>> items) {
+    _shelfItems = items;
+    _recalculateAllocations();
+  }
+
+  void _recalculateAllocations() {
+    final Map<String, double> totals = {};
+    for (final item in _shelfItems) {
+      final category = item['category'] ?? 'Other';
+      final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+      totals[category] = (totals[category] ?? 0.0) + price;
+    }
+
+    final Map<String, String> categoryColors = {
+      'Serum': '0xFFE040FB',      // Purple
+      'Sunscreen': '0xFF64DD17',  // Green
+      'Moisturizer': '0xFFD50000', // Red
+      'Cleanser': '0xFF29B6F6',    // Blue
+    };
+
+    _allocations = totals.entries.map((entry) {
+      final colorHex = categoryColors[entry.key] ?? '0xFF9E9E9E';
+      return CategoryAllocation(
+        category: entry.key,
+        amount: entry.value,
+        colorHex: colorHex,
+      );
+    }).toList();
+
+    // Sort allocations descending by amount so concentric rings render nicely
+    _allocations.sort((a, b) => b.amount.compareTo(a.amount));
+    notifyListeners();
   }
 
   void updateCalculator({double? price, int? uses}) {
