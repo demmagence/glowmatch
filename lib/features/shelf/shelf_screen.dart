@@ -240,7 +240,7 @@ class ShelfScreen extends StatelessWidget {
                   // Finished Overlay
                   if (isEmpty)
                     Container(
-                      color: Colors.white.withOpacity(0.65),
+                      color: Colors.white.withOpacity(0.65), // ignore: deprecated_member_use
                       alignment: Alignment.center,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -443,7 +443,7 @@ class ShelfScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: dotColor.withOpacity(0.15),
+                                color: dotColor.withOpacity(0.15), // ignore: deprecated_member_use
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
