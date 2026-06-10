@@ -4,6 +4,14 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GlowMatch needs location access to fetch your local temperature and weather for skincare routine customization.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>GlowMatch needs location access to fetch your local temperature and weather for skincare routine customization.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>GlowMatch needs camera access to scan product ingredient lists and track your daily skin progress journal.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>GlowMatch needs microphone access for video capture.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
