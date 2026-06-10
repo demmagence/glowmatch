@@ -202,6 +202,66 @@ class SupabaseService {
     }
   }
 
+  Future<Map<String, dynamic>?> decrementShelfItemUses(String itemId) async {
+    if (_isOfflineMode) {
+      final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
+      if (idx != -1) {
+        final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
+        final newUses = (currentUses - 1).clamp(0, 999999);
+        _mockShelf[idx]['remaining_uses'] = newUses;
+        return _mockShelf[idx];
+      }
+      return null;
+    }
+
+    try {
+      final currentResponse = await Supabase.instance.client
+          .from('skincare_shelf')
+          .select('remaining_uses')
+          .eq('id', itemId)
+          .single();
+      final currentUses = currentResponse['remaining_uses'] as int? ?? 0;
+      final newUses = (currentUses - 1).clamp(0, 999999);
+
+      final response = await Supabase.instance.client
+          .from('skincare_shelf')
+          .update({'remaining_uses': newUses})
+          .eq('id', itemId)
+          .select()
+          .single();
+      return response;
+    } catch (e) {
+      debugPrint('Error decrementing shelf item: $e. Falling back to offline.');
+      final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
+      if (idx != -1) {
+        final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
+        final newUses = (currentUses - 1).clamp(0, 999999);
+        _mockShelf[idx]['remaining_uses'] = newUses;
+        return _mockShelf[idx];
+      }
+      return null;
+    }
+  }
+
+  Future<bool> deleteShelfItem(String itemId) async {
+    if (_isOfflineMode) {
+      _mockShelf.removeWhere((x) => x['id'] == itemId);
+      return true;
+    }
+
+    try {
+      await Supabase.instance.client
+          .from('skincare_shelf')
+          .delete()
+          .eq('id', itemId);
+      return true;
+    } catch (e) {
+      debugPrint('Error deleting shelf item: $e. Falling back to offline.');
+      _mockShelf.removeWhere((x) => x['id'] == itemId);
+      return true;
+    }
+  }
+
   // ROUTINES
   Future<List<Map<String, dynamic>>> getRoutines(String userId, String type) async {
     if (_isOfflineMode) {
