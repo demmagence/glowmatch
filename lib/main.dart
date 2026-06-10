@@ -12,11 +12,14 @@ import 'features/main_layout.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize SupabaseService. By default using placeholder URLs triggers clean offline-mock fallback.
+  // Initialize SupabaseService. Load via dart-define environment keys if provided, otherwise fallback to offline mock mode.
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'YOUR_SUPABASE_URL');
+  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'YOUR_SUPABASE_ANON_KEY');
+
   final supabaseService = SupabaseService();
   await supabaseService.initialize(
-    url: 'YOUR_SUPABASE_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
   );
 
   runApp(const GlowMatchApp());
