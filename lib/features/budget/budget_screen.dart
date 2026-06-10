@@ -271,7 +271,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   const Text('Select Product from Shelf', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    value: _selectedProductId,
+                    value: _selectedProductId, // ignore: deprecated_member_use
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(
