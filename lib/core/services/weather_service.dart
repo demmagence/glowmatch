@@ -61,10 +61,15 @@ class WeatherService {
         final code = data['current']['weather_code'] as int;
 
         String condition = 'Sunny';
-        if (code >= 1 && code <= 3) condition = 'Partly Cloudy';
-        else if (code >= 51 && code <= 67) condition = 'Rainy';
-        else if (code >= 71 && code <= 86) condition = 'Snowy';
-        else if (code >= 95) condition = 'Thunderstorm';
+        if (code >= 1 && code <= 3) {
+          condition = 'Partly Cloudy';
+        } else if (code >= 51 && code <= 67) {
+          condition = 'Rainy';
+        } else if (code >= 71 && code <= 86) {
+          condition = 'Snowy';
+        } else if (code >= 95) {
+          condition = 'Thunderstorm';
+        }
 
         // Translate coords to a generic friendly name (or Indonesian/US standard)
         // Since we are not running a full geocoding client, we label it by coords or timezone

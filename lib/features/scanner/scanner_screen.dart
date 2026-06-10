@@ -84,6 +84,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) _showAnalysisResults(context, vm);
     } catch (e) {
       debugPrint('Capture error: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to take picture: $e')),
       );
@@ -172,7 +173,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withOpacity(0.85), // ignore: deprecated_member_use
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
@@ -209,7 +210,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 4),
-                        color: Colors.white.withOpacity(scannerVm.isProcessing ? 0.5 : 1.0),
+                        color: Colors.white.withOpacity(scannerVm.isProcessing ? 0.5 : 1.0), // ignore: deprecated_member_use
                       ),
                     ),
                   ),
