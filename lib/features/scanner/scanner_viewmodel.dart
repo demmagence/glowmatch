@@ -68,7 +68,7 @@ class ScannerViewModel extends ChangeNotifier {
 
   Future<void> _analyzeIngredientsWithAI(String text) async {
     const apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
-    const model = String.fromEnvironment('GEMINI_MODEL', defaultValue: 'gemini-1.5-flash');
+    const model = String.fromEnvironment('GEMINI_MODEL', defaultValue: 'gemini-3.1-flash-lite');
 
     if (apiKey.isEmpty || apiKey.startsWith('YOUR_')) {
       await _runOfflineFallbackAnalysis(text);
