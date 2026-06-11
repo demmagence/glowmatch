@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class IngredientAnalysisResult {
   final List<String> detectedIngredients;
@@ -65,6 +67,69 @@ class ScannerViewModel extends ChangeNotifier {
   }
 
   Future<void> _analyzeIngredientsWithAI(String text) async {
+    const apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
+    const model = String.fromEnvironment('GEMINI_MODEL', defaultValue: 'gemini-1.5-flash');
+
+    if (apiKey.isEmpty || apiKey.startsWith('YOUR_')) {
+      await _runOfflineFallbackAnalysis(text);
+      return;
+    }
+
+    try {
+      final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
+      final prompt = """
+You are a skincare ingredients safety analyzer.
+Analyze the following ingredients text and return ONLY a JSON object with this exact format:
+{
+  "detectedIngredients": ["ingredient1", "ingredient2"],
+  "safetyRating": "Highly Safe / Moderate Risk / High Risk",
+  "skinTypeSuitability": "suitability description",
+  "recommendations": "your recommendations",
+  "isSafe": true/false
+}
+Do not return any markdown wrappers like ```json or ```, just return the raw JSON object.
+Ingredients text:
+$text
+""";
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'contents': [{
+            'parts': [{'text': prompt}]
+          }]
+        }),
+      ).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final textResponse = decoded['candidates'][0]['content']['parts'][0]['text'] as String;
+        
+        var cleanedText = textResponse.trim();
+        if (cleanedText.startsWith('```')) {
+          cleanedText = cleanedText.replaceAll(RegExp(r'^```json\s*'), '');
+          cleanedText = cleanedText.replaceAll(RegExp(r'\s*```$'), '');
+        }
+        
+        final parsedJson = jsonDecode(cleanedText.trim());
+        _analysisResult = IngredientAnalysisResult(
+          detectedIngredients: List<String>.from(parsedJson['detectedIngredients'] ?? []),
+          safetyRating: parsedJson['safetyRating'] ?? 'Unknown',
+          skinTypeSuitability: parsedJson['skinTypeSuitability'] ?? 'N/A',
+          recommendations: parsedJson['recommendations'] ?? 'No recommendations available.',
+          isSafe: parsedJson['isSafe'] ?? true,
+        );
+      } else {
+        throw Exception('Gemini API returned status code ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Gemini API call failed: $e. Falling back to offline mock mode.');
+      await _runOfflineFallbackAnalysis(text);
+    }
+  }
+
+  Future<void> _runOfflineFallbackAnalysis(String text) async {
     // Simulate API delay for a high-quality feel
     await Future.delayed(const Duration(seconds: 2));
 
