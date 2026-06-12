@@ -16,18 +16,6 @@ GlowMatch is a premium, modern, and highly responsive skincare management compan
 
 ---
 
-## 📱 Screenshots & Previews
-
-| Home Screen | Skincare Shelf | Budget Tracker |
-| :---: | :---: | :---: |
-| ![Home Screen](https://placehold.co/300x600/pink/white?text=Home+Screen) | ![Shelf Screen](https://placehold.co/300x600/pink/white?text=Shelf+Screen) | ![Budget Screen](https://placehold.co/300x600/pink/white?text=Budget+Screen) |
-
-| Ingredient Scanner | Skin Progress Journal |
-| :---: | :---: |
-| ![Scanner Screen](https://placehold.co/300x600/pink/white?text=Scanner+Screen) | ![Journal Screen](https://placehold.co/300x600/pink/white?text=Journal+Screen) |
-
----
-
 ## 🏗️ Architecture
 
 GlowMatch is built using the **MVVM (Model-View-ViewModel)** design pattern coupled with the **Provider** state management library. 
