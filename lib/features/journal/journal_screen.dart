@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
+import '../profile/profile_screen.dart';
 
 class JournalScreen extends StatelessWidget {
   const JournalScreen({super.key});
@@ -48,7 +49,12 @@ class JournalScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, color: Colors.black),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'budget_viewmodel.dart';
 import '../../core/models/models.dart';
+import '../profile/profile_screen.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -65,7 +66,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, color: Colors.black),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
           ),
         ],
       ),
