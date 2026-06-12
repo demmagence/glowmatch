@@ -149,7 +149,7 @@ class JournalScreen extends StatelessWidget {
           // ── Uploading Overlay ──
           if (journalVm.isUploading)
             Container(
-              color: Colors.black.withOpacity(0.5), // ignore: deprecated_member_use
+              color: Colors.black.withValues(alpha: 0.5),
               child: const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
