@@ -24,15 +24,15 @@ Below is the data flow architecture of GlowMatch:
 
 ```mermaid
 graph TD
-    subgraph View Layer
+    subgraph ViewLayer ["View Layer"]
         Screen[Screen / UI Widget]
     end
 
-    subgraph ViewModel Layer (Provider State)
+    subgraph ViewModelLayer ["ViewModel Layer (Provider State)"]
         ViewModel[ViewModel / ChangeNotifier]
     end
 
-    subgraph Service Layer (Data Sources)
+    subgraph ServiceLayer ["Service Layer (Data Sources)"]
         SupaService[SupabaseService]
         WeatherService[WeatherService]
     end
