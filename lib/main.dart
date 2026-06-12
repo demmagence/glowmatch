@@ -8,7 +8,6 @@ import 'features/shelf/shelf_viewmodel.dart';
 import 'features/budget/budget_viewmodel.dart';
 import 'features/scanner/scanner_viewmodel.dart';
 import 'features/journal/journal_viewmodel.dart';
-import 'features/main_layout.dart';
 import 'features/splash/splash_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,6 +41,7 @@ class GlowMatchApp extends StatelessWidget {
           create: (_) => BudgetViewModel(),
           update: (_, shelfVm, budgetVm) {
             if (budgetVm != null) {
+              budgetVm.setLoading(shelfVm.isLoading);
               budgetVm.updateFromShelf(shelfVm.shelfItems);
             }
             return budgetVm!;

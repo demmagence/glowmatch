@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'budget_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../profile/profile_screen.dart';
+import '../../core/widgets/neobrutalist_card.dart';
+import '../../core/widgets/loading_overlay.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -53,14 +55,23 @@ class _BudgetScreenState extends State<BudgetScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'GLOWMATCH',
-          style: TextStyle(
-            fontFamily: 'Outfit',
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: Colors.black,
-            letterSpacing: 1.5,
+        centerTitle: true,
+        title: RichText(
+          text: const TextSpan(
+            text: 'GlowMatch',
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              color: Colors.black,
+              letterSpacing: -0.5,
+            ),
+            children: [
+              TextSpan(
+                text: '.',
+                style: TextStyle(color: Colors.red, fontSize: 26),
+              )
+            ],
           ),
         ),
         actions: [
@@ -75,8 +86,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      body: LoadingOverlay(
+        isLoading: budgetVm.isLoading,
+        message: 'Calculating budget...',
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -117,20 +131,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             const SizedBox(height: 28),
 
             // Allocation Card
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 1.2),
-                borderRadius: BorderRadius.circular(4),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black87,
-                    blurRadius: 0,
-                    offset: Offset(4, 4),
-                  ),
-                ],
-                color: Colors.white,
-              ),
+            NeobrutalistCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,7 +227,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                               style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                              ),
+                                ),
                             ),
                           ],
                         );
@@ -239,20 +240,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             const SizedBox(height: 24),
 
             // Cost-Per-Apply Card
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 1.2),
-                borderRadius: BorderRadius.circular(4),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black87,
-                    blurRadius: 0,
-                    offset: Offset(4, 4),
-                  ),
-                ],
-                color: Colors.white,
-              ),
+            NeobrutalistCard(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,8 +430,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // Custom concentric rings painter representing budget allocation categories

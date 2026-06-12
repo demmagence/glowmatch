@@ -6,6 +6,8 @@ import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../profile/profile_screen.dart';
+import '../../core/widgets/loading_overlay.dart';
+import '../../core/widgets/error_state_widget.dart';
 
 class JournalScreen extends StatelessWidget {
   const JournalScreen({super.key});
@@ -36,14 +38,23 @@ class JournalScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'GLOWMATCH',
-          style: TextStyle(
-            fontFamily: 'Outfit',
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: Colors.black,
-            letterSpacing: 1.5,
+        centerTitle: true,
+        title: RichText(
+          text: const TextSpan(
+            text: 'GlowMatch',
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              color: Colors.black,
+              letterSpacing: -0.5,
+            ),
+            children: [
+              TextSpan(
+                text: '.',
+                style: TextStyle(color: Colors.red, fontSize: 26),
+              )
+            ],
           ),
         ),
         actions: [
@@ -58,118 +69,111 @@ class JournalScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
+      body: LoadingOverlay(
+        isLoading: journalVm.isUploading,
+        message: 'Uploading your glow...',
+        child: RefreshIndicator(
+          onRefresh: () => journalVm.fetchJournal(authVm.userId),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Header Row: Title + Score ──
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Journal',
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Track your glow progress.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                if (journalVm.isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 64.0),
+                      child: CircularProgressIndicator(),
                     ),
-                    // Consistency Score Badge
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '${journalVm.currentScore}',
-                              style: const TextStyle(
-                                fontSize: 56,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black,
-                                letterSpacing: -2,
-                              ),
+                  )
+                else if (journalVm.errorMessage != null)
+                  ErrorStateWidget(
+                    message: journalVm.errorMessage!,
+                    onRetry: () => journalVm.fetchJournal(authVm.userId),
+                  )
+                else ...[
+                  // ── Header Row: Title + Score ──
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Journal',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -0.5,
                             ),
-                            Container(
-                              width: 8,
-                              height: 8,
-                              margin: const EdgeInsets.only(left: 2),
-                              decoration: const BoxDecoration(
-                                color: Colors.pinkAccent,
-                                shape: BoxShape.rectangle,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          'CURRENT SCORE',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.8,
-                            color: Colors.grey.shade600,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 20),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Track your glow progress.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Consistency Score Badge
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                '${journalVm.currentScore}',
+                                style: const TextStyle(
+                                  fontSize: 56,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.black,
+                                  letterSpacing: -2,
+                                ),
+                              ),
+                              Container(
+                                width: 8,
+                                height: 8,
+                                margin: const EdgeInsets.only(left: 2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.pinkAccent,
+                                  shape: BoxShape.rectangle,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'CURRENT SCORE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 20),
 
-                // ── Photo Grid — grouped into pairs ──
-                ..._buildPhotoGrid(context, displayEntries, authVm.userId, journalVm),
-
+                  // ── Photo Grid — grouped into pairs ──
+                  ..._buildPhotoGrid(context, displayEntries, authVm.userId, journalVm),
+                ],
                 const SizedBox(height: 100), // bottom padding for FAB
               ],
             ),
           ),
-
-          // ── Uploading Overlay ──
-          if (journalVm.isUploading)
-            Container(
-              color: Colors.black.withValues(alpha: 0.5),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: Colors.white),
-                    SizedBox(height: 16),
-                    Text(
-                      'Uploading your glow...',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Outfit',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
 
       // ── FAB: Camera picker ──

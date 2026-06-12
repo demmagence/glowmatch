@@ -10,15 +10,18 @@ class JournalViewModel extends ChangeNotifier {
   List<JournalEntry> _entries = [];
   bool _isLoading = false;
   bool _isUploading = false;
+  String? _errorMessage;
   int _currentScore = 84;
 
   List<JournalEntry> get entries => _entries;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
+  String? get errorMessage => _errorMessage;
   int get currentScore => _currentScore;
 
   Future<void> fetchJournal(String userId) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
@@ -26,6 +29,7 @@ class JournalViewModel extends ChangeNotifier {
       _calculateCurrentScore();
     } catch (e) {
       debugPrint('Error fetching journal: $e');
+      _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
