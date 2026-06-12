@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'shelf_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
+import '../../core/models/models.dart';
 
 class ShelfScreen extends StatelessWidget {
   const ShelfScreen({super.key});
@@ -145,12 +146,12 @@ class ShelfScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNeobrutalistProductCard(BuildContext context, Map<String, dynamic> item, ShelfViewModel shelfVm) {
-    final colorHex = item['indicator_color'] ?? '0xFFE040FB';
+  Widget _buildNeobrutalistProductCard(BuildContext context, ShelfItem item, ShelfViewModel shelfVm) {
+    final colorHex = item.indicatorColor;
     final dotColor = Color(int.parse(colorHex));
-    final int estimatedUses = item['estimated_uses'] as int? ?? 50;
-    final int remainingUses = item['remaining_uses'] as int? ?? estimatedUses;
-    final double price = (item['price'] as num?)?.toDouble() ?? 0.0;
+    final int estimatedUses = item.estimatedUses;
+    final int remainingUses = item.remainingUses;
+    final double price = item.price;
     final bool isEmpty = remainingUses <= 0;
     final double progress = estimatedUses > 0 ? (remainingUses / estimatedUses).clamp(0.0, 1.0) : 0.0;
 
@@ -191,7 +192,7 @@ class ShelfScreen extends StatelessWidget {
                         topRight: Radius.circular(3),
                       ),
                       child: Image.network(
-                        item['image_url'] ?? 'https://placehold.co/150',
+                        item.imageUrl ?? 'https://placehold.co/150',
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           return const Icon(Icons.dry_cleaning_outlined, size: 48, color: Colors.grey);
@@ -270,7 +271,7 @@ class ShelfScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item['name'] ?? 'Product',
+                    item.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -284,7 +285,7 @@ class ShelfScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          item['brand'] ?? '',
+                          item.brand,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -329,10 +330,10 @@ class ShelfScreen extends StatelessWidget {
                       if (!isEmpty)
                         GestureDetector(
                           onTap: () {
-                            shelfVm.useProduct(item['id']);
+                            shelfVm.useProduct(item.id);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Used 1 apply of ${item['name']}!'),
+                                content: Text('Used 1 apply of ${item.name}!'),
                                 duration: const Duration(seconds: 1),
                                 backgroundColor: Colors.black,
                               ),
@@ -366,14 +367,14 @@ class ShelfScreen extends StatelessWidget {
     );
   }
 
-  void _showProductDetailsBottomSheet(BuildContext context, Map<String, dynamic> item, ShelfViewModel shelfVm) {
-    final colorHex = item['indicator_color'] ?? '0xFFE040FB';
+  void _showProductDetailsBottomSheet(BuildContext context, ShelfItem item, ShelfViewModel shelfVm) {
+    final colorHex = item.indicatorColor;
     final dotColor = Color(int.parse(colorHex));
-    final int estimatedUses = item['estimated_uses'] as int? ?? 50;
-    final int remainingUses = item['remaining_uses'] as int? ?? estimatedUses;
-    final double price = (item['price'] as num?)?.toDouble() ?? 0.0;
+    final int estimatedUses = item.estimatedUses;
+    final int remainingUses = item.remainingUses;
+    final double price = item.price;
     final double costPerApply = estimatedUses > 0 ? price / estimatedUses : 0.0;
-    final List<dynamic> ingredients = item['ingredients'] ?? [];
+    final List<String> ingredients = item.ingredients;
 
     showModalBottomSheet(
       context: context,
@@ -411,7 +412,7 @@ class ShelfScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Image.network(
-                      item['image_url'] ?? 'https://placehold.co/150',
+                      item.imageUrl ?? 'https://placehold.co/150',
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => const Icon(Icons.dry_cleaning, size: 36),
                     ),
@@ -422,7 +423,7 @@ class ShelfScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item['name'] ?? 'Product',
+                          item.name,
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -431,7 +432,7 @@ class ShelfScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          item['brand'] ?? 'Brand',
+                          item.brand,
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey.shade600,
@@ -447,7 +448,7 @@ class ShelfScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                item['category'] ?? 'Serum',
+                                item.category,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: dotColor,
@@ -501,7 +502,7 @@ class ShelfScreen extends StatelessWidget {
                             border: Border.all(color: Colors.grey.shade300, width: 0.8),
                           ),
                           child: Text(
-                            ing.toString(),
+                            ing,
                             style: const TextStyle(fontSize: 12, color: Colors.black87),
                           ),
                         );
@@ -539,11 +540,11 @@ class ShelfScreen extends StatelessWidget {
                       ),
                       onPressed: remainingUses > 0
                           ? () {
-                              shelfVm.useProduct(item['id']);
+                              shelfVm.useProduct(item.id);
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Used 1 apply of ${item['name']}!'),
+                                  content: Text('Used 1 apply of ${item.name}!'),
                                   backgroundColor: Colors.black,
                                 ),
                               );
@@ -587,13 +588,13 @@ class ShelfScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, Map<String, dynamic> item, ShelfViewModel shelfVm) {
+  void _showDeleteConfirmation(BuildContext context, ShelfItem item, ShelfViewModel shelfVm) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Product?', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text('Are you sure you want to delete ${item['name']} from your shelf?'),
+          content: Text('Are you sure you want to delete ${item.name} from your shelf?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -601,11 +602,11 @@ class ShelfScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                shelfVm.deleteProduct(item['id']);
+                shelfVm.deleteProduct(item.id);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Deleted ${item['name']}'),
+                    content: Text('Deleted ${item.name}'),
                     backgroundColor: Colors.black,
                   ),
                 );

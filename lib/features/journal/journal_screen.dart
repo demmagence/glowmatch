@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
+import '../../core/models/models.dart';
 
 class JournalScreen extends StatelessWidget {
   const JournalScreen({super.key});
@@ -21,12 +22,12 @@ class JournalScreen extends StatelessWidget {
     ];
 
     // Merge real entries + mock for display
-    final displayEntries = journalVm.entries.isNotEmpty
+    final List<JournalEntry> displayEntries = journalVm.entries.isNotEmpty
         ? journalVm.entries
         : [
-            {'logged_date': 'Today', 'photo_path': mockImageUrls[0], 'skin_score': 84},
-            {'logged_date': 'Oct 24', 'photo_path': mockImageUrls[1], 'skin_score': 80},
-            {'logged_date': 'Oct 17', 'photo_path': mockImageUrls[2], 'skin_score': 76},
+            JournalEntry(id: 'j-mock-1', loggedDate: 'Today', photoPath: mockImageUrls[0], skinScore: 84),
+            JournalEntry(id: 'j-mock-2', loggedDate: 'Oct 24', photoPath: mockImageUrls[1], skinScore: 80),
+            JournalEntry(id: 'j-mock-3', loggedDate: 'Oct 17', photoPath: mockImageUrls[2], skinScore: 76),
           ];
 
     return Scaffold(
@@ -183,14 +184,14 @@ class JournalScreen extends StatelessWidget {
   // ── Build photo rows (2 per row) ──
   List<Widget> _buildPhotoGrid(
     BuildContext context,
-    List<Map<String, dynamic>> entries,
+    List<JournalEntry> entries,
     String userId,
     JournalViewModel vm,
   ) {
     final List<Widget> rows = [];
 
-    // Group by week label — simplified: first 2 = "THIS WEEK", rest = "LAST WEEK"
-    final sections = <String, List<Map<String, dynamic>>>{};
+    // Group by week label — simplified: first 2 = "THIS WEEK", rest = "OLDER"
+    final sections = <String, List<JournalEntry>>{};
     for (int i = 0; i < entries.length; i++) {
       final label = i < 2 ? 'THIS WEEK' : 'OLDER';
       sections.putIfAbsent(label, () => []);
@@ -220,8 +221,8 @@ class JournalScreen extends StatelessWidget {
             Expanded(
               child: _buildPhotoCard(
                 context: context,
-                date: a['logged_date'] ?? '',
-                photoPath: a['photo_path'] ?? '',
+                date: a.loggedDate,
+                photoPath: a.photoPath ?? '',
               ),
             ),
             const SizedBox(width: 16),
@@ -229,8 +230,8 @@ class JournalScreen extends StatelessWidget {
               child: b != null
                   ? _buildPhotoCard(
                       context: context,
-                      date: b['logged_date'] ?? '',
-                      photoPath: b['photo_path'] ?? '',
+                      date: b.loggedDate,
+                      photoPath: b.photoPath ?? '',
                     )
                   : _buildEmptySlot(context, userId, vm),
             ),

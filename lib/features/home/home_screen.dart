@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'routine_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
+import '../../core/models/models.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -149,11 +150,11 @@ class HomeScreen extends StatelessWidget {
               itemCount: routineVm.currentSteps.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final step = routineVm.currentSteps[index];
-                final isCompleted = routineVm.completedStepIds.contains(step['id']);
+                final RoutineStep step = routineVm.currentSteps[index];
+                final isCompleted = routineVm.completedStepIds.contains(step.id);
 
                 return GestureDetector(
-                  onTap: () => routineVm.toggleStep(step['id']),
+                  onTap: () => routineVm.toggleStep(step.id),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.black, width: 1.2),
@@ -182,7 +183,7 @@ class HomeScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                step['name'] ?? 'Custom Step',
+                                step.name.isEmpty ? 'Custom Step' : step.name,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -194,7 +195,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                step['description'] ?? '',
+                                step.description ?? '',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey.shade600,

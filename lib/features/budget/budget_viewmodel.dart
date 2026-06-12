@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../core/models/models.dart';
 
 class CategoryAllocation {
   final String category;
@@ -28,17 +29,17 @@ class BudgetViewModel extends ChangeNotifier {
 
   // Dynamic monthly categories and allocations
   List<CategoryAllocation> _allocations = [];
-  List<Map<String, dynamic>> _shelfItems = [];
+  List<ShelfItem> _shelfItems = [];
 
   List<CategoryAllocation> get allocations => _allocations;
-  List<Map<String, dynamic>> get shelfItems => _shelfItems;
+  List<ShelfItem> get shelfItems => _shelfItems;
 
   // Calculates total monthly spend
   double get totalMonthlySpend {
     return _allocations.fold(0.0, (sum, item) => sum + item.amount);
   }
 
-  void updateFromShelf(List<Map<String, dynamic>> items) {
+  void updateFromShelf(List<ShelfItem> items) {
     _shelfItems = items;
     _recalculateAllocations();
   }
@@ -46,8 +47,8 @@ class BudgetViewModel extends ChangeNotifier {
   void _recalculateAllocations() {
     final Map<String, double> totals = {};
     for (final item in _shelfItems) {
-      final category = item['category'] ?? 'Other';
-      final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+      final category = item.category;
+      final price = item.price;
       totals[category] = (totals[category] ?? 0.0) + price;
     }
 

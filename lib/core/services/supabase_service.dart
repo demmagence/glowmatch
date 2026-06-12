@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/models.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -12,9 +13,9 @@ class SupabaseService {
   bool get isOfflineMode => _isOfflineMode;
 
   // Mock Database in-memory cache for offline/fallback mode
-  final List<Map<String, dynamic>> _mockShelf = [];
-  final List<Map<String, dynamic>> _mockRoutines = [];
-  final List<Map<String, dynamic>> _mockJournalEntries = [];
+  final List<ShelfItem> _mockShelf = [];
+  final List<RoutineStep> _mockRoutines = [];
+  final List<JournalEntry> _mockJournalEntries = [];
 
   // Initialize Supabase. If credentials are empty/default, we run in Offline/Fallback Mode.
   Future<void> initialize({required String url, required String anonKey}) async {
@@ -64,97 +65,97 @@ class SupabaseService {
   void _seedMockData() {
     if (_mockShelf.isEmpty) {
       _mockShelf.addAll([
-        {
-          'id': 'item-1',
-          'name': 'GlowBomb',
-          'brand': 'Glow Recipe',
-          'category': 'Serum',
-          'price': 42.00,
-          'estimated_uses': 60,
-          'remaining_uses': 45,
-          'indicator_color': '0xFFE040FB', // Pink
-          'image_url': 'https://placehold.co/150/pink/white?text=GlowBomb',
-          'ingredients': ['Hyaluronic Acid', 'Niacinamide', 'Watermelon Extract']
-        },
-        {
-          'id': 'item-2',
-          'name': 'Centella Sunscreen',
-          'brand': 'Skin1004',
-          'category': 'Sunscreen',
-          'price': 20.00,
-          'estimated_uses': 50,
-          'remaining_uses': 32,
-          'indicator_color': '0xFF64DD17', // Green
-          'image_url': 'https://placehold.co/150/lightgreen/white?text=Skin1004',
-          'ingredients': ['Centella Asiatica', 'Zinc Oxide', 'Titanium Dioxide']
-        },
-        {
-          'id': 'item-3',
-          'name': '5% Panthenol Cream',
-          'brand': 'Florasis',
-          'category': 'Moisturizer',
-          'price': 58.00,
-          'estimated_uses': 80,
-          'remaining_uses': 75,
-          'indicator_color': '0xFFD50000', // Red
-          'image_url': 'https://placehold.co/150/purple/white?text=Panthenol',
-          'ingredients': ['Panthenol', 'Squalane', 'Ceramide NP']
-        }
+        ShelfItem(
+          id: 'item-1',
+          name: 'GlowBomb',
+          brand: 'Glow Recipe',
+          category: 'Serum',
+          price: 42.00,
+          estimatedUses: 60,
+          remainingUses: 45,
+          indicatorColor: '0xFFE040FB', // Pink
+          imageUrl: 'https://placehold.co/150/pink/white?text=GlowBomb',
+          ingredients: const ['Hyaluronic Acid', 'Niacinamide', 'Watermelon Extract'],
+        ),
+        ShelfItem(
+          id: 'item-2',
+          name: 'Centella Sunscreen',
+          brand: 'Skin1004',
+          category: 'Sunscreen',
+          price: 20.00,
+          estimatedUses: 50,
+          remainingUses: 32,
+          indicatorColor: '0xFF64DD17', // Green
+          imageUrl: 'https://placehold.co/150/lightgreen/white?text=Skin1004',
+          ingredients: const ['Centella Asiatica', 'Zinc Oxide', 'Titanium Dioxide'],
+        ),
+        ShelfItem(
+          id: 'item-3',
+          name: '5% Panthenol Cream',
+          brand: 'Florasis',
+          category: 'Moisturizer',
+          price: 58.00,
+          estimatedUses: 80,
+          remainingUses: 75,
+          indicatorColor: '0xFFD50000', // Red
+          imageUrl: 'https://placehold.co/150/purple/white?text=Panthenol',
+          ingredients: const ['Panthenol', 'Squalane', 'Ceramide NP'],
+        )
       ]);
     }
 
     if (_mockRoutines.isEmpty) {
       _mockRoutines.addAll([
-        {
-          'id': 'r-1',
-          'routine_type': 'AM',
-          'step_number': 1,
-          'name': 'Gentle Cleanser',
-          'description': 'Hydrating milk formula',
-          'shelf_item_id': 'item-1',
-        },
-        {
-          'id': 'r-2',
-          'routine_type': 'AM',
-          'step_number': 2,
-          'name': 'Peptide Moisturizer',
-          'description': 'Barrier repair complex',
-          'shelf_item_id': 'item-3',
-        },
-        {
-          'id': 'r-3',
-          'routine_type': 'AM',
-          'step_number': 3,
-          'name': 'SPF 50+ Sunscreen',
-          'description': 'Required: High UV Index',
-          'shelf_item_id': 'item-2',
-        }
+        RoutineStep(
+          id: 'r-1',
+          routineType: 'AM',
+          stepNumber: 1,
+          name: 'Gentle Cleanser',
+          description: 'Hydrating milk formula',
+          shelfItemId: 'item-1',
+        ),
+        RoutineStep(
+          id: 'r-2',
+          routineType: 'AM',
+          stepNumber: 2,
+          name: 'Peptide Moisturizer',
+          description: 'Barrier repair complex',
+          shelfItemId: 'item-3',
+        ),
+        RoutineStep(
+          id: 'r-3',
+          routineType: 'AM',
+          stepNumber: 3,
+          name: 'SPF 50+ Sunscreen',
+          description: 'Required: High UV Index',
+          shelfItemId: 'item-2',
+        )
       ]);
     }
 
     if (_mockJournalEntries.isEmpty) {
       _mockJournalEntries.addAll([
-        {
-          'id': 'j-1',
-          'logged_date': 'Today',
-          'skin_score': 84,
-          'photo_path': 'assets/skin_today.png',
-          'notes': 'Skin barrier feels extremely strong today. Redness has completely gone.'
-        },
-        {
-          'id': 'j-2',
-          'logged_date': 'Oct 24',
-          'skin_score': 80,
-          'photo_path': 'assets/skin_oct24.png',
-          'notes': 'Slight irritation around the cheeks. Increased moisturizer.'
-        },
-        {
-          'id': 'j-3',
-          'logged_date': 'Oct 17',
-          'skin_score': 76,
-          'photo_path': 'assets/skin_oct17.png',
-          'notes': 'Started new routine steps.'
-        }
+        JournalEntry(
+          id: 'j-1',
+          loggedDate: 'Today',
+          skinScore: 84,
+          photoPath: 'assets/skin_today.png',
+          notes: 'Skin barrier feels extremely strong today. Redness has completely gone.',
+        ),
+        JournalEntry(
+          id: 'j-2',
+          loggedDate: 'Oct 24',
+          skinScore: 80,
+          photoPath: 'assets/skin_oct24.png',
+          notes: 'Slight irritation around the cheeks. Increased moisturizer.',
+        ),
+        JournalEntry(
+          id: 'j-3',
+          loggedDate: 'Oct 17',
+          skinScore: 76,
+          photoPath: 'assets/skin_oct17.png',
+          notes: 'Started new routine steps.',
+        )
       ]);
     }
   }
@@ -180,7 +181,7 @@ class SupabaseService {
   // --- CRUD API ---
 
   // SHELF ITEMS
-  Future<List<Map<String, dynamic>>> getShelfItems(String userId) async {
+  Future<List<ShelfItem>> getShelfItems(String userId) async {
     if (_isOfflineMode) {
       return List.from(_mockShelf);
     }
@@ -189,7 +190,7 @@ class SupabaseService {
           .from('skincare_shelf')
           .select()
           .eq('user_id', userId);
-      return List<Map<String, dynamic>>.from(response);
+      return (response as List).map((x) => ShelfItem.fromJson(x as Map<String, dynamic>)).toList();
     } on PostgrestException catch (e) {
       _handlePostgrestException('getShelfItems', e);
       return List.from(_mockShelf);
@@ -199,10 +200,11 @@ class SupabaseService {
     }
   }
 
-  Future<Map<String, dynamic>> addShelfItem(String userId, Map<String, dynamic> item) async {
-    final newItem = {
-      ...item,
-      'id': item['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+  Future<ShelfItem> addShelfItem(String userId, ShelfItem item) async {
+    final String id = item.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : item.id;
+    final newItem = item.copyWith(id: id);
+    final newItemMap = {
+      ...newItem.toJson(),
       'user_id': userId,
       'created_at': DateTime.now().toIso8601String(),
     };
@@ -215,10 +217,10 @@ class SupabaseService {
     try {
       final response = await Supabase.instance.client
           .from('skincare_shelf')
-          .insert(newItem)
+          .insert(newItemMap)
           .select()
           .single();
-      return response;
+      return ShelfItem.fromJson(response);
     } on PostgrestException catch (e) {
       _handlePostgrestException('addShelfItem', e);
       _mockShelf.add(newItem);
@@ -230,13 +232,13 @@ class SupabaseService {
     }
   }
 
-  Future<Map<String, dynamic>?> decrementShelfItemUses(String itemId) async {
+  Future<ShelfItem?> decrementShelfItemUses(String itemId) async {
     if (_isOfflineMode) {
-      final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
+      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
       if (idx != -1) {
-        final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
+        final currentUses = _mockShelf[idx].remainingUses;
         final newUses = (currentUses - 1).clamp(0, 999999);
-        _mockShelf[idx]['remaining_uses'] = newUses;
+        _mockShelf[idx] = _mockShelf[idx].copyWith(remainingUses: newUses);
         return _mockShelf[idx];
       }
       return null;
@@ -257,24 +259,24 @@ class SupabaseService {
           .eq('id', itemId)
           .select()
           .single();
-      return response;
+      return ShelfItem.fromJson(response);
     } on PostgrestException catch (e) {
       _handlePostgrestException('decrementShelfItemUses', e);
-      final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
+      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
       if (idx != -1) {
-        final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
+        final currentUses = _mockShelf[idx].remainingUses;
         final newUses = (currentUses - 1).clamp(0, 999999);
-        _mockShelf[idx]['remaining_uses'] = newUses;
+        _mockShelf[idx] = _mockShelf[idx].copyWith(remainingUses: newUses);
         return _mockShelf[idx];
       }
       return null;
     } catch (e) {
       _handleGenericException('decrementShelfItemUses', e);
-      final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
+      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
       if (idx != -1) {
-        final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
+        final currentUses = _mockShelf[idx].remainingUses;
         final newUses = (currentUses - 1).clamp(0, 999999);
-        _mockShelf[idx]['remaining_uses'] = newUses;
+        _mockShelf[idx] = _mockShelf[idx].copyWith(remainingUses: newUses);
         return _mockShelf[idx];
       }
       return null;
@@ -283,7 +285,7 @@ class SupabaseService {
 
   Future<bool> deleteShelfItem(String itemId) async {
     if (_isOfflineMode) {
-      _mockShelf.removeWhere((x) => x['id'] == itemId);
+      _mockShelf.removeWhere((x) => x.id == itemId);
       return true;
     }
 
@@ -295,19 +297,19 @@ class SupabaseService {
       return true;
     } on PostgrestException catch (e) {
       _handlePostgrestException('deleteShelfItem', e);
-      _mockShelf.removeWhere((x) => x['id'] == itemId);
+      _mockShelf.removeWhere((x) => x.id == itemId);
       return true;
     } catch (e) {
       _handleGenericException('deleteShelfItem', e);
-      _mockShelf.removeWhere((x) => x['id'] == itemId);
+      _mockShelf.removeWhere((x) => x.id == itemId);
       return true;
     }
   }
 
   // ROUTINES
-  Future<List<Map<String, dynamic>>> getRoutines(String userId, String type) async {
+  Future<List<RoutineStep>> getRoutines(String userId, String type) async {
     if (_isOfflineMode) {
-      return _mockRoutines.where((r) => r['routine_type'] == type).toList();
+      return _mockRoutines.where((r) => r.routineType == type).toList();
     }
     try {
       final response = await Supabase.instance.client
@@ -316,20 +318,21 @@ class SupabaseService {
           .eq('user_id', userId)
           .eq('routine_type', type)
           .order('step_number', ascending: true);
-      return List<Map<String, dynamic>>.from(response);
+      return (response as List).map((x) => RoutineStep.fromJson(x as Map<String, dynamic>)).toList();
     } on PostgrestException catch (e) {
       _handlePostgrestException('getRoutines', e);
-      return _mockRoutines.where((r) => r['routine_type'] == type).toList();
+      return _mockRoutines.where((r) => r.routineType == type).toList();
     } catch (e) {
       _handleGenericException('getRoutines', e);
-      return _mockRoutines.where((r) => r['routine_type'] == type).toList();
+      return _mockRoutines.where((r) => r.routineType == type).toList();
     }
   }
 
-  Future<void> addRoutineStep(String userId, Map<String, dynamic> step) async {
-    final newStep = {
-      ...step,
-      'id': step['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+  Future<void> addRoutineStep(String userId, RoutineStep step) async {
+    final String id = step.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : step.id;
+    final newStep = step.copyWith(id: id);
+    final newStepMap = {
+      ...newStep.toJson(),
       'user_id': userId,
     };
     if (_isOfflineMode) {
@@ -337,7 +340,7 @@ class SupabaseService {
       return;
     }
     try {
-      await Supabase.instance.client.from('routines').insert(newStep);
+      await Supabase.instance.client.from('routines').insert(newStepMap);
     } on PostgrestException catch (e) {
       _handlePostgrestException('addRoutineStep', e);
       _mockRoutines.add(newStep);
@@ -348,7 +351,7 @@ class SupabaseService {
   }
 
   // JOURNAL ENTRIES
-  Future<List<Map<String, dynamic>>> getJournalEntries(String userId) async {
+  Future<List<JournalEntry>> getJournalEntries(String userId) async {
     if (_isOfflineMode) {
       return List.from(_mockJournalEntries);
     }
@@ -358,7 +361,7 @@ class SupabaseService {
           .select()
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
-      return List<Map<String, dynamic>>.from(response);
+      return (response as List).map((x) => JournalEntry.fromJson(x as Map<String, dynamic>)).toList();
     } on PostgrestException catch (e) {
       _handlePostgrestException('getJournalEntries', e);
       return List.from(_mockJournalEntries);
@@ -368,10 +371,11 @@ class SupabaseService {
     }
   }
 
-  Future<Map<String, dynamic>> addJournalEntry(String userId, Map<String, dynamic> entry) async {
-    final newEntry = {
-      ...entry,
-      'id': entry['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+  Future<JournalEntry> addJournalEntry(String userId, JournalEntry entry) async {
+    final String id = entry.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : entry.id;
+    final newEntry = entry.copyWith(id: id);
+    final newEntryMap = {
+      ...newEntry.toJson(),
       'user_id': userId,
     };
     if (_isOfflineMode) {
@@ -381,10 +385,10 @@ class SupabaseService {
     try {
       final response = await Supabase.instance.client
           .from('journal_entries')
-          .insert(newEntry)
+          .insert(newEntryMap)
           .select()
           .single();
-      return response;
+      return JournalEntry.fromJson(response);
     } on PostgrestException catch (e) {
       _handlePostgrestException('addJournalEntry', e);
       _mockJournalEntries.insert(0, newEntry);
@@ -435,4 +439,3 @@ class SupabaseService {
     }
   }
 }
-
