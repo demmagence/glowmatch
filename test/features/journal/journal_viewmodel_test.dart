@@ -64,7 +64,7 @@ void main() {
         score: 80,
         notes: 'Format check',
       );
-      final date = vm.entries.first['logged_date'] as String;
+      final date = vm.entries.first.loggedDate;
       // Should match e.g. "Jun 12"
       final monthNames = [
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

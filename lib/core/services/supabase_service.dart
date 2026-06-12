@@ -129,6 +129,30 @@ class SupabaseService {
           name: 'SPF 50+ Sunscreen',
           description: 'Required: High UV Index',
           shelfItemId: 'item-2',
+        ),
+        RoutineStep(
+          id: 'r-pm-1',
+          routineType: 'PM',
+          stepNumber: 1,
+          name: 'Makeup Remover',
+          description: 'Cleansing balm formula',
+          shelfItemId: 'item-1',
+        ),
+        RoutineStep(
+          id: 'r-pm-2',
+          routineType: 'PM',
+          stepNumber: 2,
+          name: 'Night Serum',
+          description: 'Active cell renewal treatment',
+          shelfItemId: 'item-1',
+        ),
+        RoutineStep(
+          id: 'r-pm-3',
+          routineType: 'PM',
+          stepNumber: 3,
+          name: 'Sleeping Mask',
+          description: 'Overnight deep hydration booster',
+          shelfItemId: 'item-3',
         )
       ]);
     }
@@ -229,6 +253,48 @@ class SupabaseService {
       _handleGenericException('addShelfItem', e);
       _mockShelf.add(newItem);
       return newItem;
+    }
+  }
+
+  Future<ShelfItem?> updateShelfItem(String itemId, ShelfItem updates) async {
+    final newItemMap = {
+      ...updates.toJson(),
+      'id': itemId,
+    };
+
+    if (_isOfflineMode) {
+      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
+      if (idx != -1) {
+        _mockShelf[idx] = updates.copyWith(id: itemId);
+        return _mockShelf[idx];
+      }
+      return null;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('skincare_shelf')
+          .update(newItemMap)
+          .eq('id', itemId)
+          .select()
+          .single();
+      return ShelfItem.fromJson(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('updateShelfItem', e);
+      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
+      if (idx != -1) {
+        _mockShelf[idx] = updates.copyWith(id: itemId);
+        return _mockShelf[idx];
+      }
+      return null;
+    } catch (e) {
+      _handleGenericException('updateShelfItem', e);
+      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
+      if (idx != -1) {
+        _mockShelf[idx] = updates.copyWith(id: itemId);
+        return _mockShelf[idx];
+      }
+      return null;
     }
   }
 
