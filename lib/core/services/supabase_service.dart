@@ -159,6 +159,24 @@ class SupabaseService {
     }
   }
 
+  // --- Exception Helpers ---
+
+  void _handlePostgrestException(String operation, PostgrestException e) {
+    if (e.code == '42501') {
+      debugPrint('Supabase Security: [RLS/Permission Denied] in $operation. Code: ${e.code}, Message: ${e.message}, Details: ${e.details}');
+    } else {
+      debugPrint('Supabase PostgrestException in $operation. Code: ${e.code}, Message: ${e.message}, Details: ${e.details}');
+    }
+  }
+
+  void _handleStorageException(String operation, StorageException e) {
+    debugPrint('Supabase StorageException in $operation. Code: ${e.statusCode}, Message: ${e.message}');
+  }
+
+  void _handleGenericException(String operation, dynamic e) {
+    debugPrint('Supabase Generic Exception in $operation: $e');
+  }
+
   // --- CRUD API ---
 
   // SHELF ITEMS
@@ -172,7 +190,11 @@ class SupabaseService {
           .select()
           .eq('user_id', userId);
       return List<Map<String, dynamic>>.from(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('getShelfItems', e);
+      return List.from(_mockShelf);
     } catch (e) {
+      _handleGenericException('getShelfItems', e);
       return List.from(_mockShelf);
     }
   }
@@ -197,7 +219,12 @@ class SupabaseService {
           .select()
           .single();
       return response;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('addShelfItem', e);
+      _mockShelf.add(newItem);
+      return newItem;
     } catch (e) {
+      _handleGenericException('addShelfItem', e);
       _mockShelf.add(newItem);
       return newItem;
     }
@@ -231,8 +258,18 @@ class SupabaseService {
           .select()
           .single();
       return response;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('decrementShelfItemUses', e);
+      final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
+      if (idx != -1) {
+        final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
+        final newUses = (currentUses - 1).clamp(0, 999999);
+        _mockShelf[idx]['remaining_uses'] = newUses;
+        return _mockShelf[idx];
+      }
+      return null;
     } catch (e) {
-      debugPrint('Error decrementing shelf item: $e. Falling back to offline.');
+      _handleGenericException('decrementShelfItemUses', e);
       final idx = _mockShelf.indexWhere((x) => x['id'] == itemId);
       if (idx != -1) {
         final currentUses = _mockShelf[idx]['remaining_uses'] as int? ?? 0;
@@ -256,8 +293,12 @@ class SupabaseService {
           .delete()
           .eq('id', itemId);
       return true;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('deleteShelfItem', e);
+      _mockShelf.removeWhere((x) => x['id'] == itemId);
+      return true;
     } catch (e) {
-      debugPrint('Error deleting shelf item: $e. Falling back to offline.');
+      _handleGenericException('deleteShelfItem', e);
       _mockShelf.removeWhere((x) => x['id'] == itemId);
       return true;
     }
@@ -276,7 +317,11 @@ class SupabaseService {
           .eq('routine_type', type)
           .order('step_number', ascending: true);
       return List<Map<String, dynamic>>.from(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('getRoutines', e);
+      return _mockRoutines.where((r) => r['routine_type'] == type).toList();
     } catch (e) {
+      _handleGenericException('getRoutines', e);
       return _mockRoutines.where((r) => r['routine_type'] == type).toList();
     }
   }
@@ -293,7 +338,11 @@ class SupabaseService {
     }
     try {
       await Supabase.instance.client.from('routines').insert(newStep);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('addRoutineStep', e);
+      _mockRoutines.add(newStep);
     } catch (e) {
+      _handleGenericException('addRoutineStep', e);
       _mockRoutines.add(newStep);
     }
   }
@@ -310,7 +359,11 @@ class SupabaseService {
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
       return List<Map<String, dynamic>>.from(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('getJournalEntries', e);
+      return List.from(_mockJournalEntries);
     } catch (e) {
+      _handleGenericException('getJournalEntries', e);
       return List.from(_mockJournalEntries);
     }
   }
@@ -332,7 +385,12 @@ class SupabaseService {
           .select()
           .single();
       return response;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('addJournalEntry', e);
+      _mockJournalEntries.insert(0, newEntry);
+      return newEntry;
     } catch (e) {
+      _handleGenericException('addJournalEntry', e);
       _mockJournalEntries.insert(0, newEntry);
       return newEntry;
     }
@@ -368,8 +426,11 @@ class SupabaseService {
 
       debugPrint('SupabaseService: Photo uploaded → $publicUrl');
       return publicUrl;
+    } on StorageException catch (e) {
+      _handleStorageException('uploadJournalPhoto', e);
+      return localFilePath;
     } catch (e) {
-      debugPrint('SupabaseService: Upload failed: $e. Falling back to local path.');
+      _handleGenericException('uploadJournalPhoto', e);
       return localFilePath;
     }
   }
