@@ -373,5 +373,14 @@ class SupabaseService {
       return localFilePath;
     }
   }
+
+  /// Clears all in-memory mock data. Only call from tests.
+  @visibleForTesting
+  void resetForTesting() {
+    _mockShelf.clear();
+    _mockRoutines.clear();
+    _mockJournalEntries.clear();
+    _isOfflineMode = true;
+  }
 }
 
