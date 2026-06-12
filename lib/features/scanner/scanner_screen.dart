@@ -173,7 +173,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85), // ignore: deprecated_member_use
+                      color: Colors.white.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
@@ -210,7 +210,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 4),
-                        color: Colors.white.withOpacity(scannerVm.isProcessing ? 0.5 : 1.0), // ignore: deprecated_member_use
+                        color: Colors.white.withValues(alpha: scannerVm.isProcessing ? 0.5 : 1.0),
                       ),
                     ),
                   ),

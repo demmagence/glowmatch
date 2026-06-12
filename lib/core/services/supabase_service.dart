@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
+import '../constants.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -211,7 +212,7 @@ class SupabaseService {
     }
     try {
       final response = await Supabase.instance.client
-          .from('skincare_shelf')
+          .from(AppConstants.tableSkincareShelf)
           .select()
           .eq('user_id', userId);
       return (response as List).map((x) => ShelfItem.fromJson(x as Map<String, dynamic>)).toList();
@@ -240,7 +241,7 @@ class SupabaseService {
 
     try {
       final response = await Supabase.instance.client
-          .from('skincare_shelf')
+          .from(AppConstants.tableSkincareShelf)
           .insert(newItemMap)
           .select()
           .single();
@@ -273,7 +274,7 @@ class SupabaseService {
 
     try {
       final response = await Supabase.instance.client
-          .from('skincare_shelf')
+          .from(AppConstants.tableSkincareShelf)
           .update(newItemMap)
           .eq('id', itemId)
           .select()
@@ -312,7 +313,7 @@ class SupabaseService {
 
     try {
       final currentResponse = await Supabase.instance.client
-          .from('skincare_shelf')
+          .from(AppConstants.tableSkincareShelf)
           .select('remaining_uses')
           .eq('id', itemId)
           .single();
@@ -320,7 +321,7 @@ class SupabaseService {
       final newUses = (currentUses - 1).clamp(0, 999999);
 
       final response = await Supabase.instance.client
-          .from('skincare_shelf')
+          .from(AppConstants.tableSkincareShelf)
           .update({'remaining_uses': newUses})
           .eq('id', itemId)
           .select()
@@ -357,7 +358,7 @@ class SupabaseService {
 
     try {
       await Supabase.instance.client
-          .from('skincare_shelf')
+          .from(AppConstants.tableSkincareShelf)
           .delete()
           .eq('id', itemId);
       return true;
@@ -379,7 +380,7 @@ class SupabaseService {
     }
     try {
       final response = await Supabase.instance.client
-          .from('routines')
+          .from(AppConstants.tableRoutines)
           .select()
           .eq('user_id', userId)
           .eq('routine_type', type)
@@ -406,7 +407,7 @@ class SupabaseService {
       return;
     }
     try {
-      await Supabase.instance.client.from('routines').insert(newStepMap);
+      await Supabase.instance.client.from(AppConstants.tableRoutines).insert(newStepMap);
     } on PostgrestException catch (e) {
       _handlePostgrestException('addRoutineStep', e);
       _mockRoutines.add(newStep);
@@ -423,7 +424,7 @@ class SupabaseService {
     }
     try {
       final response = await Supabase.instance.client
-          .from('journal_entries')
+          .from(AppConstants.tableJournalEntries)
           .select()
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
@@ -450,7 +451,7 @@ class SupabaseService {
     }
     try {
       final response = await Supabase.instance.client
-          .from('journal_entries')
+          .from(AppConstants.tableJournalEntries)
           .insert(newEntryMap)
           .select()
           .single();
@@ -480,7 +481,7 @@ class SupabaseService {
     try {
       final file = File(localFilePath);
       final fileName = '$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      const bucketName = 'journal-photos';
+      const bucketName = AppConstants.bucketJournalPhotos;
 
       await Supabase.instance.client.storage
           .from(bucketName)

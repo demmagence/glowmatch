@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import '../constants.dart';
 
 class WeatherData {
   final String locationName;
@@ -90,8 +91,8 @@ class WeatherService {
   WeatherData _mockFallback(String status) {
     // Default mock data matches the morning routine screenshot mockup: "Los Angeles, CA • 33°C"
     return WeatherData(
-      locationName: 'Los Angeles, CA ($status)',
-      temperature: 33.0,
+      locationName: '${AppConstants.defaultMockLocation} ($status)',
+      temperature: AppConstants.defaultMockTemperature,
       condition: 'Sunny',
     );
   }

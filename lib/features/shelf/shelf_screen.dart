@@ -4,6 +4,7 @@ import 'shelf_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../profile/profile_screen.dart';
+import '../../core/constants.dart';
 
 class ShelfScreen extends StatelessWidget {
   const ShelfScreen({super.key});
@@ -247,7 +248,7 @@ class ShelfScreen extends StatelessWidget {
                   // Finished Overlay
                   if (isEmpty)
                     Container(
-                      color: Colors.white.withOpacity(0.65), // ignore: deprecated_member_use
+                      color: Colors.white.withValues(alpha: 0.65),
                       alignment: Alignment.center,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -450,7 +451,7 @@ class ShelfScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: dotColor.withOpacity(0.15), // ignore: deprecated_member_use
+                                color: dotColor.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -737,14 +738,7 @@ class ShelfScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
                   onPressed: () {
                     if (nameController.text.isNotEmpty) {
-                      String hexColor = '0xFFE040FB'; // default purple
-                      if (selectedCategory == 'Sunscreen') {
-                        hexColor = '0xFF64DD17'; // green
-                      } else if (selectedCategory == 'Moisturizer') {
-                        hexColor = '0xFFD50000'; // red
-                      } else if (selectedCategory == 'Cleanser') {
-                        hexColor = '0xFF29B6F6'; // light blue
-                      }
+                      String hexColor = AppConstants.categoryColors[selectedCategory] ?? '0xFFE040FB';
 
                       final ingList = ingredientsController.text
                           .split(',')
@@ -847,15 +841,7 @@ class ShelfScreen extends StatelessWidget {
                     if (nameController.text.isNotEmpty) {
                       String hexColor = item.indicatorColor;
                       if (selectedCategory != item.category) {
-                        if (selectedCategory == 'Sunscreen') {
-                          hexColor = '0xFF64DD17'; // green
-                        } else if (selectedCategory == 'Moisturizer') {
-                          hexColor = '0xFFD50000'; // red
-                        } else if (selectedCategory == 'Cleanser') {
-                          hexColor = '0xFF29B6F6'; // light blue
-                        } else {
-                          hexColor = '0xFFE040FB'; // default purple (Serum)
-                        }
+                        hexColor = AppConstants.categoryColors[selectedCategory] ?? '0xFFE040FB';
                       }
 
                       final ingList = ingredientsController.text
