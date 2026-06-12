@@ -4,6 +4,7 @@ import 'routine_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../shelf/shelf_viewmodel.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -47,7 +48,10 @@ class HomeScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.account_circle_outlined, size: 28),
                   onPressed: () {
-                    // Profile screen integration
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    );
                   },
                 ),
               ],

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'shelf_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
+import '../profile/profile_screen.dart';
 
 class ShelfScreen extends StatelessWidget {
   const ShelfScreen({super.key});
@@ -43,7 +44,12 @@ class ShelfScreen extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.account_circle_outlined, size: 28),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    );
+                  },
                 ),
               ],
             ),
