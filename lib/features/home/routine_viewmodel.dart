@@ -14,6 +14,7 @@ class RoutineViewModel extends ChangeNotifier {
   
   String _activeRoutine = 'AM';
   bool _isLoading = false;
+  String? _errorMessage;
   WeatherData? _weather;
 
   List<RoutineStep> get amSteps => _amSteps;
@@ -21,6 +22,7 @@ class RoutineViewModel extends ChangeNotifier {
   Set<String> get completedStepIds => _completedStepIds;
   String get activeRoutine => _activeRoutine;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   WeatherData? get weather => _weather;
 
   // Steps matching the active routine (AM or PM)
@@ -38,13 +40,18 @@ class RoutineViewModel extends ChangeNotifier {
 
   Future<void> init(String userId) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    await fetchWeather();
-    await loadRoutines(userId);
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await fetchWeather();
+      await loadRoutines(userId);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> fetchWeather() async {
@@ -65,6 +72,8 @@ class RoutineViewModel extends ChangeNotifier {
       _completedStepIds.clear();
     } catch (e) {
       debugPrint('Error loading routines: $e');
+      _errorMessage = e.toString();
+      rethrow;
     }
     notifyListeners();
   }

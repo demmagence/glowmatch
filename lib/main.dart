@@ -40,6 +40,7 @@ class GlowMatchApp extends StatelessWidget {
           create: (_) => BudgetViewModel(),
           update: (_, shelfVm, budgetVm) {
             if (budgetVm != null) {
+              budgetVm.setLoading(shelfVm.isLoading);
               budgetVm.updateFromShelf(shelfVm.shelfItems);
             }
             return budgetVm!;

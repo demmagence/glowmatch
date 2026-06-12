@@ -4,7 +4,8 @@ import 'routine_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../shelf/shelf_viewmodel.dart';
-import '../profile/profile_screen.dart';
+import '../../core/widgets/glowmatch_header.dart';
+import '../../core/widgets/error_state_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,300 +25,283 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header: GlowMatch.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                RichText(
-                  text: const TextSpan(
-                    text: 'GlowMatch',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                      letterSpacing: -0.5,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '.',
-                        style: TextStyle(color: Colors.red, fontSize: 32),
-                      )
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.account_circle_outlined, size: 28),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                    );
-                  },
-                ),
-              ],
-            ),
+            const GlowMatchHeader(),
             const SizedBox(height: 24),
 
-            // Title and Weather Metadata
-            Text(
-              routineVm.activeRoutine == 'AM' ? 'Morning Routine' : 'Evening Routine',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.wb_sunny_outlined, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Text(
-                  weather != null
-                      ? '${weather.locationName} • ${weather.temperature.toStringAsFixed(0)}°C'
-                      : 'Los Angeles, CA • 33°C',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
+            if (routineVm.isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 64.0),
+                  child: CircularProgressIndicator(),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // AM / PM Switcher Toggles
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(30),
+              )
+            else if (routineVm.errorMessage != null)
+              ErrorStateWidget(
+                message: routineVm.errorMessage!,
+                onRetry: () => routineVm.init(authVm.userId),
+              )
+            else ...[
+              // Title and Weather Metadata
+              Text(
+                routineVm.activeRoutine == 'AM' ? 'Morning Routine' : 'Evening Routine',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  letterSpacing: -0.5,
+                ),
               ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
+              const SizedBox(height: 4),
+              Row(
                 children: [
-                  Expanded(
-                    child: _buildToggleItem(
-                      label: 'AM',
-                      isActive: routineVm.activeRoutine == 'AM',
-                      onTap: () => routineVm.setActiveRoutine('AM'),
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildToggleItem(
-                      label: 'PM',
-                      isActive: routineVm.activeRoutine == 'PM',
-                      onTap: () => routineVm.setActiveRoutine('PM'),
+                  const Icon(Icons.wb_sunny_outlined, size: 16, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Text(
+                    weather != null
+                        ? '${weather.locationName} • ${weather.temperature.toStringAsFixed(0)}°C'
+                        : 'Los Angeles, CA • 33°C',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
-            // Steps Progress Indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Steps',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+              // AM / PM Switcher Toggles
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(30),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.pink.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-                    child: Text(
-                      '${routineVm.completedCount}/${routineVm.totalCount} Completed',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.pink.shade300,
-                        fontWeight: FontWeight.bold,
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildToggleItem(
+                        label: 'AM',
+                        isActive: routineVm.activeRoutine == 'AM',
+                        onTap: () => routineVm.setActiveRoutine('AM'),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Steps Routine Checklist cards
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: routineVm.currentSteps.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final RoutineStep step = routineVm.currentSteps[index];
-                final isCompleted = routineVm.completedStepIds.contains(step.id);
-
-                return GestureDetector(
-                  onTap: () {
-                    final bool isCompleting = !isCompleted;
-                    routineVm.toggleStep(step.id, shelfVm);
-
-                    if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-                      final product = shelfVm.shelfItems.firstWhere(
-                        (p) => p.id == step.shelfItemId,
-                        orElse: () => ShelfItem(
-                          id: '',
-                          name: '',
-                          brand: '',
-                          category: '',
-                          price: 0,
-                          estimatedUses: 0,
-                          remainingUses: 0,
-                          indicatorColor: '',
-                          ingredients: [],
-                        ),
-                      );
-                      final productName = product.name.isNotEmpty ? product.name : step.name;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Used 1 apply of $productName!'),
-                          backgroundColor: Colors.black,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black, width: 1.2),
-                      borderRadius: BorderRadius.circular(8),
+                    Expanded(
+                      child: _buildToggleItem(
+                        label: 'PM',
+                        isActive: routineVm.activeRoutine == 'PM',
+                        onTap: () => routineVm.setActiveRoutine('PM'),
+                      ),
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        // Custom circular check indicator
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black, width: 1.5),
-                            color: isCompleted ? Colors.black : Colors.transparent,
-                          ),
-                          child: isCompleted
-                              ? const Icon(Icons.check, color: Colors.white, size: 14)
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        // Titles and subtitles
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                step.name.isEmpty ? 'Custom Step' : step.name,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                  decoration: isCompleted
-                                      ? TextDecoration.lineThrough
-                                      : null,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                step.description ?? '',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Step number label
-                        Text(
-                          'Step ${index + 1}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade400,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 12),
-
-            // Click to add Card
-            GestureDetector(
-              onTap: () => _showAddStepDialog(context, authVm.userId, routineVm),
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1.2),
-                  borderRadius: BorderRadius.circular(8),
+                  ],
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 22),
-                child: const Center(
-                  child: Text(
-                    'Click to add',
+              ),
+              const SizedBox(height: 32),
+
+              // Steps Progress Indicator
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Steps',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // Complete Routine Button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.pink.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                      child: Text(
+                        '${routineVm.completedCount}/${routineVm.totalCount} Completed',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.pink.shade300,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
-                  elevation: 0,
-                ),
-                onPressed: () {
-                  routineVm.completeRoutine(authVm.userId);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Routine Completed! Consistency score updated.'),
-                      backgroundColor: Colors.black,
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Steps Routine Checklist cards
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: routineVm.currentSteps.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final RoutineStep step = routineVm.currentSteps[index];
+                  final isCompleted = routineVm.completedStepIds.contains(step.id);
+
+                  return GestureDetector(
+                    onTap: () {
+                      final bool isCompleting = !isCompleted;
+                      routineVm.toggleStep(step.id, shelfVm);
+
+                      if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                        final product = shelfVm.shelfItems.firstWhere(
+                          (p) => p.id == step.shelfItemId,
+                          orElse: () => ShelfItem(
+                            id: '',
+                            name: '',
+                            brand: '',
+                            category: '',
+                            price: 0,
+                            estimatedUses: 0,
+                            remainingUses: 0,
+                            indicatorColor: '',
+                            ingredients: [],
+                          ),
+                        );
+                        final productName = product.name.isNotEmpty ? product.name : step.name;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Used 1 apply of $productName!'),
+                            backgroundColor: Colors.black,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black, width: 1.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Custom circular check indicator
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.black, width: 1.5),
+                              color: isCompleted ? Colors.black : Colors.transparent,
+                            ),
+                            child: isCompleted
+                                ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          // Titles and subtitles
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  step.name.isEmpty ? 'Custom Step' : step.name,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    decoration: isCompleted
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  step.description ?? '',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Step number label
+                          Text(
+                            'Step ${index + 1}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Complete Routine',
+              ),
+
+              const SizedBox(height: 12),
+
+              // Click to add Card
+              GestureDetector(
+                onTap: () => _showAddStepDialog(context, authVm.userId, routineVm),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 1.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 22),
+                  child: const Center(
+                    child: Text(
+                      'Click to add',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.check_circle_outline, size: 20),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 28),
+
+              // Complete Routine Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    routineVm.completeRoutine(authVm.userId);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Routine Completed! Consistency score updated.'),
+                        backgroundColor: Colors.black,
+                      ),
+                    );
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Complete Routine',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.check_circle_outline, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

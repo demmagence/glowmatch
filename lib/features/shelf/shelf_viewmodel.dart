@@ -7,10 +7,12 @@ class ShelfViewModel extends ChangeNotifier {
 
   List<ShelfItem> _shelfItems = [];
   bool _isLoading = false;
+  String? _errorMessage;
   String _selectedCategoryFilter = 'All';
 
   List<ShelfItem> get shelfItems => _shelfItems;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   String get selectedCategoryFilter => _selectedCategoryFilter;
 
   // Filtered shelf items based on selection
@@ -25,12 +27,14 @@ class ShelfViewModel extends ChangeNotifier {
 
   Future<void> fetchShelf(String userId) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
       _shelfItems = await _supabaseService.getShelfItems(userId);
     } catch (e) {
       debugPrint('Error fetching shelf items: $e');
+      _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();

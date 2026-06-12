@@ -14,6 +14,17 @@ class CategoryAllocation {
 }
 
 class BudgetViewModel extends ChangeNotifier {
+  bool _isLoading = false;
+
+  bool get isLoading => _isLoading;
+
+  void setLoading(bool value) {
+    if (_isLoading != value) {
+      _isLoading = value;
+      notifyListeners();
+    }
+  }
+
   // Calculator inputs
   double _productPrice = 120.00;
   int _estimatedUses = 60;

@@ -3,10 +3,54 @@ import 'package:provider/provider.dart';
 import 'shelf_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
-import '../profile/profile_screen.dart';
+import '../../core/widgets/glowmatch_header.dart';
+import '../../core/widgets/neobrutalist_card.dart';
+import '../../core/widgets/error_state_widget.dart';
 
 class ShelfScreen extends StatelessWidget {
   const ShelfScreen({super.key});
+
+  Widget _buildSkeletonCard() {
+    return NeobrutalistCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              color: Colors.grey.shade50,
+              child: const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 80,
+                  height: 14,
+                  color: Colors.grey.shade200,
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  width: 50,
+                  height: 10,
+                  color: Colors.grey.shade100,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,138 +59,117 @@ class ShelfScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header: GlowMatch.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                RichText(
-                  text: const TextSpan(
-                    text: 'GlowMatch',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black,
-                      letterSpacing: -0.5,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '.',
-                        style: TextStyle(color: Colors.red, fontSize: 32),
-                      )
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.account_circle_outlined, size: 28),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+      body: RefreshIndicator(
+        onRefresh: () => shelfVm.fetchShelf(authVm.userId),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header: GlowMatch.
+              const GlowMatchHeader(),
+              const SizedBox(height: 24),
 
-            // Title and FILTER Action
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'My Shelf',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    side: const BorderSide(color: Colors.black, width: 1.2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  ),
-                  onPressed: () => _showFilterDialog(context, shelfVm),
-                  child: const Text(
-                    'FILTER',
+              // Title and FILTER Action
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'My Shelf',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
+                      color: Colors.black,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Products Grid
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: shelfVm.filteredItems.length + 1, // +1 for the Add New Card
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.72,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 20,
-              ),
-              itemBuilder: (context, index) {
-                if (index == shelfVm.filteredItems.length) {
-                  // Add Skincare Card
-                  return GestureDetector(
-                    onTap: () => _showAddProductDialog(context, authVm.userId, shelfVm),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 1.2),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black, width: 1.2),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
-                        color: Colors.white,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.grey,
-                            blurRadius: 0,
-                            offset: Offset(4, 4),
-                          )
-                        ],
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.add, size: 48, color: Colors.black),
-                          SizedBox(height: 16),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12.0),
-                            child: Text(
-                              'tekan untuk tambah skincare baru',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                    onPressed: () => _showFilterDialog(context, shelfVm),
+                    child: const Text(
+                      'FILTER',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Products Grid or loading/error
+              if (shelfVm.errorMessage != null)
+                ErrorStateWidget(
+                  message: shelfVm.errorMessage!,
+                  onRetry: () => shelfVm.fetchShelf(authVm.userId),
+                )
+              else if (shelfVm.isLoading)
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 4,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 20,
+                  ),
+                  itemBuilder: (context, index) => _buildSkeletonCard(),
+                )
+              else
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: shelfVm.filteredItems.length + 1, // +1 for the Add New Card
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 20,
+                  ),
+                  itemBuilder: (context, index) {
+                    if (index == shelfVm.filteredItems.length) {
+                      // Add Skincare Card
+                      return NeobrutalistCard(
+                        shadowColor: Colors.grey,
+                        onTap: () => _showAddProductDialog(context, authVm.userId, shelfVm),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.add, size: 48, color: Colors.black),
+                            SizedBox(height: 16),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12.0),
+                              child: Text(
+                                'tekan untuk tambah skincare baru',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
+                          ],
+                        ),
+                      );
+                    }
 
-                final item = shelfVm.filteredItems[index];
-                return _buildNeobrutalistProductCard(context, item, shelfVm);
-              },
-            ),
-          ],
+                    final item = shelfVm.filteredItems[index];
+                    return _buildNeobrutalistProductCard(context, item, shelfVm);
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -161,24 +184,11 @@ class ShelfScreen extends StatelessWidget {
     final bool isEmpty = remainingUses <= 0;
     final double progress = estimatedUses > 0 ? (remainingUses / estimatedUses).clamp(0.0, 1.0) : 0.0;
 
-    return GestureDetector(
+    return NeobrutalistCard(
       onTap: () => _showProductDetailsBottomSheet(context, item, shelfVm),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 1.2),
-          borderRadius: BorderRadius.circular(4),
-          color: Colors.white,
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black87,
-              blurRadius: 0,
-              offset: Offset(4, 4),
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             // Product Packaging Image Placeholder
             Expanded(
               child: Stack(
@@ -368,7 +378,6 @@ class ShelfScreen extends StatelessWidget {
               ),
             ),
           ],
-        ),
       ),
     );
   }
