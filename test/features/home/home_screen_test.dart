@@ -5,12 +5,13 @@ import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
 import 'package:glowmatch/features/home/home_screen.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
+import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
 
 Widget _buildHome(RoutineViewModel routineVm) {
   return MultiProvider(
     providers: [
-      // AuthViewModel in offline mode → userId == 'offline-guest-user'
       ChangeNotifierProvider<AuthViewModel>(create: (_) => AuthViewModel()),
+      ChangeNotifierProvider<ShelfViewModel>(create: (_) => ShelfViewModel()),
       ChangeNotifierProvider<RoutineViewModel>.value(value: routineVm),
     ],
     child: const MaterialApp(home: HomeScreen()),

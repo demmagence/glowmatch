@@ -73,6 +73,43 @@ class ShelfViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> editProduct({
+    required String itemId,
+    required String name,
+    required String brand,
+    required String category,
+    required double price,
+    required int estimatedUses,
+    required int remainingUses,
+    required String colorHex,
+    List<String>? ingredients,
+  }) async {
+    final ShelfItem item = ShelfItem(
+      id: itemId,
+      name: name,
+      brand: brand,
+      category: category,
+      price: price,
+      estimatedUses: estimatedUses,
+      remainingUses: remainingUses,
+      indicatorColor: colorHex,
+      ingredients: ingredients ?? <String>[],
+    );
+
+    try {
+      final updatedItem = await _supabaseService.updateShelfItem(itemId, item);
+      if (updatedItem != null) {
+        final idx = _shelfItems.indexWhere((x) => x.id == itemId);
+        if (idx != -1) {
+          _shelfItems[idx] = updatedItem;
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error editing shelf product: $e');
+    }
+  }
+
   Future<void> useProduct(String itemId) async {
     try {
       final updatedItem = await _supabaseService.decrementShelfItemUses(itemId);

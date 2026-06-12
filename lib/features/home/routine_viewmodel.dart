@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/weather_service.dart';
 import '../../core/models/models.dart';
+import '../shelf/shelf_viewmodel.dart';
 
 class RoutineViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
@@ -76,11 +77,20 @@ class RoutineViewModel extends ChangeNotifier {
     }
   }
 
-  void toggleStep(String stepId) {
+  void toggleStep(String stepId, ShelfViewModel shelfVm) {
     if (_completedStepIds.contains(stepId)) {
       _completedStepIds.remove(stepId);
     } else {
       _completedStepIds.add(stepId);
+
+      // Decrement associated shelf product uses
+      final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
+      if (stepIdx != -1) {
+        final step = currentSteps[stepIdx];
+        if (step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+          shelfVm.useProduct(step.shelfItemId!);
+        }
+      }
     }
     notifyListeners();
   }

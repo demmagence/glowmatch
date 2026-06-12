@@ -52,7 +52,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Colors.black),
         title: const Text(
           'GLOWMATCH',
           style: TextStyle(

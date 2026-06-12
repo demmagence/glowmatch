@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glowmatch/features/budget/budget_viewmodel.dart';
+import 'package:glowmatch/core/models/models.dart';
 
 void main() {
   group('BudgetViewModel', () {
@@ -33,9 +34,9 @@ void main() {
 
     test('updateFromShelf groups items by category and sums amounts', () {
       vm.updateFromShelf([
-        {'category': 'Serum', 'price': 42.0},
-        {'category': 'Serum', 'price': 18.0},
-        {'category': 'Moisturizer', 'price': 58.0},
+        ShelfItem(id: '1', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
+        ShelfItem(id: '2', category: 'Serum', price: 18.0, name: 'S2', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
+        ShelfItem(id: '3', category: 'Moisturizer', price: 58.0, name: 'M1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFD50000', ingredients: const []),
       ]);
 
       final serum = vm.allocations.firstWhere((a) => a.category == 'Serum');
@@ -46,8 +47,8 @@ void main() {
 
     test('updateFromShelf assigns correct colorHex per category', () {
       vm.updateFromShelf([
-        {'category': 'Sunscreen', 'price': 20.0},
-        {'category': 'Cleanser', 'price': 15.0},
+        ShelfItem(id: '1', category: 'Sunscreen', price: 20.0, name: 'Sun1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF64DD17', ingredients: const []),
+        ShelfItem(id: '2', category: 'Cleanser', price: 15.0, name: 'C1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF29B6F6', ingredients: const []),
       ]);
 
       final sun = vm.allocations.firstWhere((a) => a.category == 'Sunscreen');
@@ -58,9 +59,9 @@ void main() {
 
     test('updateFromShelf sorts allocations descending by amount', () {
       vm.updateFromShelf([
-        {'category': 'Cleanser', 'price': 10.0},
-        {'category': 'Moisturizer', 'price': 58.0},
-        {'category': 'Serum', 'price': 42.0},
+        ShelfItem(id: '1', category: 'Cleanser', price: 10.0, name: 'C1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF29B6F6', ingredients: const []),
+        ShelfItem(id: '2', category: 'Moisturizer', price: 58.0, name: 'M1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFD50000', ingredients: const []),
+        ShelfItem(id: '3', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
       ]);
 
       final amounts = vm.allocations.map((a) => a.amount).toList();
@@ -73,9 +74,9 @@ void main() {
 
     test('totalMonthlySpend sums all allocation amounts', () {
       vm.updateFromShelf([
-        {'category': 'Serum', 'price': 42.0},
-        {'category': 'Sunscreen', 'price': 20.0},
-        {'category': 'Moisturizer', 'price': 58.0},
+        ShelfItem(id: '1', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
+        ShelfItem(id: '2', category: 'Sunscreen', price: 20.0, name: 'Sun1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF64DD17', ingredients: const []),
+        ShelfItem(id: '3', category: 'Moisturizer', price: 58.0, name: 'M1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFD50000', ingredients: const []),
       ]);
       expect(vm.totalMonthlySpend, closeTo(120.0, 0.001));
     });

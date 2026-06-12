@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'routine_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
+import '../shelf/shelf_viewmodel.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,6 +13,7 @@ class HomeScreen extends StatelessWidget {
     final routineVm = Provider.of<RoutineViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context);
     final weather = routineVm.weather;
+    final shelfVm = Provider.of<ShelfViewModel>(context, listen: false);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -154,7 +156,35 @@ class HomeScreen extends StatelessWidget {
                 final isCompleted = routineVm.completedStepIds.contains(step.id);
 
                 return GestureDetector(
-                  onTap: () => routineVm.toggleStep(step.id),
+                  onTap: () {
+                    final bool isCompleting = !isCompleted;
+                    routineVm.toggleStep(step.id, shelfVm);
+
+                    if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                      final product = shelfVm.shelfItems.firstWhere(
+                        (p) => p.id == step.shelfItemId,
+                        orElse: () => ShelfItem(
+                          id: '',
+                          name: '',
+                          brand: '',
+                          category: '',
+                          price: 0,
+                          estimatedUses: 0,
+                          remainingUses: 0,
+                          indicatorColor: '',
+                          ingredients: [],
+                        ),
+                      );
+                      final productName = product.name.isNotEmpty ? product.name : step.name;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Used 1 apply of $productName!'),
+                          backgroundColor: Colors.black,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.black, width: 1.2),

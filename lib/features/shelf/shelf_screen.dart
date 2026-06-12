@@ -514,6 +514,24 @@ class ShelfScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        side: const BorderSide(color: Colors.black, width: 1.2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showEditProductDialog(context, item, shelfVm);
+                      },
+                      child: const Text('EDIT PRODUCT', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red, width: 1.2),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -528,32 +546,33 @@ class ShelfScreen extends StatelessWidget {
                       child: const Text('DELETE PRODUCT', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      onPressed: remainingUses > 0
-                          ? () {
-                              shelfVm.useProduct(item.id);
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Used 1 apply of ${item.name}!'),
-                                  backgroundColor: Colors.black,
-                                ),
-                              );
-                            }
-                          : null,
-                      child: const Text('USE PRODUCT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                ],
+                  onPressed: remainingUses > 0
+                      ? () {
+                          shelfVm.useProduct(item.id);
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Used 1 apply of ${item.name}!'),
+                              backgroundColor: Colors.black,
+                            ),
+                          );
+                        }
+                      : null,
+                  child: const Text('USE PRODUCT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
               ),
             ],
           ),
@@ -741,6 +760,119 @@ class ShelfScreen extends StatelessWidget {
                     }
                   },
                   child: const Text('Add Product', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditProductDialog(BuildContext context, ShelfItem item, ShelfViewModel vm) {
+    final nameController = TextEditingController(text: item.name);
+    final brandController = TextEditingController(text: item.brand);
+    final priceController = TextEditingController(text: item.price.toString());
+    final usesController = TextEditingController(text: item.estimatedUses.toString());
+    final remainingUsesController = TextEditingController(text: item.remainingUses.toString());
+    final ingredientsController = TextEditingController(text: item.ingredients.join(', '));
+    String selectedCategory = item.category;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: const Text('Edit Skincare Product', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Product Name'),
+                    ),
+                    TextField(
+                      controller: brandController,
+                      decoration: const InputDecoration(labelText: 'Brand'),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedCategory, // ignore: deprecated_member_use
+                      decoration: const InputDecoration(labelText: 'Category'),
+                      items: ['Serum', 'Moisturizer', 'Cleanser', 'Sunscreen'].map((cat) {
+                        return DropdownMenuItem(value: cat, child: Text(cat));
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => selectedCategory = val);
+                      },
+                    ),
+                    TextField(
+                      controller: priceController,
+                      decoration: const InputDecoration(labelText: 'Price (USD)'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    TextField(
+                      controller: usesController,
+                      decoration: const InputDecoration(labelText: 'Estimated Uses'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    TextField(
+                      controller: remainingUsesController,
+                      decoration: const InputDecoration(labelText: 'Remaining Uses'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    TextField(
+                      controller: ingredientsController,
+                      decoration: const InputDecoration(labelText: 'Ingredients (comma separated)'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  onPressed: () {
+                    if (nameController.text.isNotEmpty) {
+                      String hexColor = item.indicatorColor;
+                      if (selectedCategory != item.category) {
+                        if (selectedCategory == 'Sunscreen') {
+                          hexColor = '0xFF64DD17'; // green
+                        } else if (selectedCategory == 'Moisturizer') {
+                          hexColor = '0xFFD50000'; // red
+                        } else if (selectedCategory == 'Cleanser') {
+                          hexColor = '0xFF29B6F6'; // light blue
+                        } else {
+                          hexColor = '0xFFE040FB'; // default purple (Serum)
+                        }
+                      }
+
+                      final ingList = ingredientsController.text
+                          .split(',')
+                          .map((e) => e.trim())
+                          .where((e) => e.isNotEmpty)
+                          .toList();
+
+                      vm.editProduct(
+                        itemId: item.id,
+                        name: nameController.text,
+                        brand: brandController.text,
+                        category: selectedCategory,
+                        price: double.tryParse(priceController.text) ?? item.price,
+                        estimatedUses: int.tryParse(usesController.text) ?? item.estimatedUses,
+                        remainingUses: int.tryParse(remainingUsesController.text) ?? item.remainingUses,
+                        colorHex: hexColor,
+                        ingredients: ingList,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
