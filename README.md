@@ -177,10 +177,3 @@ USING (auth.uid() = user_id);
 
 ### 3. Create Storage Bucket
 Create a new public storage bucket named `journal-photos` to allow visual progress logs to upload successfully. Add a bucket policy permitting authenticated users to upload and view items.
-
----
-
-## 👥 Team & Collaborators
-
-*   **Alifka** — Core Flutter Developer & Architect
-*   **Antigravity AI** — Pair Programming & Testing Suite Implementation
