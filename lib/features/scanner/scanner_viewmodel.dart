@@ -129,7 +129,12 @@ $text
     }
   }
 
-  Future<void> _runOfflineFallbackAnalysis(String text) async {
+  Future<void> _runOfflineFallbackAnalysis(String text) =>
+      runOfflineFallbackAnalysis(text);
+
+  /// Exposed for unit testing. Runs local ingredient dictionary matching.
+  @visibleForTesting
+  Future<void> runOfflineFallbackAnalysis(String text) async {
     // Simulate API delay for a high-quality feel
     await Future.delayed(const Duration(seconds: 2));
 
