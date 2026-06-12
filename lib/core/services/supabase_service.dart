@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -336,4 +337,41 @@ class SupabaseService {
       return newEntry;
     }
   }
+
+  // STORAGE: Upload journal photo to Supabase Storage bucket
+  Future<String> uploadJournalPhoto({
+    required String userId,
+    required String localFilePath,
+  }) async {
+    // Offline mode: just return local file path so UI can display it
+    if (_isOfflineMode) {
+      debugPrint('SupabaseService [OFFLINE]: Returning local path as photo URL.');
+      return localFilePath;
+    }
+
+    try {
+      final file = File(localFilePath);
+      final fileName = '$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      const bucketName = 'journal-photos';
+
+      await Supabase.instance.client.storage
+          .from(bucketName)
+          .upload(
+            fileName,
+            file,
+            fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+          );
+
+      final publicUrl = Supabase.instance.client.storage
+          .from(bucketName)
+          .getPublicUrl(fileName);
+
+      debugPrint('SupabaseService: Photo uploaded → $publicUrl');
+      return publicUrl;
+    } catch (e) {
+      debugPrint('SupabaseService: Upload failed: $e. Falling back to local path.');
+      return localFilePath;
+    }
+  }
 }
+
