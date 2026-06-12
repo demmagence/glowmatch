@@ -1,34 +1,35 @@
 import 'package:flutter/foundation.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/weather_service.dart';
+import '../../core/models/models.dart';
 
 class RoutineViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
   final WeatherService _weatherService = WeatherService();
 
-  List<Map<String, dynamic>> _amSteps = [];
-  List<Map<String, dynamic>> _pmSteps = [];
+  List<RoutineStep> _amSteps = [];
+  List<RoutineStep> _pmSteps = [];
   final Set<String> _completedStepIds = {};
   
   String _activeRoutine = 'AM';
   bool _isLoading = false;
   WeatherData? _weather;
 
-  List<Map<String, dynamic>> get amSteps => _amSteps;
-  List<Map<String, dynamic>> get pmSteps => _pmSteps;
+  List<RoutineStep> get amSteps => _amSteps;
+  List<RoutineStep> get pmSteps => _pmSteps;
   Set<String> get completedStepIds => _completedStepIds;
   String get activeRoutine => _activeRoutine;
   bool get isLoading => _isLoading;
   WeatherData? get weather => _weather;
 
   // Steps matching the active routine (AM or PM)
-  List<Map<String, dynamic>> get currentSteps => _activeRoutine == 'AM' ? _amSteps : _pmSteps;
+  List<RoutineStep> get currentSteps => _activeRoutine == 'AM' ? _amSteps : _pmSteps;
 
   // Completed count for the current active routine
   int get completedCount {
     final steps = currentSteps;
     if (steps.isEmpty) return 0;
-    return steps.where((step) => _completedStepIds.contains(step['id'])).length;
+    return steps.where((step) => _completedStepIds.contains(step.id)).length;
   }
 
   // Total steps for current routine
@@ -85,12 +86,13 @@ class RoutineViewModel extends ChangeNotifier {
   }
 
   Future<void> addCustomStep(String userId, String name, String desc) async {
-    final newStep = {
-      'routine_type': _activeRoutine,
-      'step_number': currentSteps.length + 1,
-      'name': name,
-      'description': desc,
-    };
+    final newStep = RoutineStep(
+      id: '',
+      routineType: _activeRoutine,
+      stepNumber: currentSteps.length + 1,
+      name: name,
+      description: desc,
+    );
     
     await _supabaseService.addRoutineStep(userId, newStep);
     await loadRoutines(userId);

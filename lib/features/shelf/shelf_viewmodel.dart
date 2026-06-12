@@ -1,24 +1,25 @@
 import 'package:flutter/foundation.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/models/models.dart';
 
 class ShelfViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
 
-  List<Map<String, dynamic>> _shelfItems = [];
+  List<ShelfItem> _shelfItems = [];
   bool _isLoading = false;
   String _selectedCategoryFilter = 'All';
 
-  List<Map<String, dynamic>> get shelfItems => _shelfItems;
+  List<ShelfItem> get shelfItems => _shelfItems;
   bool get isLoading => _isLoading;
   String get selectedCategoryFilter => _selectedCategoryFilter;
 
   // Filtered shelf items based on selection
-  List<Map<String, dynamic>> get filteredItems {
+  List<ShelfItem> get filteredItems {
     if (_selectedCategoryFilter == 'All') {
       return _shelfItems;
     }
     return _shelfItems
-        .where((item) => item['category'] == _selectedCategoryFilter)
+        .where((item) => item.category == _selectedCategoryFilter)
         .toList();
   }
 
@@ -51,16 +52,17 @@ class ShelfViewModel extends ChangeNotifier {
     required String colorHex,
     List<String>? ingredients,
   }) async {
-    final Map<String, dynamic> item = {
-      'name': name,
-      'brand': brand,
-      'category': category,
-      'price': price,
-      'estimated_uses': estimatedUses,
-      'remaining_uses': estimatedUses,
-      'indicator_color': colorHex,
-      'ingredients': ingredients ?? <String>[],
-    };
+    final ShelfItem item = ShelfItem(
+      id: '',
+      name: name,
+      brand: brand,
+      category: category,
+      price: price,
+      estimatedUses: estimatedUses,
+      remainingUses: estimatedUses,
+      indicatorColor: colorHex,
+      ingredients: ingredients ?? <String>[],
+    );
 
     try {
       final addedItem = await _supabaseService.addShelfItem(userId, item);
@@ -75,7 +77,7 @@ class ShelfViewModel extends ChangeNotifier {
     try {
       final updatedItem = await _supabaseService.decrementShelfItemUses(itemId);
       if (updatedItem != null) {
-        final idx = _shelfItems.indexWhere((x) => x['id'] == itemId);
+        final idx = _shelfItems.indexWhere((x) => x.id == itemId);
         if (idx != -1) {
           _shelfItems[idx] = updatedItem;
           notifyListeners();
@@ -90,7 +92,7 @@ class ShelfViewModel extends ChangeNotifier {
     try {
       final success = await _supabaseService.deleteShelfItem(itemId);
       if (success) {
-        _shelfItems.removeWhere((x) => x['id'] == itemId);
+        _shelfItems.removeWhere((x) => x.id == itemId);
         notifyListeners();
       }
     } catch (e) {

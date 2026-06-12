@@ -1,17 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/models/models.dart';
 
 class JournalViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
   final ImagePicker _picker = ImagePicker();
 
-  List<Map<String, dynamic>> _entries = [];
+  List<JournalEntry> _entries = [];
   bool _isLoading = false;
   bool _isUploading = false;
   int _currentScore = 84;
 
-  List<Map<String, dynamic>> get entries => _entries;
+  List<JournalEntry> get entries => _entries;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   int get currentScore => _currentScore;
@@ -69,12 +70,13 @@ class JournalViewModel extends ChangeNotifier {
       // Step 3: Build entry with current date
       final now = DateTime.now();
       final dateLabel = _formatDate(now);
-      final entry = {
-        'logged_date': dateLabel,
-        'skin_score': _estimateScore(),
-        'photo_path': photoUrl,
-        'notes': notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
-      };
+      final entry = JournalEntry(
+        id: '',
+        loggedDate: dateLabel,
+        skinScore: _estimateScore(),
+        photoPath: photoUrl,
+        notes: notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
+      );
 
       // Step 4: Persist entry to Supabase / mock store
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
@@ -99,12 +101,13 @@ class JournalViewModel extends ChangeNotifier {
     required String notes,
   }) async {
     final now = DateTime.now();
-    final entry = {
-      'logged_date': _formatDate(now),
-      'skin_score': score,
-      'photo_path': photoPath,
-      'notes': notes,
-    };
+    final entry = JournalEntry(
+      id: '',
+      loggedDate: _formatDate(now),
+      skinScore: score,
+      photoPath: photoPath,
+      notes: notes,
+    );
 
     try {
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);

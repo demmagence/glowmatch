@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'budget_viewmodel.dart';
+import '../../core/models/models.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -30,9 +31,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
     super.dispose();
   }
 
-  void _syncControllersWithProduct(Map<String, dynamic> product, BudgetViewModel budgetVm) {
-    final double price = (product['price'] as num?)?.toDouble() ?? 0.0;
-    final int uses = product['estimated_uses'] as int? ?? 50;
+  void _syncControllersWithProduct(ShelfItem product, BudgetViewModel budgetVm) {
+    final double price = product.price;
+    final int uses = product.estimatedUses;
     
     setState(() {
       _priceController.text = price.toStringAsFixed(2);
@@ -218,8 +219,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
                             Text(
                               '${item.category}: \$${item.amount.toStringAsFixed(0)}',
                               style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -290,8 +291,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ),
                       ...budgetVm.shelfItems.map((item) {
                         return DropdownMenuItem<String>(
-                          value: item['id'],
-                          child: Text('${item['name']} (${item['brand'] ?? 'Unknown Brand'})'),
+                          value: item.id,
+                          child: Text('${item.name} (${item.brand.isEmpty ? 'Unknown Brand' : item.brand})'),
                         );
                       }),
                     ],
@@ -301,7 +302,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           _selectedProductId = val;
                         });
                         if (val != 'custom') {
-                          final prod = budgetVm.shelfItems.firstWhere((x) => x['id'] == val);
+                          final prod = budgetVm.shelfItems.firstWhere((x) => x.id == val);
                           _syncControllersWithProduct(prod, budgetVm);
                         }
                       }
