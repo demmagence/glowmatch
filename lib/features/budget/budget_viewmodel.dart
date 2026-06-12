@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../core/models/models.dart';
+import '../../core/constants.dart';
 
 class CategoryAllocation {
   final String category;
@@ -63,15 +64,8 @@ class BudgetViewModel extends ChangeNotifier {
       totals[category] = (totals[category] ?? 0.0) + price;
     }
 
-    final Map<String, String> categoryColors = {
-      'Serum': '0xFFE040FB',      // Purple
-      'Sunscreen': '0xFF64DD17',  // Green
-      'Moisturizer': '0xFFD50000', // Red
-      'Cleanser': '0xFF29B6F6',    // Blue
-    };
-
     _allocations = totals.entries.map((entry) {
-      final colorHex = categoryColors[entry.key] ?? '0xFF9E9E9E';
+      final colorHex = AppConstants.categoryColors[entry.key] ?? '0xFF9E9E9E';
       return CategoryAllocation(
         category: entry.key,
         amount: entry.value,

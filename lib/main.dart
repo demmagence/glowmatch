@@ -8,7 +8,8 @@ import 'features/shelf/shelf_viewmodel.dart';
 import 'features/budget/budget_viewmodel.dart';
 import 'features/scanner/scanner_viewmodel.dart';
 import 'features/journal/journal_viewmodel.dart';
-import 'features/main_layout.dart';
+import 'features/splash/splash_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +58,7 @@ class GlowMatchApp extends StatelessWidget {
             themeMode: themeVm.themeMode,
             theme: ThemeData(
               useMaterial3: true,
-              fontFamily: 'Outfit',
+              textTheme: GoogleFonts.outfitTextTheme(),
               colorScheme: ColorScheme.fromSeed(
                 seedColor: Colors.pinkAccent,
                 primary: Colors.black,
@@ -66,17 +67,17 @@ class GlowMatchApp extends StatelessWidget {
                 onSurface: Colors.black,
               ),
               scaffoldBackgroundColor: Colors.white,
-              appBarTheme: const AppBarTheme(
+              appBarTheme: AppBarTheme(
                 elevation: 0,
                 backgroundColor: Colors.white,
-                iconTheme: IconThemeData(color: Colors.black),
-                titleTextStyle: TextStyle(color: Colors.black, fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.bold),
+                iconTheme: const IconThemeData(color: Colors.black),
+                titleTextStyle: GoogleFonts.outfit(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
                 centerTitle: true,
               ),
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
-              fontFamily: 'Outfit',
+              textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
               brightness: Brightness.dark,
               colorScheme: ColorScheme.fromSeed(
                 brightness: Brightness.dark,
@@ -87,15 +88,15 @@ class GlowMatchApp extends StatelessWidget {
                 onSurface: Colors.white,
               ),
               scaffoldBackgroundColor: const Color(0xFF121212),
-              appBarTheme: const AppBarTheme(
+              appBarTheme: AppBarTheme(
                 elevation: 0,
-                backgroundColor: Color(0xFF121212),
-                iconTheme: IconThemeData(color: Colors.white),
-                titleTextStyle: TextStyle(color: Colors.white, fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.bold),
+                backgroundColor: const Color(0xFF121212),
+                iconTheme: const IconThemeData(color: Colors.white),
+                titleTextStyle: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 centerTitle: true,
               ),
             ),
-            home: const MainLayout(),
+            home: const SplashScreen(),
           );
         },
       ),
