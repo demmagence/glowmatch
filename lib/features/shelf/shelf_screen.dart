@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'shelf_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
@@ -8,8 +10,27 @@ import '../../core/widgets/neobrutalist_card.dart';
 import '../../core/widgets/error_state_widget.dart';
 import '../../core/constants.dart';
 
-class ShelfScreen extends StatelessWidget {
+class ShelfScreen extends StatefulWidget {
   const ShelfScreen({super.key});
+
+  @override
+  State<ShelfScreen> createState() => _ShelfScreenState();
+}
+
+class _ShelfScreenState extends State<ShelfScreen> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Widget _buildSkeletonCard() {
     return NeobrutalistCard(
@@ -53,6 +74,77 @@ class ShelfScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildProductImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const Icon(Icons.dry_cleaning_outlined, size: 48, color: Colors.grey);
+    }
+    final isLocal = !imageUrl.startsWith('http') && !imageUrl.startsWith('assets');
+    final isAsset = imageUrl.startsWith('assets');
+    if (isLocal) {
+      return Image.file(
+        File(imageUrl),
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.dry_cleaning_outlined, size: 48, color: Colors.grey);
+        },
+      );
+    } else if (isAsset) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.dry_cleaning_outlined, size: 48, color: Colors.grey);
+        },
+      );
+    } else {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.dry_cleaning_outlined, size: 48, color: Colors.grey);
+        },
+      );
+    }
+  }
+
+  Widget _buildSearchBar(ShelfViewModel shelfVm) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.black, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) => shelfVm.setSearchQuery(val),
+        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+        decoration: InputDecoration(
+          hintText: 'Search products by name or brand...',
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+          prefixIcon: const Icon(Icons.search, color: Colors.black),
+          suffixIcon: shelfVm.searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.black),
+                  onPressed: () {
+                    _searchController.clear();
+                    shelfVm.setSearchQuery('');
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final shelfVm = Provider.of<ShelfViewModel>(context);
@@ -70,6 +162,10 @@ class ShelfScreen extends StatelessWidget {
             children: [
               // Header: GlowMatch.
               const GlowMatchHeader(),
+              const SizedBox(height: 24),
+
+              // Search Bar
+              _buildSearchBar(shelfVm),
               const SizedBox(height: 24),
 
               // Title and FILTER Action
@@ -190,180 +286,174 @@ class ShelfScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            // Product Packaging Image Placeholder
-            Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      border: const Border(
-                        bottom: BorderSide(color: Colors.black, width: 1),
-                      ),
+          // Product Packaging Image
+          Expanded(
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    border: const Border(
+                      bottom: BorderSide(color: Colors.black, width: 1),
                     ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(3),
-                        topRight: Radius.circular(3),
-                      ),
-                      child: Image.network(
-                        item.imageUrl ?? 'https://placehold.co/150',
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.dry_cleaning_outlined, size: 48, color: Colors.grey);
-                        },
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(3),
+                      topRight: Radius.circular(3),
+                    ),
+                    child: _buildProductImage(item.imageUrl),
+                  ),
+                ),
+                // Price Badge
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.yellowAccent,
+                      border: Border.all(color: Colors.black, width: 1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: Text(
+                      '\$${price.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
                       ),
                     ),
                   ),
-                  // Price Badge
-                  Positioned(
-                    top: 8,
-                    left: 8,
+                ),
+                // Delete Button
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () => _showDeleteConfirmation(context, item, shelfVm),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.yellowAccent,
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                         border: Border.all(color: Colors.black, width: 1),
+                      ),
+                      child: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.black),
+                    ),
+                  ),
+                ),
+                // Finished Overlay
+                if (isEmpty)
+                  Container(
+                    color: Colors.white.withValues(alpha: 0.65),
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        border: Border.all(color: Colors.black, width: 1.5),
                         borderRadius: BorderRadius.circular(2),
                       ),
-                      child: Text(
-                        '\$${price.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Delete Button
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: GestureDetector(
-                      onTap: () => _showDeleteConfirmation(context, item, shelfVm),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black, width: 1),
-                        ),
-                        child: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.black),
-                      ),
-                    ),
-                  ),
-                  // Finished Overlay
-                  if (isEmpty)
-                    Container(
-                      color: Colors.white.withValues(alpha: 0.65),
-                      alignment: Alignment.center,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          border: Border.all(color: Colors.black, width: 1.5),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                        child: const Text(
-                          'FINISHED',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 11,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            // Product Info Details
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.brand,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: dotColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Progress indicator
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      color: dotColor,
-                      backgroundColor: Colors.grey.shade200,
-                      minHeight: 4,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '$remainingUses/$estimatedUses left',
+                      child: const Text(
+                        'FINISHED',
                         style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: isEmpty ? Colors.red : Colors.grey.shade600,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      if (!isEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            shelfVm.useProduct(item.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Used 1 apply of ${item.name}!'),
-                                duration: const Duration(seconds: 1),
-                                backgroundColor: Colors.black,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(2),
-                              border: Border.all(color: Colors.black, width: 1),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Product Info Details
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.brand,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: dotColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Progress indicator
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    color: dotColor,
+                    backgroundColor: Colors.grey.shade200,
+                    minHeight: 4,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '$remainingUses/$estimatedUses left',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isEmpty ? Colors.red : Colors.grey.shade600,
+                      ),
+                    ),
+                    if (!isEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          shelfVm.useProduct(item.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Used 1 apply of ${item.name}!'),
+                              duration: const Duration(seconds: 1),
+                              backgroundColor: Colors.black,
                             ),
-                            child: const Text(
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(2),
+                            border: Border.all(color: Colors.black, width: 1),
+                          ),
+                          child: const Text(
                               'USE',
                               style: TextStyle(
                                 fontSize: 8,
@@ -371,14 +461,14 @@ class ShelfScreen extends StatelessWidget {
                                 color: Colors.white,
                               ),
                             ),
-                          ),
                         ),
-                    ],
-                  ),
-                ],
-              ),
+                      ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
+        ],
       ),
     );
   }
@@ -427,10 +517,9 @@ class ShelfScreen extends StatelessWidget {
                       border: Border.all(color: Colors.black, width: 1),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Image.network(
-                      item.imageUrl ?? 'https://placehold.co/150',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.dry_cleaning, size: 36),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: _buildProductImage(item.imageUrl),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -658,9 +747,10 @@ class ShelfScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
+        final categories = ['All', ...SkincareCategory.values.map((e) => e.displayName)];
         return SimpleDialog(
           title: const Text('Filter by Category', style: TextStyle(fontWeight: FontWeight.bold)),
-          children: ['All', 'Serum', 'Moisturizer', 'Cleanser', 'Sunscreen'].map((category) {
+          children: categories.map((category) {
             return SimpleDialogOption(
               onPressed: () {
                 vm.setFilter(category);
@@ -690,12 +780,33 @@ class ShelfScreen extends StatelessWidget {
     final usesController = TextEditingController();
     final ingredientsController = TextEditingController();
     String selectedCategory = 'Serum';
+    String? localImagePath;
+
+    final ImagePicker picker = ImagePicker();
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            Future<void> pickImage(ImageSource source) async {
+              try {
+                final XFile? image = await picker.pickImage(
+                  source: source,
+                  imageQuality: 85,
+                  maxWidth: 800,
+                  maxHeight: 800,
+                );
+                if (image != null) {
+                  setDialogState(() {
+                    localImagePath = image.path;
+                  });
+                }
+              } catch (e) {
+                debugPrint('Error picking image: $e');
+              }
+            }
+
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               title: const Text('Add Skincare Product', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -703,6 +814,70 @@ class ShelfScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Image Picker Widget
+                    Row(
+                      children: [
+                        Container(
+                          width: 65,
+                          height: 65,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            border: Border.all(color: Colors.black, width: 1.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          alignment: Alignment.center,
+                          child: localImagePath != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(3),
+                                  child: Image.file(
+                                    File(localImagePath!),
+                                    fit: BoxFit.cover,
+                                    width: 65,
+                                    height: 65,
+                                  ),
+                                )
+                              : const Icon(Icons.image, color: Colors.grey, size: 28),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Product Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.black,
+                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    ),
+                                    onPressed: () => pickImage(ImageSource.camera),
+                                    icon: const Icon(Icons.camera_alt, size: 12),
+                                    label: const Text('Camera', style: TextStyle(fontSize: 10)),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.black,
+                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    ),
+                                    onPressed: () => pickImage(ImageSource.gallery),
+                                    icon: const Icon(Icons.photo_library, size: 12),
+                                    label: const Text('Gallery', style: TextStyle(fontSize: 10)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(labelText: 'Product Name (e.g. GlowBomb)'),
@@ -714,7 +889,7 @@ class ShelfScreen extends StatelessWidget {
                     DropdownButtonFormField<String>(
                       value: selectedCategory, // ignore: deprecated_member_use
                       decoration: const InputDecoration(labelText: 'Category'),
-                      items: ['Serum', 'Moisturizer', 'Cleanser', 'Sunscreen'].map((cat) {
+                      items: SkincareCategory.values.map((e) => e.displayName).map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));
                       }).toList(),
                       onChanged: (val) {
@@ -763,6 +938,7 @@ class ShelfScreen extends StatelessWidget {
                         price: double.tryParse(priceController.text) ?? 20.0,
                         estimatedUses: int.tryParse(usesController.text) ?? 50,
                         colorHex: hexColor,
+                        localImagePath: localImagePath,
                         ingredients: ingList,
                       );
                       Navigator.pop(context);
@@ -786,12 +962,35 @@ class ShelfScreen extends StatelessWidget {
     final remainingUsesController = TextEditingController(text: item.remainingUses.toString());
     final ingredientsController = TextEditingController(text: item.ingredients.join(', '));
     String selectedCategory = item.category;
+    String? localImagePath;
+
+    final ImagePicker picker = ImagePicker();
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final userId = Provider.of<AuthViewModel>(context, listen: false).userId;
+
+            Future<void> pickImage(ImageSource source) async {
+              try {
+                final XFile? image = await picker.pickImage(
+                  source: source,
+                  imageQuality: 85,
+                  maxWidth: 800,
+                  maxHeight: 800,
+                );
+                if (image != null) {
+                  setDialogState(() {
+                    localImagePath = image.path;
+                  });
+                }
+              } catch (e) {
+                debugPrint('Error picking image: $e');
+              }
+            }
+
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               title: const Text('Edit Skincare Product', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -799,6 +998,73 @@ class ShelfScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Image Picker Widget
+                    Row(
+                      children: [
+                        Container(
+                          width: 65,
+                          height: 65,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            border: Border.all(color: Colors.black, width: 1.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          alignment: Alignment.center,
+                          child: localImagePath != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(3),
+                                  child: Image.file(
+                                    File(localImagePath!),
+                                    fit: BoxFit.cover,
+                                    width: 65,
+                                    height: 65,
+                                  ),
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(3),
+                                  child: _buildProductImage(item.imageUrl),
+                                ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Product Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.black,
+                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    ),
+                                    onPressed: () => pickImage(ImageSource.camera),
+                                    icon: const Icon(Icons.camera_alt, size: 12),
+                                    label: const Text('Camera', style: TextStyle(fontSize: 10)),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.black,
+                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    ),
+                                    onPressed: () => pickImage(ImageSource.gallery),
+                                    icon: const Icon(Icons.photo_library, size: 12),
+                                    label: const Text('Gallery', style: TextStyle(fontSize: 10)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(labelText: 'Product Name'),
@@ -810,7 +1076,7 @@ class ShelfScreen extends StatelessWidget {
                     DropdownButtonFormField<String>(
                       value: selectedCategory, // ignore: deprecated_member_use
                       decoration: const InputDecoration(labelText: 'Category'),
-                      items: ['Serum', 'Moisturizer', 'Cleanser', 'Sunscreen'].map((cat) {
+                      items: SkincareCategory.values.map((e) => e.displayName).map((cat) {
                         return DropdownMenuItem(value: cat, child: Text(cat));
                       }).toList(),
                       onChanged: (val) {
@@ -868,6 +1134,9 @@ class ShelfScreen extends StatelessWidget {
                         estimatedUses: int.tryParse(usesController.text) ?? item.estimatedUses,
                         remainingUses: int.tryParse(remainingUsesController.text) ?? item.remainingUses,
                         colorHex: hexColor,
+                        currentImageUrl: item.imageUrl,
+                        localImagePath: localImagePath,
+                        userId: userId,
                         ingredients: ingList,
                       );
                       Navigator.pop(context);

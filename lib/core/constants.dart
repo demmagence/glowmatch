@@ -2,7 +2,11 @@ enum SkincareCategory {
   serum,
   moisturizer,
   cleanser,
-  sunscreen;
+  sunscreen,
+  toner,
+  exfoliant,
+  mask,
+  eyeCream;
 
   String get displayName {
     switch (this) {
@@ -14,6 +18,14 @@ enum SkincareCategory {
         return 'Cleanser';
       case SkincareCategory.sunscreen:
         return 'Sunscreen';
+      case SkincareCategory.toner:
+        return 'Toner';
+      case SkincareCategory.exfoliant:
+        return 'Exfoliant';
+      case SkincareCategory.mask:
+        return 'Mask';
+      case SkincareCategory.eyeCream:
+        return 'Eye Cream';
     }
   }
 
@@ -27,6 +39,15 @@ enum SkincareCategory {
         return SkincareCategory.cleanser;
       case 'sunscreen':
         return SkincareCategory.sunscreen;
+      case 'toner':
+        return SkincareCategory.toner;
+      case 'exfoliant':
+        return SkincareCategory.exfoliant;
+      case 'mask':
+        return SkincareCategory.mask;
+      case 'eye cream':
+      case 'eyecream':
+        return SkincareCategory.eyeCream;
       default:
         return SkincareCategory.serum; // default fallback
     }
@@ -42,6 +63,7 @@ class AppConstants {
 
   // Storage bucket names
   static const String bucketJournalPhotos = 'journal-photos';
+  static const String bucketProductPhotos = 'product-photos';
 
   // Category colors
   static const Map<String, String> categoryColors = {
@@ -49,6 +71,10 @@ class AppConstants {
     'Sunscreen': '0xFF64DD17',  // Green
     'Moisturizer': '0xFFD50000', // Red
     'Cleanser': '0xFF29B6F6',    // Blue
+    'Toner': '0xFFFFD600',       // Yellow/Amber
+    'Exfoliant': '0xFFFF6D00',   // Orange
+    'Mask': '0xFF00BFA5',        // Teal
+    'Eye Cream': '0xFFFF4081',   // Pink
   };
 
   // Weather Fallback Defaults
@@ -56,3 +82,4 @@ class AppConstants {
   static const double defaultMockTemperature = 33.0;
   static const int defaultInitialScore = 80;
 }
+
