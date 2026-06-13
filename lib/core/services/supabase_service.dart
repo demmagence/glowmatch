@@ -646,6 +646,46 @@ class SupabaseService {
     }
   }
 
+  // STORAGE: Upload product photo to Supabase Storage bucket
+  Future<String> uploadProductPhoto({
+    required String userId,
+    required String localFilePath,
+  }) async {
+    // Offline mode: just return local file path so UI can display it
+    if (_isOfflineMode) {
+      debugPrint('SupabaseService [OFFLINE]: Returning local path as product photo URL.');
+      return localFilePath;
+    }
+
+    try {
+      final file = File(localFilePath);
+      final fileName = '$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      const bucketName = AppConstants.bucketProductPhotos;
+
+      await Supabase.instance.client.storage
+          .from(bucketName)
+          .upload(
+            fileName,
+            file,
+            fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+          );
+
+      final publicUrl = Supabase.instance.client.storage
+          .from(bucketName)
+          .getPublicUrl(fileName);
+
+      debugPrint('SupabaseService: Product photo uploaded → $publicUrl');
+      return publicUrl;
+    } on StorageException catch (e) {
+      _handleStorageException('uploadProductPhoto', e);
+      return localFilePath;
+    } catch (e) {
+      _handleGenericException('uploadProductPhoto', e);
+      return localFilePath;
+    }
+  }
+
+
   /// Clears all in-memory mock data. Only call from tests.
   @visibleForTesting
   void resetForTesting() {

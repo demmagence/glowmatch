@@ -77,6 +77,14 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildNavItem(IconData icon, String label, int index) {
     final isSelected = _currentIndex == index;
+
+    // Check if we need to show low stock badge on the Shelf tab (index 4)
+    bool showLowStockBadge = false;
+    if (index == 4) {
+      final shelfVm = Provider.of<ShelfViewModel>(context);
+      showLowStockBadge = shelfVm.shelfItems.any((item) => item.remainingUses < 5);
+    }
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -93,10 +101,34 @@ class _MainLayoutState extends State<MainLayout> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? Colors.black : Colors.grey.shade400,
-            size: 26,
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AnimatedScale(
+                scale: isSelected ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  icon,
+                  color: isSelected ? Colors.black : Colors.grey.shade400,
+                  size: 26,
+                ),
+              ),
+              if (showLowStockBadge)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -105,6 +137,16 @@ class _MainLayoutState extends State<MainLayout> {
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected ? Colors.black : Colors.grey.shade400,
+            ),
+          ),
+          const SizedBox(height: 2),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: 3,
+            width: isSelected ? 16 : 0,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(1.5),
             ),
           ),
         ],

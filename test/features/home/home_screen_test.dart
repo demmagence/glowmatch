@@ -73,5 +73,15 @@ void main() {
 
       expect(find.text('Morning Routine'), findsOneWidget);
     });
+
+    testWidgets('shows ErrorStateWidget when currentSteps is empty', (tester) async {
+      final vm = RoutineViewModel();
+
+      await tester.pumpWidget(_buildHome(vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('No routine steps yet. Tap below to add your first step!'), findsOneWidget);
+      expect(find.text('Complete Routine'), findsNothing);
+    });
   });
 }

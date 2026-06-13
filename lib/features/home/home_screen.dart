@@ -145,109 +145,115 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Steps Routine Checklist cards
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: routineVm.currentSteps.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final RoutineStep step = routineVm.currentSteps[index];
-                  final isCompleted = routineVm.completedStepIds.contains(step.id);
+              if (routineVm.currentSteps.isEmpty)
+                const ErrorStateWidget(
+                  icon: Icons.event_note,
+                  message: 'No routine steps yet. Tap below to add your first step!',
+                )
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: routineVm.currentSteps.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final RoutineStep step = routineVm.currentSteps[index];
+                    final isCompleted = routineVm.completedStepIds.contains(step.id);
 
-                  return GestureDetector(
-                    onTap: () {
-                      final bool isCompleting = !isCompleted;
-                      routineVm.toggleStep(step.id, shelfVm);
+                    return GestureDetector(
+                      onTap: () {
+                        final bool isCompleting = !isCompleted;
+                        routineVm.toggleStep(step.id, shelfVm);
 
-                      if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-                        final product = shelfVm.shelfItems.firstWhere(
-                          (p) => p.id == step.shelfItemId,
-                          orElse: () => ShelfItem(
-                            id: '',
-                            name: '',
-                            brand: '',
-                            category: '',
-                            price: 0,
-                            estimatedUses: 0,
-                            remainingUses: 0,
-                            indicatorColor: '',
-                            ingredients: [],
-                          ),
-                        );
-                        final productName = product.name.isNotEmpty ? product.name : step.name;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Used 1 apply of $productName!'),
-                            backgroundColor: Colors.black,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 1.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          // Custom circular check indicator
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.black, width: 1.5),
-                              color: isCompleted ? Colors.black : Colors.transparent,
+                        if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                          final product = shelfVm.shelfItems.firstWhere(
+                            (p) => p.id == step.shelfItemId,
+                            orElse: () => ShelfItem(
+                              id: '',
+                              name: '',
+                              brand: '',
+                              category: '',
+                              price: 0,
+                              estimatedUses: 0,
+                              remainingUses: 0,
+                              indicatorColor: '',
+                              ingredients: [],
                             ),
-                            child: isCompleted
-                                ? const Icon(Icons.check, color: Colors.white, size: 14)
-                                : null,
-                          ),
-                          const SizedBox(width: 16),
-                          // Titles and subtitles
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  step.name.isEmpty ? 'Custom Step' : step.name,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                    decoration: isCompleted
-                                        ? TextDecoration.lineThrough
-                                        : null,
+                          );
+                          final productName = product.name.isNotEmpty ? product.name : step.name;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Used 1 apply of $productName!'),
+                              backgroundColor: Colors.black,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 1.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            // Custom circular check indicator
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.black, width: 1.5),
+                                color: isCompleted ? Colors.black : Colors.transparent,
+                              ),
+                              child: isCompleted
+                                  ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                  : null,
+                            ),
+                            const SizedBox(width: 16),
+                            // Titles and subtitles
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    step.name.isEmpty ? 'Custom Step' : step.name,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      decoration: isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  step.description ?? '',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey.shade600,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    step.description ?? '',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          // Step number label
-                          Text(
-                            'Step ${index + 1}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade400,
-                              fontWeight: FontWeight.bold,
+                            // Step number label
+                            Text(
+                              'Step ${index + 1}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade400,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
 
               const SizedBox(height: 12),
 
@@ -276,63 +282,64 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 28),
 
               // Complete Routine Button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: routineVm.completedToday ? Colors.grey.shade300 : Colors.black,
-                    foregroundColor: routineVm.completedToday ? Colors.grey.shade600 : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: routineVm.completedToday ? Colors.grey.shade400 : Colors.black,
-                        width: 1.5,
-                      ),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: routineVm.completedToday
-                      ? null
-                      : () async {
-                          await routineVm.completeRoutine(authVm.userId);
-                          final newStreak = routineVm.streakData?.currentStreak ?? 0;
-                          String msg = 'Routine Completed! Consistency score updated.';
-                          if (newStreak == 7) {
-                            msg = '🎉 7 Day Milestone! Awesome dedication!';
-                          } else if (newStreak == 14) {
-                            msg = '🎉 14 Day Milestone! You are unstoppable!';
-                          } else if (newStreak == 30) {
-                            msg = '🎉 30 Day Milestone! You are a skincare master!';
-                          }
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(msg),
-                                backgroundColor: Colors.black,
-                              ),
-                            );
-                          }
-                        },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        routineVm.completedToday ? 'Completed for Today' : 'Complete Routine',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+              if (routineVm.currentSteps.isNotEmpty)
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: routineVm.completedToday ? Colors.grey.shade300 : Colors.black,
+                      foregroundColor: routineVm.completedToday ? Colors.grey.shade600 : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                          color: routineVm.completedToday ? Colors.grey.shade400 : Colors.black,
+                          width: 1.5,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        routineVm.completedToday ? Icons.check : Icons.check_circle_outline,
-                        size: 20,
-                      ),
-                    ],
+                      elevation: 0,
+                    ),
+                    onPressed: routineVm.completedToday
+                        ? null
+                        : () async {
+                            await routineVm.completeRoutine(authVm.userId);
+                            final newStreak = routineVm.streakData?.currentStreak ?? 0;
+                            String msg = 'Routine Completed! Consistency score updated.';
+                            if (newStreak == 7) {
+                              msg = '🎉 7 Day Milestone! Awesome dedication!';
+                            } else if (newStreak == 14) {
+                              msg = '🎉 14 Day Milestone! You are unstoppable!';
+                            } else if (newStreak == 30) {
+                              msg = '🎉 30 Day Milestone! You are a skincare master!';
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(msg),
+                                  backgroundColor: Colors.black,
+                                ),
+                              );
+                            }
+                          },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          routineVm.completedToday ? 'Completed for Today' : 'Complete Routine',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          routineVm.completedToday ? Icons.check : Icons.check_circle_outline,
+                          size: 20,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ],
         ),

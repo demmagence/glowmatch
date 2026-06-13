@@ -9,20 +9,27 @@ class ShelfViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   String _selectedCategoryFilter = 'All';
+  String _searchQuery = '';
 
   List<ShelfItem> get shelfItems => _shelfItems;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get selectedCategoryFilter => _selectedCategoryFilter;
+  String get searchQuery => _searchQuery;
 
-  // Filtered shelf items based on selection
+  // Filtered shelf items based on selection and search query
   List<ShelfItem> get filteredItems {
-    if (_selectedCategoryFilter == 'All') {
-      return _shelfItems;
+    Iterable<ShelfItem> items = _shelfItems;
+    if (_selectedCategoryFilter != 'All') {
+      items = items.where((item) => item.category == _selectedCategoryFilter);
     }
-    return _shelfItems
-        .where((item) => item.category == _selectedCategoryFilter)
-        .toList();
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      items = items.where((item) =>
+          item.name.toLowerCase().contains(query) ||
+          item.brand.toLowerCase().contains(query));
+    }
+    return items.toList();
   }
 
   Future<void> fetchShelf(String userId) async {
@@ -46,6 +53,11 @@ class ShelfViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
   Future<void> addProduct({
     required String userId,
     required String name,
@@ -54,8 +66,21 @@ class ShelfViewModel extends ChangeNotifier {
     required double price,
     required int estimatedUses,
     required String colorHex,
+    String? localImagePath,
     List<String>? ingredients,
   }) async {
+    String? imageUrl;
+    if (localImagePath != null && localImagePath.isNotEmpty) {
+      try {
+        imageUrl = await _supabaseService.uploadProductPhoto(
+          userId: userId,
+          localFilePath: localImagePath,
+        );
+      } catch (e) {
+        debugPrint('Error uploading product photo: $e');
+      }
+    }
+
     final ShelfItem item = ShelfItem(
       id: '',
       name: name,
@@ -65,6 +90,7 @@ class ShelfViewModel extends ChangeNotifier {
       estimatedUses: estimatedUses,
       remainingUses: estimatedUses,
       indicatorColor: colorHex,
+      imageUrl: imageUrl,
       ingredients: ingredients ?? <String>[],
     );
 
@@ -86,8 +112,23 @@ class ShelfViewModel extends ChangeNotifier {
     required int estimatedUses,
     required int remainingUses,
     required String colorHex,
+    String? currentImageUrl,
+    String? localImagePath,
+    String? userId,
     List<String>? ingredients,
   }) async {
+    String? imageUrl = currentImageUrl;
+    if (localImagePath != null && localImagePath.isNotEmpty && userId != null) {
+      try {
+        imageUrl = await _supabaseService.uploadProductPhoto(
+          userId: userId,
+          localFilePath: localImagePath,
+        );
+      } catch (e) {
+        debugPrint('Error uploading product photo: $e');
+      }
+    }
+
     final ShelfItem item = ShelfItem(
       id: itemId,
       name: name,
@@ -97,6 +138,7 @@ class ShelfViewModel extends ChangeNotifier {
       estimatedUses: estimatedUses,
       remainingUses: remainingUses,
       indicatorColor: colorHex,
+      imageUrl: imageUrl,
       ingredients: ingredients ?? <String>[],
     );
 
@@ -141,3 +183,4 @@ class ShelfViewModel extends ChangeNotifier {
     }
   }
 }
+
