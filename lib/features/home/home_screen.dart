@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     final routineVm = Provider.of<RoutineViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context);
     final weather = routineVm.weather;
-    final shelfVm = Provider.of<ShelfViewModel>(context, listen: false);
+    final shelfVm = Provider.of<ShelfViewModel>(context);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
@@ -152,7 +152,6 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-
               // Steps Routine Checklist cards
               if (routineVm.currentSteps.isEmpty)
                 const ErrorStateWidget(
@@ -160,56 +159,73 @@ class HomeScreen extends StatelessWidget {
                   message: 'No routine steps yet. Tap below to add your first step!',
                 )
               else
-                ListView.separated(
+                ReorderableListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
+                  buildDefaultDragHandles: false,
                   itemCount: routineVm.currentSteps.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  onReorder: (oldIndex, newIndex) {
+                    routineVm.reorderSteps(authVm.userId, oldIndex, newIndex);
+                  },
                   itemBuilder: (context, index) {
                     final RoutineStep step = routineVm.currentSteps[index];
                     final isCompleted = routineVm.completedStepIds.contains(step.id);
 
-                    return GestureDetector(
-                      onTap: () {
-                        final bool isCompleting = !isCompleted;
-                        routineVm.toggleStep(step.id, shelfVm);
+                    // Find linked product from Shelf
+                    ShelfItem? linkedProduct;
+                    if (step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                      try {
+                        linkedProduct = shelfVm.shelfItems.firstWhere(
+                          (p) => p.id == step.shelfItemId,
+                        );
+                      } catch (_) {
+                        linkedProduct = null;
+                      }
+                    }
 
-                        if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-                          final product = shelfVm.shelfItems.firstWhere(
-                            (p) => p.id == step.shelfItemId,
-                            orElse: () => ShelfItem(
-                              id: '',
-                              name: '',
-                              brand: '',
-                              category: '',
-                              price: 0,
-                              estimatedUses: 0,
-                              remainingUses: 0,
-                              indicatorColor: '',
-                              ingredients: [],
+                    return Container(
+                      key: ValueKey(step.id),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: textColor, width: 1.2),
+                        borderRadius: BorderRadius.circular(8),
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Custom Drag Handle
+                          ReorderableDragStartListener(
+                            index: index,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 12.0),
+                              child: Icon(
+                                Icons.drag_handle,
+                                color: subtextColor,
+                                size: 20,
+                              ),
                             ),
-                          );
-                          final productName = product.name.isNotEmpty ? product.name : step.name;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Used 1 apply of $productName!'),
-                              backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: textColor, width: 1.2),
-                          borderRadius: BorderRadius.circular(8),
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            // Custom circular check indicator
-                            Container(
+                          ),
+                          // Custom circular check indicator
+                          GestureDetector(
+                            onTap: () {
+                              final bool isCompleting = !isCompleted;
+                              routineVm.toggleStep(step.id, shelfVm);
+
+                              if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                                final productName = linkedProduct != null && linkedProduct.name.isNotEmpty 
+                                    ? linkedProduct.name 
+                                    : step.name;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Used 1 apply of $productName!'),
+                                    backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
                               width: 24,
                               height: 24,
                               decoration: BoxDecoration(
@@ -221,9 +237,28 @@ class HomeScreen extends StatelessWidget {
                                   ? Icon(Icons.check, color: isDark ? Colors.black : Colors.white, size: 14)
                                   : null,
                             ),
-                            const SizedBox(width: 16),
-                            // Titles and subtitles
-                            Expanded(
+                          ),
+                          const SizedBox(width: 12),
+                          // Titles and subtitles
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                final bool isCompleting = !isCompleted;
+                                routineVm.toggleStep(step.id, shelfVm);
+
+                                if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                                  final productName = linkedProduct != null && linkedProduct.name.isNotEmpty 
+                                      ? linkedProduct.name 
+                                      : step.name;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Used 1 apply of $productName!'),
+                                      backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -238,28 +273,65 @@ class HomeScreen extends StatelessWidget {
                                           : null,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    step.description ?? '',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: subtextColor,
+                                  if (step.description != null && step.description!.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      step.description!,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: subtextColor,
+                                      ),
                                     ),
-                                  ),
+                                  ],
+                                  if (linkedProduct != null) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.link, size: 12, color: stepBadgeText),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            '${linkedProduct.brand} - ${linkedProduct.name} (${linkedProduct.remainingUses} left)',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: stepBadgeText,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
-                            // Step number label
-                            Text(
-                              'Step ${index + 1}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(width: 8),
+                          // Step label & Edit actions
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Step ${index + 1}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: Icon(Icons.edit_outlined, color: subtextColor, size: 18),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () {
+                                  _showEditStepDialog(context, authVm.userId, routineVm, step, shelfVm);
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -269,7 +341,7 @@ class HomeScreen extends StatelessWidget {
 
               // Click to add Card
               GestureDetector(
-                onTap: () => _showAddStepDialog(context, authVm.userId, routineVm),
+                onTap: () => _showAddStepDialog(context, authVm.userId, routineVm, shelfVm),
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -398,15 +470,327 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showAddStepDialog(BuildContext context, String userId, RoutineViewModel vm) {
+  void _showAddStepDialog(BuildContext context, String userId, RoutineViewModel vm, ShelfViewModel shelfVm) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
+    String? selectedShelfItemId;
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final borderColor = isDark ? Colors.white : Colors.black;
     final textColor = isDark ? Colors.white : Colors.black;
     final buttonBg = isDark ? Colors.white : Colors.black;
     final buttonFg = isDark ? Colors.black : Colors.white;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: dialogBg,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: borderColor, width: 2),
+              ),
+              title: Text(
+                'Add Routine Step',
+                style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Step Name (e.g., Toner)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Instructions (e.g., Apply with pad)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Link Shelf Product (Optional)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: borderColor, width: 1.2),
+                        borderRadius: BorderRadius.circular(6),
+                        color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: selectedShelfItemId,
+                          isExpanded: true,
+                          dropdownColor: dialogBg,
+                          style: TextStyle(color: textColor, fontSize: 14),
+                          hint: Text(
+                            'Select product',
+                            style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade400),
+                          ),
+                          items: [
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                'None',
+                                style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                              ),
+                            ),
+                            ...shelfVm.shelfItems.map((item) {
+                              return DropdownMenuItem<String?>(
+                                value: item.id,
+                                child: Text('${item.brand} - ${item.name} (${item.remainingUses} left)'),
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            setState(() {
+                              selectedShelfItemId = val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: buttonBg,
+                    foregroundColor: buttonFg,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      side: BorderSide(color: borderColor, width: 1.5),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (titleController.text.isNotEmpty) {
+                      vm.addCustomStep(
+                        userId,
+                        titleController.text,
+                        descController.text,
+                        shelfItemId: selectedShelfItemId,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditStepDialog(BuildContext context, String userId, RoutineViewModel vm, RoutineStep step, ShelfViewModel shelfVm) {
+    final titleController = TextEditingController(text: step.name);
+    final descController = TextEditingController(text: step.description ?? '');
+    String? selectedShelfItemId = step.shelfItemId;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final buttonBg = isDark ? Colors.white : Colors.black;
+    final buttonFg = isDark ? Colors.black : Colors.white;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: dialogBg,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: borderColor, width: 2),
+              ),
+              title: Text(
+                'Edit Routine Step',
+                style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Step Name',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Instructions',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Link Shelf Product',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: borderColor, width: 1.2),
+                        borderRadius: BorderRadius.circular(6),
+                        color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: selectedShelfItemId,
+                          isExpanded: true,
+                          dropdownColor: dialogBg,
+                          style: TextStyle(color: textColor, fontSize: 14),
+                          hint: Text(
+                            'Select product',
+                            style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade400),
+                          ),
+                          items: [
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                'None',
+                                style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                              ),
+                            ),
+                            ...shelfVm.shelfItems.map((item) {
+                              return DropdownMenuItem<String?>(
+                                value: item.id,
+                                child: Text('${item.brand} - ${item.name} (${item.remainingUses} left)'),
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            setState(() {
+                              selectedShelfItemId = val;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
+                      onPressed: () {
+                        _showDeleteConfirmDialog(context, userId, vm, step);
+                      },
+                      child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: buttonBg,
+                            foregroundColor: buttonFg,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              side: BorderSide(color: borderColor, width: 1.5),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (titleController.text.isNotEmpty) {
+                              final updatedStep = step.copyWith(
+                                name: titleController.text,
+                                description: descController.text,
+                                shelfItemId: selectedShelfItemId,
+                              );
+                              vm.updateStep(userId, updatedStep);
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmDialog(BuildContext context, String userId, RoutineViewModel vm, RoutineStep step) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
 
     showDialog(
       context: context,
@@ -418,41 +802,12 @@ class HomeScreen extends StatelessWidget {
             side: BorderSide(color: borderColor, width: 2),
           ),
           title: Text(
-            'Add Routine Step',
+            'Delete Step?',
             style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                style: TextStyle(color: textColor),
-                decoration: InputDecoration(
-                  labelText: 'Step Name (e.g., Toner)',
-                  labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
-                  ),
-                ),
-              ),
-              TextField(
-                controller: descController,
-                style: TextStyle(color: textColor),
-                decoration: InputDecoration(
-                  labelText: 'Instructions (e.g., Apply with pad)',
-                  labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
-                  ),
-                ),
-              ),
-            ],
+          content: Text(
+            'Are you sure you want to delete this step? Remaining steps will be renumbered.',
+            style: TextStyle(color: textColor),
           ),
           actions: [
             TextButton(
@@ -461,20 +816,21 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: buttonBg,
-                foregroundColor: buttonFg,
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                   side: BorderSide(color: borderColor, width: 1.5),
                 ),
               ),
               onPressed: () {
-                if (titleController.text.isNotEmpty) {
-                  vm.addCustomStep(userId, titleController.text, descController.text);
-                  Navigator.pop(context);
-                }
+                vm.deleteStep(userId, step.id);
+                // Close confirm dialog
+                Navigator.pop(context);
+                // Close edit dialog
+                Navigator.pop(context);
               },
-              child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
