@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/features/budget/budget_viewmodel.dart';
 import 'package:glowmatch/core/models/models.dart';
 
@@ -6,7 +7,10 @@ void main() {
   group('BudgetViewModel', () {
     late BudgetViewModel vm;
 
-    setUp(() => vm = BudgetViewModel());
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      vm = BudgetViewModel();
+    });
 
     // ── efficiencyMetric ──────────────────────────────────────────────────
 
@@ -98,6 +102,87 @@ void main() {
       vm.updateCalculator(uses: 100);
       expect(vm.estimatedUses, equals(100));
       expect(vm.productPrice, equals(120.0)); // unchanged
+    });
+
+    // ── budgetLimit persistence ───────────────────────────────────────────
+
+    test('loadBudgetLimit returns default 150.0 when not set', () async {
+      await vm.loadBudgetLimit();
+      expect(vm.budgetLimit, equals(150.0));
+    });
+
+    test('setBudgetLimit sets and persists the limit', () async {
+      await vm.setBudgetLimit(200.0);
+      expect(vm.budgetLimit, equals(200.0));
+      
+      // Re-create VM to verify persistence
+      final vm2 = BudgetViewModel();
+      await vm2.loadBudgetLimit();
+      expect(vm2.budgetLimit, equals(200.0));
+    });
+
+    // ── spendingHistory and labels ────────────────────────────────────────
+
+    test('spendingHistory includes mock months plus total dynamic spend', () {
+      vm.updateFromShelf([
+        ShelfItem(id: '1', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
+      ]);
+      expect(vm.spendingHistory.length, equals(6));
+      expect(vm.spendingHistory.last, equals(42.0));
+    });
+
+    test('spendingHistoryLabels contains exactly 6 chronological months', () {
+      expect(vm.spendingHistoryLabels.length, equals(6));
+    });
+
+    // ── smartAlerts ───────────────────────────────────────────────────────
+
+    test('smartAlerts is empty when totalMonthlySpend is 0 and products are healthy', () {
+      vm.updateFromShelf([]);
+      expect(vm.smartAlerts, isEmpty);
+    });
+
+    test('smartAlerts generates danger alert when budget is exceeded', () async {
+      await vm.setBudgetLimit(100.0);
+      vm.updateFromShelf([
+        ShelfItem(id: '1', category: 'Serum', price: 120.0, name: 'S1', brand: 'B1', estimatedUses: 100, remainingUses: 100, indicatorColor: '0xFFE040FB', ingredients: const []),
+      ]);
+      
+      final dangerAlerts = vm.smartAlerts.where((a) => a.type == 'danger').toList();
+      expect(dangerAlerts.length, equals(1));
+      expect(dangerAlerts.first.title, contains('Budget Exceeded'));
+    });
+
+    test('smartAlerts generates warning alert when spend is > 80% of budget limit', () async {
+      await vm.setBudgetLimit(100.0);
+      vm.updateFromShelf([
+        ShelfItem(id: '1', category: 'Serum', price: 85.0, name: 'S1', brand: 'B1', estimatedUses: 100, remainingUses: 100, indicatorColor: '0xFFE040FB', ingredients: const []),
+      ]);
+      
+      final warningAlerts = vm.smartAlerts.where((a) => a.type == 'warning').toList();
+      expect(warningAlerts.length, equals(1));
+      expect(warningAlerts.first.title, contains('Approaching Budget Limit'));
+    });
+
+    test('smartAlerts generates low stock warning when remainingUses <= 5', () {
+      vm.updateFromShelf([
+        ShelfItem(id: '1', category: 'Serum', price: 30.0, name: 'Low Stock Product', brand: 'B1', estimatedUses: 50, remainingUses: 4, indicatorColor: '0xFFE040FB', ingredients: const []),
+      ]);
+      
+      final stockAlerts = vm.smartAlerts.where((a) => a.title.contains('Low Uses Remaining')).toList();
+      expect(stockAlerts.length, equals(1));
+      expect(stockAlerts.first.description, contains('Only 4 applications left'));
+    });
+
+    test('smartAlerts generates high cost-per-apply warning when metric > 1.50', () {
+      vm.updateFromShelf([
+        // cost-per-apply = 80 / 40 = 2.00
+        ShelfItem(id: '1', category: 'Serum', price: 80.0, name: 'Expensive Serum', brand: 'B1', estimatedUses: 40, remainingUses: 40, indicatorColor: '0xFFE040FB', ingredients: const []),
+      ]);
+      
+      final efficiencyAlerts = vm.smartAlerts.where((a) => a.title.contains('High Cost-Per-Apply')).toList();
+      expect(efficiencyAlerts.length, equals(1));
+      expect(efficiencyAlerts.first.description, contains('costs \$2.00 per application'));
     });
   });
 }
