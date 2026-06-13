@@ -66,6 +66,11 @@ class _JournalScreenState extends State<JournalScreen> {
   Widget build(BuildContext context) {
     final journalVm = Provider.of<JournalViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
 
     // Fallback stock images if no real photo
     final List<String> mockImageUrls = [
@@ -102,22 +107,22 @@ class _JournalScreenState extends State<JournalScreen> {
           ];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         title: RichText(
-          text: const TextSpan(
+          text: TextSpan(
             text: 'GlowMatch',
             style: TextStyle(
               fontFamily: 'Outfit',
               fontWeight: FontWeight.w800,
               fontSize: 22,
-              color: Colors.black,
+              color: textColor,
               letterSpacing: -0.5,
             ),
-            children: [
+            children: const [
               TextSpan(
                 text: '.',
                 style: TextStyle(color: Colors.red, fontSize: 26),
@@ -129,7 +134,7 @@ class _JournalScreenState extends State<JournalScreen> {
           IconButton(
             icon: Icon(
               _isCompareMode ? Icons.close : Icons.compare_arrows,
-              color: Colors.black,
+              color: textColor,
             ),
             tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
             onPressed: () {
@@ -140,7 +145,7 @@ class _JournalScreenState extends State<JournalScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: Colors.black),
+            icon: Icon(Icons.account_circle_outlined, color: textColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -182,12 +187,12 @@ class _JournalScreenState extends State<JournalScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Journal',
                             style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.w900,
-                              color: Colors.black,
+                              color: textColor,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -196,7 +201,7 @@ class _JournalScreenState extends State<JournalScreen> {
                             'Track your glow progress.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey.shade600,
+                              color: subtextColor,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -212,10 +217,10 @@ class _JournalScreenState extends State<JournalScreen> {
                             children: [
                               Text(
                                 '${journalVm.currentScore}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 56,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.black,
+                                  color: textColor,
                                   letterSpacing: -2,
                                 ),
                               ),
@@ -236,7 +241,7 @@ class _JournalScreenState extends State<JournalScreen> {
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.8,
-                              color: Colors.grey.shade600,
+                              color: subtextColor,
                             ),
                           ),
                         ],
@@ -244,7 +249,7 @@ class _JournalScreenState extends State<JournalScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Divider(),
+                  Divider(color: isDark ? Colors.white24 : Colors.grey.shade300),
                   const SizedBox(height: 20),
 
                   // ── Skin Progress Line Chart ──
@@ -265,8 +270,8 @@ class _JournalScreenState extends State<JournalScreen> {
       floatingActionButton: journalVm.isUploading || _isCompareMode
           ? null
           : FloatingActionButton(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
+              backgroundColor: isDark ? Colors.white : Colors.black,
+              foregroundColor: isDark ? Colors.black : Colors.white,
               shape: const CircleBorder(),
               tooltip: 'Add Progress Photo',
               onPressed: () => _showPhotoSourceSheet(context, authVm.userId, journalVm),
@@ -280,13 +285,13 @@ class _JournalScreenState extends State<JournalScreen> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.black, width: 2),
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                border: Border.all(color: borderColor, width: 2),
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black,
-                    offset: Offset(4, 4),
+                    color: shadowColor,
+                    offset: const Offset(4, 4),
                     blurRadius: 0,
                   ),
                 ],
@@ -296,16 +301,20 @@ class _JournalScreenState extends State<JournalScreen> {
                 children: [
                   Text(
                     'Selected: ${_selectedEntryIds.length}/2 entries',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedEntryIds.length == 2 ? Colors.black : Colors.grey.shade400,
-                      foregroundColor: Colors.white,
+                      backgroundColor: _selectedEntryIds.length == 2
+                          ? (isDark ? Colors.white : Colors.black)
+                          : (isDark ? Colors.grey.shade800 : Colors.grey.shade400),
+                      foregroundColor: _selectedEntryIds.length == 2
+                          ? (isDark ? Colors.black : Colors.white)
+                          : (isDark ? Colors.white30 : Colors.white60),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
-                        side: const BorderSide(color: Colors.black, width: 1.5),
+                        side: BorderSide(color: borderColor, width: 1.5),
                       ),
                     ),
                     onPressed: _selectedEntryIds.length == 2
@@ -347,6 +356,7 @@ class _JournalScreenState extends State<JournalScreen> {
   ) {
     final List<Widget> rows = [];
     final now = DateTime.now();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Group by week label based on real DateTime values
     final sections = <String, List<JournalEntry>>{};
@@ -361,10 +371,11 @@ class _JournalScreenState extends State<JournalScreen> {
       rows.add(
         Text(
           sectionLabel,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.5,
+            color: isDark ? Colors.grey.shade400 : Colors.black87,
           ),
         ),
       );
@@ -411,6 +422,7 @@ class _JournalScreenState extends State<JournalScreen> {
     final bool isSelected = _selectedEntryIds.contains(entry.id);
     final bool isLocalFile = (entry.photoPath?.startsWith('/') ?? false) || (entry.photoPath?.startsWith('C:') ?? false);
     final bool isNetwork = entry.photoPath?.startsWith('http') ?? false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () {
@@ -444,7 +456,7 @@ class _JournalScreenState extends State<JournalScreen> {
         height: 190,
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? Colors.pinkAccent : Colors.black,
+            color: isSelected ? Colors.pinkAccent : (isDark ? Colors.white30 : Colors.black),
             width: isSelected ? 2.5 : 1.2,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -459,15 +471,15 @@ class _JournalScreenState extends State<JournalScreen> {
                   ? Image.file(
                       File(entry.photoPath!),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) => _photoPlaceholder(),
+                      errorBuilder: (context, error, stack) => _photoPlaceholder(context),
                     )
                   : isNetwork
                       ? Image.network(
                           entry.photoPath!,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) => _photoPlaceholder(),
+                          errorBuilder: (context, error, stack) => _photoPlaceholder(context),
                         )
-                      : _photoPlaceholder(),
+                      : _photoPlaceholder(context),
             ),
 
             // Notes Overlay snippet if notes exist
@@ -501,16 +513,16 @@ class _JournalScreenState extends State<JournalScreen> {
               left: 10,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 1),
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  border: Border.all(color: isDark ? Colors.white30 : Colors.black, width: 1),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 child: Text(
                   entry.loggedDate,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
               ),
@@ -522,17 +534,17 @@ class _JournalScreenState extends State<JournalScreen> {
               right: 10,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.pink.shade50,
-                  border: Border.all(color: Colors.black, width: 1),
+                  color: isDark ? Colors.pink.shade900.withValues(alpha: 0.4) : Colors.pink.shade50,
+                  border: Border.all(color: isDark ? Colors.white30 : Colors.black, width: 1),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 child: Text(
                   'Score ${entry.skinScore}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
-                    color: Colors.pinkAccent,
+                    color: isDark ? Colors.pink.shade300 : Colors.pinkAccent,
                   ),
                 ),
               ),
@@ -548,8 +560,8 @@ class _JournalScreenState extends State<JournalScreen> {
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? Colors.pinkAccent : Colors.white.withValues(alpha: 0.8),
-                    border: Border.all(color: Colors.black, width: 1.5),
+                    color: isSelected ? Colors.pinkAccent : (isDark ? Colors.black.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8)),
+                    border: Border.all(color: isDark ? Colors.white : Colors.black, width: 1.5),
                   ),
                   child: isSelected
                       ? const Icon(Icons.check, color: Colors.white, size: 14)
@@ -564,26 +576,27 @@ class _JournalScreenState extends State<JournalScreen> {
 
   // ── Empty slot — tap to add photo ──
   Widget _buildEmptySlot(BuildContext context, String userId, JournalViewModel vm) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => _showPhotoSourceSheet(context, userId, vm),
       child: Container(
         height: 190,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400, width: 1.2),
+          border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade400, width: 1.2),
           borderRadius: BorderRadius.circular(4),
-          color: Colors.grey.shade50,
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.camera_alt_outlined, size: 32, color: Colors.grey.shade400),
+            Icon(Icons.camera_alt_outlined, size: 32, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
             const SizedBox(height: 8),
             Text(
               'Add Photo',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade400,
+                color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
               ),
             ),
           ],
@@ -592,18 +605,23 @@ class _JournalScreenState extends State<JournalScreen> {
     );
   }
 
-  Widget _photoPlaceholder() {
+  Widget _photoPlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(Icons.face, color: Colors.grey, size: 40),
+      color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      child: Icon(Icons.face, color: isDark ? Colors.grey.shade600 : Colors.grey, size: 40),
     );
   }
 
   // ── Bottom sheet: pilih Camera atau Gallery ──
   void _showPhotoSourceSheet(BuildContext context, String userId, JournalViewModel vm) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -615,18 +633,19 @@ class _JournalScreenState extends State<JournalScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'ADD PROGRESS PHOTO',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.5,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Choose how to capture your glow.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 13, color: subtextColor),
                 ),
                 const SizedBox(height: 24),
 
@@ -670,12 +689,16 @@ class _JournalScreenState extends State<JournalScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade200),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -683,27 +706,36 @@ class _JournalScreenState extends State<JournalScreen> {
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(
-                color: Colors.black,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white : Colors.black,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: isDark ? Colors.black : Colors.white, size: 22),
             ),
             const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: textColor,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey.shade500)),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: subtextColor,
+                  ),
+                ),
               ],
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
+            Icon(Icons.arrow_forward_ios, size: 14, color: subtextColor),
           ],
         ),
       ),
@@ -729,17 +761,26 @@ class _JournalScreenState extends State<JournalScreen> {
 
       if (!context.mounted) return;
 
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final textColor = isDark ? Colors.white : Colors.black;
+      final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+      final borderColor = isDark ? Colors.white : Colors.black;
+
       // Show preview and notes dialog
       showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
           final notesController = TextEditingController();
           return AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              side: const BorderSide(color: Colors.black, width: 2),
+              side: BorderSide(color: borderColor, width: 2),
             ),
-            title: const Text('Add Progress Note', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: Text(
+              'Add Progress Note',
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -749,7 +790,7 @@ class _JournalScreenState extends State<JournalScreen> {
                     width: double.infinity,
                     height: 160,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black, width: 1.5),
+                      border: Border.all(color: borderColor, width: 1.5),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: ClipRRect(
@@ -764,20 +805,21 @@ class _JournalScreenState extends State<JournalScreen> {
                   TextField(
                     controller: notesController,
                     maxLines: 3,
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       hintText: 'How does your skin feel today? (optional)',
-                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                      hintStyle: TextStyle(color: subtextColor, fontSize: 13),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
-                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        borderSide: BorderSide(color: borderColor, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
-                        borderSide: const BorderSide(color: Colors.black, width: 2),
+                        borderSide: BorderSide(color: borderColor, width: 2),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
-                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        borderSide: BorderSide(color: borderColor, width: 1.5),
                       ),
                     ),
                   ),
@@ -787,11 +829,12 @@ class _JournalScreenState extends State<JournalScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+                child: Text('Cancel', style: TextStyle(color: textColor)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
+                  backgroundColor: isDark ? Colors.white : Colors.black,
+                  foregroundColor: isDark ? Colors.black : Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
@@ -811,22 +854,28 @@ class _JournalScreenState extends State<JournalScreen> {
                   if (context.mounted) {
                     if (success) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('📸 Skin log uploaded! Score updated.'),
-                          backgroundColor: Colors.black,
+                        SnackBar(
+                          content: Text(
+                            '📸 Skin log uploaded! Score updated.',
+                            style: TextStyle(color: isDark ? Colors.black : Colors.white),
+                          ),
+                          backgroundColor: isDark ? Colors.white : Colors.black,
                         ),
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Upload failed. Try again.'),
-                          backgroundColor: Colors.black,
+                        SnackBar(
+                          content: Text(
+                            'Upload failed. Try again.',
+                            style: TextStyle(color: isDark ? Colors.black : Colors.white),
+                          ),
+                          backgroundColor: isDark ? Colors.white : Colors.black,
                         ),
                       );
                     }
                   }
                 },
-                child: const Text('Log Progress', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text('Log Progress', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           );

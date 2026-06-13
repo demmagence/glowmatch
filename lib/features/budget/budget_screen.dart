@@ -49,24 +49,28 @@ class _BudgetScreenState extends State<BudgetScreen> {
   Widget build(BuildContext context) {
     final budgetVm = Provider.of<BudgetViewModel>(context);
     final hasAllocations = budgetVm.allocations.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final borderColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         title: RichText(
-          text: const TextSpan(
+          text: TextSpan(
             text: 'GlowMatch',
             style: TextStyle(
               fontFamily: 'Outfit',
               fontWeight: FontWeight.w800,
               fontSize: 22,
-              color: Colors.black,
+              color: textColor,
               letterSpacing: -0.5,
             ),
-            children: [
+            children: const [
               TextSpan(
                 text: '.',
                 style: TextStyle(color: Colors.red, fontSize: 26),
@@ -76,7 +80,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: Colors.black),
+            icon: Icon(Icons.account_circle_outlined, color: textColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -91,355 +95,380 @@ class _BudgetScreenState extends State<BudgetScreen> {
         message: 'Calculating budget...',
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Title: Monthly Spend
-            Text(
-              'MONTHLY SPEND',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Spend amount
-            RichText(
-              text: TextSpan(
-                text: '\$${budgetVm.totalMonthlySpend.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  fontSize: 54,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                  letterSpacing: -1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Title: Monthly Spend
+              Text(
+                'MONTHLY SPEND',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  color: subtextColor,
                 ),
-                children: const [
-                  TextSpan(
-                    text: '.',
-                    style: TextStyle(color: Colors.pink, fontSize: 54),
-                  ),
-                  TextSpan(
-                    text: '00',
-                    style: TextStyle(fontSize: 54, color: Colors.black),
-                  ),
-                ],
               ),
-            ),
-            const SizedBox(height: 28),
+              const SizedBox(height: 8),
 
-            // Allocation Card
-            NeobrutalistCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ALLOCATION',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
+              // Spend amount
+              RichText(
+                text: TextSpan(
+                  text: '\$${budgetVm.totalMonthlySpend.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 54,
+                    fontWeight: FontWeight.w900,
+                    color: textColor,
+                    letterSpacing: -1,
                   ),
-                  const SizedBox(height: 24),
-                  
-                  if (!hasAllocations)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32.0),
-                        child: Column(
-                          children: [
-                            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No active products on your shelf to calculate allocations.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else ...[
-                    // Concentric Ring Canvas Chart
-                    Center(
-                      child: SizedBox(
-                        width: 180,
-                        height: 180,
-                        child: CustomPaint(
-                          painter: ConcentricRingsPainter(
-                            allocations: budgetVm.allocations,
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${budgetVm.allocations.length}',
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  'Categories',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                  children: [
+                    const TextSpan(
+                      text: '.',
+                      style: TextStyle(color: Colors.pink, fontSize: 54),
+                    ),
+                    TextSpan(
+                      text: '00',
+                      style: TextStyle(fontSize: 54, color: textColor),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Allocation Card
+              NeobrutalistCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ALLOCATION',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Category Legend
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 10,
-                      alignment: WrapAlignment.center,
-                      children: budgetVm.allocations.map((item) {
-                        final colorHex = item.colorHex;
-                        final color = Color(int.parse(colorHex));
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: color,
-                                border: Border.all(color: Colors.black, width: 0.8),
+                    
+                    if (!hasAllocations)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32.0),
+                          child: Column(
+                            children: [
+                              Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade400),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No active products on your shelf to calculate allocations.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: subtextColor, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else ...[
+                      // Concentric Ring Canvas Chart
+                      Center(
+                        child: SizedBox(
+                          width: 180,
+                          height: 180,
+                          child: CustomPaint(
+                            painter: ConcentricRingsPainter(
+                              allocations: budgetVm.allocations,
+                              isDark: isDark,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${budgetVm.allocations.length}',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Categories',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: subtextColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${item.category}: \$${item.amount.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Category Legend
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 10,
+                        alignment: WrapAlignment.center,
+                        children: budgetVm.allocations.map((item) {
+                          final colorHex = item.colorHex;
+                          final color = Color(int.parse(colorHex));
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: color,
+                                  border: Border.all(color: borderColor, width: 0.8),
                                 ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${item.category}: \$${item.amount.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Cost-Per-Apply Card
+              NeobrutalistCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'COST-PER-APPLY CALCULATOR',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                            color: textColor,
+                          ),
+                        ),
+                        Icon(Icons.calculate_outlined, size: 22, color: textColor),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Product Selection Dropdown
+                    Text('Select Product from Shelf', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtextColor)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _selectedProductId, // ignore: deprecated_member_use
+                      dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontFamily: 'Outfit'),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: 'custom',
+                          child: Text('Custom values (no product)', style: TextStyle(fontStyle: FontStyle.italic, color: textColor)),
+                        ),
+                        ...budgetVm.shelfItems.map((item) {
+                          return DropdownMenuItem<String>(
+                            value: item.id,
+                            child: Text(
+                              '${item.name} (${item.brand.isEmpty ? 'Unknown Brand' : item.brand})',
+                              style: TextStyle(color: textColor),
+                            ),
+                          );
+                        }),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            _selectedProductId = val;
+                          });
+                          if (val != 'custom') {
+                            final prod = budgetVm.shelfItems.firstWhere((x) => x.id == val);
+                            _syncControllersWithProduct(prod, budgetVm);
+                          }
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Price Input
+                    Text('Product Price', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtextColor)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _priceController,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                      decoration: InputDecoration(
+                        prefixText: '\$ ',
+                        prefixStyle: TextStyle(color: textColor),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedProductId = 'custom';
+                        });
+                        final parsed = double.tryParse(val);
+                        if (parsed != null) {
+                          budgetVm.updateCalculator(price: parsed);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Estimated Uses Input
+                    Text('Estimated Uses', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtextColor)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _usesController,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor, width: 1.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedProductId = 'custom';
+                        });
+                        final parsed = int.tryParse(val);
+                        if (parsed != null) {
+                          budgetVm.updateCalculator(uses: parsed);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    Divider(color: isDark ? Colors.white24 : Colors.grey.shade300),
+                    const SizedBox(height: 16),
+
+                    // Efficiency Metric output
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          'EFFICIENCY METRIC',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                            color: subtextColor,
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '\$${budgetVm.efficiencyMetric.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                            Text(
+                              '/ application',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: subtextColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
-                        );
-                      }).toList(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Efficiency Bar
+                    Container(
+                      width: double.infinity,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: (1.5 / (budgetVm.efficiencyMetric + 0.1)).clamp(0.1, 1.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.pink.shade500,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Cost-Per-Apply Card
-            NeobrutalistCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text(
-                        'COST-PER-APPLY CALCULATOR',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      Icon(Icons.calculate_outlined, size: 22),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Product Selection Dropdown
-                  const Text('Select Product from Shelf', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<String>(
-                    value: _selectedProductId, // ignore: deprecated_member_use
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black, width: 1.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    items: [
-                      const DropdownMenuItem<String>(
-                        value: 'custom',
-                        child: Text('Custom values (no product)', style: TextStyle(fontStyle: FontStyle.italic)),
-                      ),
-                      ...budgetVm.shelfItems.map((item) {
-                        return DropdownMenuItem<String>(
-                          value: item.id,
-                          child: Text('${item.name} (${item.brand.isEmpty ? 'Unknown Brand' : item.brand})'),
-                        );
-                      }),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          _selectedProductId = val;
-                        });
-                        if (val != 'custom') {
-                          final prod = budgetVm.shelfItems.firstWhere((x) => x.id == val);
-                          _syncControllersWithProduct(prod, budgetVm);
-                        }
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Price Input
-                  const Text('Product Price', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _priceController,
-                    decoration: InputDecoration(
-                      prefixText: '\$ ',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      border: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black, width: 1.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedProductId = 'custom';
-                      });
-                      final parsed = double.tryParse(val);
-                      if (parsed != null) {
-                        budgetVm.updateCalculator(price: parsed);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Estimated Uses Input
-                  const Text('Estimated Uses', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey)),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _usesController,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      border: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black, width: 1.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedProductId = 'custom';
-                      });
-                      final parsed = int.tryParse(val);
-                      if (parsed != null) {
-                        budgetVm.updateCalculator(uses: parsed);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  const Divider(),
-                  const SizedBox(height: 16),
-
-                  // Efficiency Metric output
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      const Text(
-                        'EFFICIENCY METRIC',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '\$${budgetVm.efficiencyMetric.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
-                            '/ application',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Efficiency Bar
-                  Container(
-                    width: double.infinity,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: (1.5 / (budgetVm.efficiencyMetric + 0.1)).clamp(0.1, 1.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.pink.shade500,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 // Custom concentric rings painter representing budget allocation categories
 class ConcentricRingsPainter extends CustomPainter {
   final List<CategoryAllocation> allocations;
+  final bool isDark;
 
-  ConcentricRingsPainter({required this.allocations});
+  ConcentricRingsPainter({required this.allocations, required this.isDark});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -464,7 +493,7 @@ class ConcentricRingsPainter extends CustomPainter {
       final trackPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
-        ..color = Colors.grey.shade100;
+        ..color = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade100;
       canvas.drawCircle(center, radius, trackPaint);
 
       // Draw active circular arc.
@@ -483,5 +512,5 @@ class ConcentricRingsPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ConcentricRingsPainter oldDelegate) =>
-      oldDelegate.allocations != allocations;
+      oldDelegate.allocations != allocations || oldDelegate.isDark != isDark;
 }

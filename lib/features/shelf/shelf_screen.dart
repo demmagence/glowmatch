@@ -32,7 +32,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
     super.dispose();
   }
 
-  Widget _buildSkeletonCard() {
+  Widget _buildSkeletonCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? Colors.grey.shade900 : Colors.grey.shade50;
+    final block1 = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    final block2 = isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade100;
+
     return NeobrutalistCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +45,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
           Expanded(
             child: Container(
               width: double.infinity,
-              color: Colors.grey.shade50,
+              color: bg,
               child: const Center(
                 child: SizedBox(
                   width: 24,
@@ -58,13 +63,13 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 Container(
                   width: 80,
                   height: 14,
-                  color: Colors.grey.shade200,
+                  color: block1,
                 ),
                 const SizedBox(height: 6),
                 Container(
                   width: 50,
                   height: 10,
-                  color: Colors.grey.shade100,
+                  color: block2,
                 ),
               ],
             ),
@@ -107,15 +112,22 @@ class _ShelfScreenState extends State<ShelfScreen> {
     }
   }
 
-  Widget _buildSearchBar(ShelfViewModel shelfVm) {
+  Widget _buildSearchBar(BuildContext context, ShelfViewModel shelfVm) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final border = isDark ? Colors.white : Colors.black;
+    final shadow = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final iconColor = isDark ? Colors.white : Colors.black;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black, width: 2),
-        boxShadow: const [
+        color: bg,
+        border: Border.all(color: border, width: 2),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            offset: Offset(4, 4),
+            color: shadow,
+            offset: const Offset(4, 4),
             blurRadius: 0,
           ),
         ],
@@ -124,14 +136,14 @@ class _ShelfScreenState extends State<ShelfScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (val) => shelfVm.setSearchQuery(val),
-        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
+        style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
         decoration: InputDecoration(
           hintText: 'Search products by name or brand...',
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
-          prefixIcon: const Icon(Icons.search, color: Colors.black),
+          hintStyle: TextStyle(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400, fontWeight: FontWeight.w500),
+          prefixIcon: Icon(Icons.search, color: iconColor),
           suffixIcon: shelfVm.searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.black),
+                  icon: Icon(Icons.clear, color: iconColor),
                   onPressed: () {
                     _searchController.clear();
                     shelfVm.setSearchQuery('');
@@ -149,9 +161,11 @@ class _ShelfScreenState extends State<ShelfScreen> {
   Widget build(BuildContext context) {
     final shelfVm = Provider.of<ShelfViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: () => shelfVm.fetchShelf(authVm.userId),
         child: SingleChildScrollView(
@@ -165,25 +179,25 @@ class _ShelfScreenState extends State<ShelfScreen> {
               const SizedBox(height: 24),
 
               // Search Bar
-              _buildSearchBar(shelfVm),
+              _buildSearchBar(context, shelfVm),
               const SizedBox(height: 24),
 
               // Title and FILTER Action
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'My Shelf',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: textColor,
                     ),
                   ),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.black, width: 1.2),
+                      foregroundColor: textColor,
+                      side: BorderSide(color: textColor, width: 1.2),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -220,7 +234,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 20,
                   ),
-                  itemBuilder: (context, index) => _buildSkeletonCard(),
+                  itemBuilder: (context, index) => _buildSkeletonCard(context),
                 )
               else
                 GridView.builder(
@@ -237,22 +251,22 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     if (index == shelfVm.filteredItems.length) {
                       // Add Skincare Card
                       return NeobrutalistCard(
-                        shadowColor: Colors.grey,
+                        shadowColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade300,
                         onTap: () => _showAddProductDialog(context, authVm.userId, shelfVm),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.add, size: 48, color: Colors.black),
-                            SizedBox(height: 16),
+                          children: [
+                            Icon(Icons.add, size: 48, color: textColor),
+                            const SizedBox(height: 16),
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
                               child: Text(
                                 'tekan untuk tambah skincare baru',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.black,
+                                  color: textColor,
                                 ),
                               ),
                             ),
@@ -281,6 +295,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
     final bool isEmpty = remainingUses <= 0;
     final double progress = estimatedUses > 0 ? (remainingUses / estimatedUses).clamp(0.0, 1.0) : 0.0;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final imageBg = isDark ? Colors.grey.shade900 : Colors.grey.shade50;
+    final borderSideColor = isDark ? Colors.white30 : Colors.black;
+
     return NeobrutalistCard(
       onTap: () => _showProductDetailsBottomSheet(context, item, shelfVm),
       child: Column(
@@ -294,9 +314,9 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   width: double.infinity,
                   height: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    border: const Border(
-                      bottom: BorderSide(color: Colors.black, width: 1),
+                    color: imageBg,
+                    border: Border(
+                      bottom: BorderSide(color: borderSideColor, width: 1),
                     ),
                   ),
                   child: ClipRRect(
@@ -337,24 +357,24 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 1),
+                        border: Border.all(color: textColor, width: 1),
                       ),
-                      child: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.black),
+                      child: Icon(Icons.delete_outline_rounded, size: 16, color: textColor),
                     ),
                   ),
                 ),
                 // Finished Overlay
                 if (isEmpty)
                   Container(
-                    color: Colors.white.withValues(alpha: 0.65),
+                    color: isDark ? Colors.black.withValues(alpha: 0.65) : Colors.white.withValues(alpha: 0.65),
                     alignment: Alignment.center,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.redAccent,
-                        border: Border.all(color: Colors.black, width: 1.5),
+                        border: Border.all(color: textColor, width: 1.5),
                         borderRadius: BorderRadius.circular(2),
                       ),
                       child: const Text(
@@ -381,10 +401,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   item.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: textColor,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -397,7 +417,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade600,
+                          color: subtextColor,
                         ),
                       ),
                     ),
@@ -418,7 +438,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   child: LinearProgressIndicator(
                     value: progress,
                     color: dotColor,
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
                     minHeight: 4,
                   ),
                 ),
@@ -431,7 +451,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isEmpty ? Colors.red : Colors.grey.shade600,
+                        color: isEmpty ? Colors.red : subtextColor,
                       ),
                     ),
                     if (!isEmpty)
@@ -442,25 +462,25 @@ class _ShelfScreenState extends State<ShelfScreen> {
                             SnackBar(
                               content: Text('Used 1 apply of ${item.name}!'),
                               duration: const Duration(seconds: 1),
-                              backgroundColor: Colors.black,
+                              backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
                             ),
                           );
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: textColor,
                             borderRadius: BorderRadius.circular(2),
-                            border: Border.all(color: Colors.black, width: 1),
+                            border: Border.all(color: textColor, width: 1),
                           ),
-                          child: const Text(
-                              'USE',
-                              style: TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                              ),
+                          child: Text(
+                            'USE',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.black : Colors.white,
                             ),
+                          ),
                         ),
                       ),
                   ],
@@ -481,10 +501,22 @@ class _ShelfScreenState extends State<ShelfScreen> {
     final double price = item.price;
     final double costPerApply = estimatedUses > 0 ? price / estimatedUses : 0.0;
     final List<String> ingredients = item.ingredients;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final bottomSheetBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final handleColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final imageBg = isDark ? Colors.grey.shade900 : Colors.grey.shade50;
+    final borderSideColor = isDark ? Colors.white30 : Colors.black;
+    final chipBg = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
+    final chipBorderColor = isDark ? Colors.white10 : Colors.grey.shade300;
+    final ingredientTextColor = isDark ? Colors.white70 : Colors.black87;
+    final buttonBg = isDark ? Colors.white : Colors.black;
+    final buttonFg = isDark ? Colors.black : Colors.white;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: bottomSheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -500,7 +532,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: handleColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -513,8 +545,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      border: Border.all(color: Colors.black, width: 1),
+                      color: imageBg,
+                      border: Border.all(color: borderSideColor, width: 1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: ClipRRect(
@@ -529,10 +561,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
                       children: [
                         Text(
                           item.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: textColor,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -540,7 +572,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           item.brand,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey.shade600,
+                            color: subtextColor,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -574,9 +606,9 @@ class _ShelfScreenState extends State<ShelfScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildDetailMetric('PRICE', '\$${price.toStringAsFixed(2)}'),
-                  _buildDetailMetric('USES REMAINING', '$remainingUses / $estimatedUses'),
-                  _buildDetailMetric('COST PER USE', '\$${costPerApply.toStringAsFixed(2)}'),
+                  _buildDetailMetric(context, 'PRICE', '\$${price.toStringAsFixed(2)}'),
+                  _buildDetailMetric(context, 'USES REMAINING', '$remainingUses / $estimatedUses'),
+                  _buildDetailMetric(context, 'COST PER USE', '\$${costPerApply.toStringAsFixed(2)}'),
                 ],
               ),
               const SizedBox(height: 24),
@@ -593,7 +625,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
               ingredients.isEmpty
                   ? Text(
                       'No ingredients listed.',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      style: TextStyle(color: subtextColor, fontSize: 13),
                     )
                   : Wrap(
                       spacing: 8,
@@ -602,13 +634,13 @@ class _ShelfScreenState extends State<ShelfScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: chipBg,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.grey.shade300, width: 0.8),
+                            border: Border.all(color: chipBorderColor, width: 0.8),
                           ),
                           child: Text(
                             ing,
-                            style: const TextStyle(fontSize: 12, color: Colors.black87),
+                            style: TextStyle(fontSize: 12, color: ingredientTextColor),
                           ),
                         );
                       }).toList(),
@@ -619,8 +651,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.black,
-                        side: const BorderSide(color: Colors.black, width: 1.2),
+                        foregroundColor: textColor,
+                        side: BorderSide(color: textColor, width: 1.2),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6),
@@ -658,10 +690,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
+                    backgroundColor: buttonBg,
+                    foregroundColor: buttonFg,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
+                      side: BorderSide(color: borderSideColor, width: 1.5),
                     ),
                   ),
                   onPressed: remainingUses > 0
@@ -671,12 +705,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Used 1 apply of ${item.name}!'),
-                              backgroundColor: Colors.black,
+                              backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
                             ),
                           );
                         }
                       : null,
-                  child: const Text('USE PRODUCT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text('USE PRODUCT', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -686,7 +720,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
     );
   }
 
-  Widget _buildDetailMetric(String label, String value) {
+  Widget _buildDetailMetric(BuildContext context, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -702,10 +739,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: textColor,
           ),
         ),
       ],
@@ -713,16 +750,29 @@ class _ShelfScreenState extends State<ShelfScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context, ShelfItem item, ShelfViewModel shelfVm) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Product?', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text('Are you sure you want to delete ${item.name} from your shelf?'),
+          backgroundColor: dialogBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: borderColor, width: 2),
+          ),
+          title: Text('Delete Product?', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          content: Text(
+            'Are you sure you want to delete ${item.name} from your shelf?',
+            style: TextStyle(color: isDark ? Colors.grey.shade300 : Colors.black87),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+              child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
             ),
             TextButton(
               onPressed: () {
@@ -731,7 +781,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Deleted ${item.name}'),
-                    backgroundColor: Colors.black,
+                    backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
                   ),
                 );
               },
@@ -744,13 +794,24 @@ class _ShelfScreenState extends State<ShelfScreen> {
   }
 
   void _showFilterDialog(BuildContext context, ShelfViewModel vm) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     showDialog(
       context: context,
       builder: (context) {
         final categories = ['All', ...SkincareCategory.values.map((e) => e.displayName)];
         return SimpleDialog(
-          title: const Text('Filter by Category', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: dialogBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: borderColor, width: 2),
+          ),
+          title: Text('Filter by Category', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
           children: categories.map((category) {
+            final isSelected = vm.selectedCategoryFilter == category;
             return SimpleDialogOption(
               onPressed: () {
                 vm.setFilter(category);
@@ -761,8 +822,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 child: Text(
                   category,
                   style: TextStyle(
-                    fontWeight: vm.selectedCategoryFilter == category ? FontWeight.bold : FontWeight.normal,
-                    color: vm.selectedCategoryFilter == category ? Colors.pink : Colors.black,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? (isDark ? Colors.pinkAccent : Colors.pink) : textColor,
                   ),
                 ),
               ),
@@ -783,6 +844,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
     String? localImagePath;
 
     final ImagePicker picker = ImagePicker();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final buttonBg = isDark ? Colors.white : Colors.black;
+    final buttonFg = isDark ? Colors.black : Colors.white;
 
     showDialog(
       context: context,
@@ -808,8 +875,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              title: const Text('Add Skincare Product', style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: dialogBg,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: borderColor, width: 2),
+              ),
+              title: Text('Add Skincare Product', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -821,8 +892,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           width: 65,
                           height: 65,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            border: Border.all(color: Colors.black, width: 1.5),
+                            color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                            border: Border.all(color: borderColor, width: 1.5),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           alignment: Alignment.center,
@@ -843,14 +914,14 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Product Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              Text('Product Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor)),
                               const SizedBox(height: 6),
                               Row(
                                 children: [
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.black,
-                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      foregroundColor: textColor,
+                                      side: BorderSide(color: borderColor, width: 1),
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                     ),
@@ -861,8 +932,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                                   const SizedBox(width: 6),
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.black,
-                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      foregroundColor: textColor,
+                                      side: BorderSide(color: borderColor, width: 1),
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                     ),
@@ -880,17 +951,48 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Product Name (e.g. GlowBomb)'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Product Name (e.g. GlowBomb)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                     ),
                     TextField(
                       controller: brandController,
-                      decoration: const InputDecoration(labelText: 'Brand (e.g. Skin1004)'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Brand (e.g. Skin1004)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                     ),
                     DropdownButtonFormField<String>(
-                      value: selectedCategory, // ignore: deprecated_member_use
-                      decoration: const InputDecoration(labelText: 'Category'),
+                      initialValue: selectedCategory,
+                      dropdownColor: dialogBg,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       items: SkincareCategory.values.map((e) => e.displayName).map((cat) {
-                        return DropdownMenuItem(value: cat, child: Text(cat));
+                        return DropdownMenuItem(value: cat, child: Text(cat, style: TextStyle(color: textColor)));
                       }).toList(),
                       onChanged: (val) {
                         if (val != null) setDialogState(() => selectedCategory = val);
@@ -898,17 +1000,47 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     ),
                     TextField(
                       controller: priceController,
-                      decoration: const InputDecoration(labelText: 'Price (USD)'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Price (USD)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     ),
                     TextField(
                       controller: usesController,
-                      decoration: const InputDecoration(labelText: 'Estimated Uses'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Estimated Uses',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                     TextField(
                       controller: ingredientsController,
-                      decoration: const InputDecoration(labelText: 'Ingredients (comma separated)'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Ingredients (comma separated)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -916,10 +1048,17 @@ class _ShelfScreenState extends State<ShelfScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+                  child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: buttonBg,
+                    foregroundColor: buttonFg,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      side: BorderSide(color: borderColor, width: 1.5),
+                    ),
+                  ),
                   onPressed: () {
                     if (nameController.text.isNotEmpty) {
                       String hexColor = AppConstants.categoryColors[selectedCategory] ?? '0xFFE040FB';
@@ -944,7 +1083,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('Add Product', style: TextStyle(color: Colors.white)),
+                  child: const Text('Add Product', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -965,6 +1104,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
     String? localImagePath;
 
     final ImagePicker picker = ImagePicker();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final buttonBg = isDark ? Colors.white : Colors.black;
+    final buttonFg = isDark ? Colors.black : Colors.white;
 
     showDialog(
       context: context,
@@ -992,8 +1137,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              title: const Text('Edit Skincare Product', style: TextStyle(fontWeight: FontWeight.bold)),
+              backgroundColor: dialogBg,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: borderColor, width: 2),
+              ),
+              title: Text('Edit Skincare Product', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1005,8 +1154,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           width: 65,
                           height: 65,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            border: Border.all(color: Colors.black, width: 1.5),
+                            color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                            border: Border.all(color: borderColor, width: 1.5),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           alignment: Alignment.center,
@@ -1030,14 +1179,14 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Product Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              Text('Product Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor)),
                               const SizedBox(height: 6),
                               Row(
                                 children: [
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.black,
-                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      foregroundColor: textColor,
+                                      side: BorderSide(color: borderColor, width: 1),
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                     ),
@@ -1048,8 +1197,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                                   const SizedBox(width: 6),
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.black,
-                                      side: const BorderSide(color: Colors.black, width: 1),
+                                      foregroundColor: textColor,
+                                      side: BorderSide(color: borderColor, width: 1),
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                     ),
@@ -1067,17 +1216,48 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Product Name'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Product Name',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                     ),
                     TextField(
                       controller: brandController,
-                      decoration: const InputDecoration(labelText: 'Brand'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Brand',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                     ),
                     DropdownButtonFormField<String>(
-                      value: selectedCategory, // ignore: deprecated_member_use
-                      decoration: const InputDecoration(labelText: 'Category'),
+                      initialValue: selectedCategory,
+                      dropdownColor: dialogBg,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       items: SkincareCategory.values.map((e) => e.displayName).map((cat) {
-                        return DropdownMenuItem(value: cat, child: Text(cat));
+                        return DropdownMenuItem(value: cat, child: Text(cat, style: TextStyle(color: textColor)));
                       }).toList(),
                       onChanged: (val) {
                         if (val != null) setDialogState(() => selectedCategory = val);
@@ -1085,22 +1265,62 @@ class _ShelfScreenState extends State<ShelfScreen> {
                     ),
                     TextField(
                       controller: priceController,
-                      decoration: const InputDecoration(labelText: 'Price (USD)'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Price (USD)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     ),
                     TextField(
                       controller: usesController,
-                      decoration: const InputDecoration(labelText: 'Estimated Uses'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Estimated Uses',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                     TextField(
                       controller: remainingUsesController,
-                      decoration: const InputDecoration(labelText: 'Remaining Uses'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Remaining Uses',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                     TextField(
                       controller: ingredientsController,
-                      decoration: const InputDecoration(labelText: 'Ingredients (comma separated)'),
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: 'Ingredients (comma separated)',
+                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -1108,10 +1328,17 @@ class _ShelfScreenState extends State<ShelfScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+                  child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: buttonBg,
+                    foregroundColor: buttonFg,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      side: BorderSide(color: borderColor, width: 1.5),
+                    ),
+                  ),
                   onPressed: () {
                     if (nameController.text.isNotEmpty) {
                       String hexColor = item.indicatorColor;
@@ -1142,7 +1369,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
+                  child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );

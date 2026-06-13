@@ -35,6 +35,12 @@ class JournalCompareScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+
     // Order them chronologically so A is earlier, B is later
     final dateA = _parseLoggedDate(entryA.loggedDate);
     final dateB = _parseLoggedDate(entryB.loggedDate);
@@ -57,21 +63,21 @@ class JournalCompareScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'COMPARE GLOW',
           style: TextStyle(
             fontFamily: 'Outfit',
             fontWeight: FontWeight.w900,
             fontSize: 20,
-            color: Colors.black,
+            color: textColor,
             letterSpacing: -0.5,
           ),
         ),
@@ -86,12 +92,12 @@ class JournalCompareScreen extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'BEFORE',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1, color: textColor),
                       ),
                       const SizedBox(height: 8),
-                      _buildCompareImageCard(earlier),
+                      _buildCompareImageCard(earlier, isDark, borderColor, shadowColor),
                     ],
                   ),
                 ),
@@ -99,12 +105,12 @@ class JournalCompareScreen extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'AFTER',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1),
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1, color: textColor),
                       ),
                       const SizedBox(height: 8),
-                      _buildCompareImageCard(later),
+                      _buildCompareImageCard(later, isDark, borderColor, shadowColor),
                     ],
                   ),
                 ),
@@ -117,13 +123,13 @@ class JournalCompareScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.black, width: 2),
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                border: Border.all(color: borderColor, width: 2),
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black,
-                    offset: Offset(4, 4),
+                    color: shadowColor,
+                    offset: const Offset(4, 4),
                     blurRadius: 0,
                   ),
                 ],
@@ -131,29 +137,30 @@ class JournalCompareScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'PROGRESS ANALYSIS',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.5,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildScoreDetailColumn('Before Score', earlier.skinScore, earlier.loggedDate),
+                      _buildScoreDetailColumn('Before Score', earlier.skinScore, earlier.loggedDate, textColor, subtextColor),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: diffColor,
-                          border: Border.all(color: Colors.black, width: 1.5),
+                          border: Border.all(color: borderColor, width: 1.5),
                           borderRadius: BorderRadius.circular(4),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
-                              color: Colors.black,
-                              offset: Offset(2, 2),
+                              color: shadowColor,
+                              offset: const Offset(2, 2),
                               blurRadius: 0,
                             ),
                           ],
@@ -167,19 +174,19 @@ class JournalCompareScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _buildScoreDetailColumn('After Score', later.skinScore, later.loggedDate),
+                      _buildScoreDetailColumn('After Score', later.skinScore, later.loggedDate, textColor, subtextColor),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Divider(color: Colors.black, height: 1),
+                  Divider(color: isDark ? Colors.white24 : Colors.grey.shade300, height: 1),
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
                       diffMsg,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: textColor,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -195,12 +202,12 @@ class JournalCompareScreen extends StatelessWidget {
               height: 52,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark ? Colors.white : Colors.black,
+                  foregroundColor: isDark ? Colors.black : Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: Colors.black, width: 1.5),
+                    side: BorderSide(color: borderColor, width: 1.5),
                   ),
                 ),
                 onPressed: () => Navigator.pop(context),
@@ -220,28 +227,28 @@ class JournalCompareScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreDetailColumn(String label, int score, String date) {
+  Widget _buildScoreDetailColumn(String label, int score, String date, Color textColor, Color subtextColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 11, color: subtextColor, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
           score.toString(),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -1),
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -1, color: textColor),
         ),
         Text(
           date,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor),
         ),
       ],
     );
   }
 
-  Widget _buildCompareImageCard(JournalEntry entry) {
+  Widget _buildCompareImageCard(JournalEntry entry, bool isDark, Color borderColor, Color shadowColor) {
     final bool isLocalFile = (entry.photoPath?.startsWith('/') ?? false) || (entry.photoPath?.startsWith('C:') ?? false);
     final bool isNetwork = entry.photoPath?.startsWith('http') ?? false;
 
@@ -249,12 +256,12 @@ class JournalCompareScreen extends StatelessWidget {
       height: 220,
       width: double.infinity,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 2),
+        border: Border.all(color: borderColor, width: 2),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            offset: Offset(3, 3),
+            color: shadowColor,
+            offset: const Offset(3, 3),
             blurRadius: 0,
           ),
         ],
@@ -265,23 +272,23 @@ class JournalCompareScreen extends StatelessWidget {
             ? Image.file(
                 File(entry.photoPath!),
                 fit: BoxFit.cover,
-                errorBuilder: (c, e, s) => _placeholder(),
+                errorBuilder: (c, e, s) => _placeholder(isDark),
               )
             : isNetwork
                 ? Image.network(
                     entry.photoPath!,
                     fit: BoxFit.cover,
-                    errorBuilder: (c, e, s) => _placeholder(),
+                    errorBuilder: (c, e, s) => _placeholder(isDark),
                   )
-                : _placeholder(),
+                : _placeholder(isDark),
       ),
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(bool isDark) {
     return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(Icons.face, color: Colors.grey, size: 40),
+      color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      child: Icon(Icons.face, color: isDark ? Colors.grey.shade600 : Colors.grey, size: 40),
     );
   }
 }
