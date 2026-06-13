@@ -2,21 +2,58 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-class IngredientAnalysisResult {
+class ScanAnalysisResult {
   final List<String> detectedIngredients;
   final String safetyRating;
   final String skinTypeSuitability;
   final String recommendations;
   final bool isSafe;
+  final Map<String, String> ingredientSafetyLevels; // e.g. {"Niacinamide": "Safe", "Retinol": "Caution"}
+  final Map<String, String> ingredientDetails; // e.g. {"Niacinamide": "Hydrates skin...", "Retinol": "May cause irritation..."}
+  final int overallSafetyScore;
+  final List<String> interactionWarnings;
 
-  IngredientAnalysisResult({
+  ScanAnalysisResult({
     required this.detectedIngredients,
     required this.safetyRating,
     required this.skinTypeSuitability,
     required this.recommendations,
     required this.isSafe,
+    required this.ingredientSafetyLevels,
+    required this.ingredientDetails,
+    required this.overallSafetyScore,
+    required this.interactionWarnings,
   });
+
+  factory ScanAnalysisResult.fromJson(Map<String, dynamic> json) {
+    return ScanAnalysisResult(
+      detectedIngredients: List<String>.from(json['detectedIngredients'] ?? []),
+      safetyRating: json['safetyRating'] ?? 'Unknown',
+      skinTypeSuitability: json['skinTypeSuitability'] ?? 'N/A',
+      recommendations: json['recommendations'] ?? 'No recommendations available.',
+      isSafe: json['isSafe'] ?? true,
+      ingredientSafetyLevels: Map<String, String>.from(json['ingredientSafetyLevels'] ?? {}),
+      ingredientDetails: Map<String, String>.from(json['ingredientDetails'] ?? {}),
+      overallSafetyScore: json['overallSafetyScore'] ?? 100,
+      interactionWarnings: List<String>.from(json['interactionWarnings'] ?? []),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'detectedIngredients': detectedIngredients,
+      'safetyRating': safetyRating,
+      'skinTypeSuitability': skinTypeSuitability,
+      'recommendations': recommendations,
+      'isSafe': isSafe,
+      'ingredientSafetyLevels': ingredientSafetyLevels,
+      'ingredientDetails': ingredientDetails,
+      'overallSafetyScore': overallSafetyScore,
+      'interactionWarnings': interactionWarnings,
+    };
+  }
 }
 
 class ScannerViewModel extends ChangeNotifier {
@@ -28,8 +65,15 @@ class ScannerViewModel extends ChangeNotifier {
   String _scannedText = '';
   String get scannedText => _scannedText;
 
-  IngredientAnalysisResult? _analysisResult;
-  IngredientAnalysisResult? get analysisResult => _analysisResult;
+  ScanAnalysisResult? _analysisResult;
+  ScanAnalysisResult? get analysisResult => _analysisResult;
+
+  List<ScanAnalysisResult> _scanHistory = [];
+  List<ScanAnalysisResult> get scanHistory => _scanHistory;
+
+  ScannerViewModel() {
+    loadScanHistory();
+  }
 
   @override
   void dispose() {
@@ -37,6 +81,77 @@ class ScannerViewModel extends ChangeNotifier {
     super.dispose();
   }
 
+  // Load history from SharedPreferences
+  Future<void> loadScanHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final historyJson = prefs.getStringList('scan_history') ?? [];
+      _scanHistory = historyJson
+          .map((item) => ScanAnalysisResult.fromJson(jsonDecode(item)))
+          .toList();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load scan history: $e');
+    }
+  }
+
+  // Save scan to history
+  Future<void> _saveScanToHistory(ScanAnalysisResult result) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final historyJson = prefs.getStringList('scan_history') ?? [];
+      
+      // Limit history to last 20 scans
+      if (historyJson.length >= 20) {
+        historyJson.removeLast();
+      }
+
+      historyJson.insert(0, jsonEncode(result.toJson()));
+      await prefs.setStringList('scan_history', historyJson);
+
+      _scanHistory.insert(0, result);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to save scan to history: $e');
+    }
+  }
+
+  // Clear history
+  Future<void> clearScanHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('scan_history');
+      _scanHistory.clear();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to clear scan history: $e');
+    }
+  }
+
+  // Parse text into individual ingredients list
+  List<String> _parseIngredientsList(String text) {
+    if (text.isEmpty) return [];
+    var cleaned = text.trim();
+    final lowerCleaned = cleaned.toLowerCase();
+    if (lowerCleaned.startsWith('ingredients:')) {
+      cleaned = cleaned.substring('ingredients:'.length).trim();
+    } else if (lowerCleaned.startsWith('ingredients')) {
+      cleaned = cleaned.substring('ingredients'.length).trim();
+    }
+    
+    cleaned = cleaned.replaceAll('\n', ' ');
+    final rawParts = cleaned.split(RegExp(r'[,;]'));
+    final List<String> result = [];
+    for (var part in rawParts) {
+      final trimmed = part.trim();
+      if (trimmed.isNotEmpty && trimmed.length > 1) {
+        result.add(trimmed);
+      }
+    }
+    return result;
+  }
+
+  // Analyze text via image OCR
   Future<void> scanImage(String filePath) async {
     _isProcessing = true;
     _analysisResult = null;
@@ -47,18 +162,22 @@ class ScannerViewModel extends ChangeNotifier {
       final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
       
       _scannedText = recognizedText.text;
-      
-      // Perform AI Analysis (mocked locally for immediate resilience, can be plugged into Gemini/Edge Function)
-      await _analyzeIngredientsWithAI(_scannedText);
+      final ingredients = _parseIngredientsList(_scannedText);
+
+      await _analyzeIngredientsWithAIList(ingredients);
     } catch (e) {
       debugPrint('OCR Scanning Error: $e');
       _scannedText = 'Failed to extract text. Please try again with clear lighting.';
-      _analysisResult = IngredientAnalysisResult(
+      _analysisResult = ScanAnalysisResult(
         detectedIngredients: ['Unknown'],
         safetyRating: 'N/A',
         skinTypeSuitability: 'Unknown',
         recommendations: 'Unable to scan text clearly. Make sure ingredients are aligned within the box.',
         isSafe: false,
+        ingredientSafetyLevels: {},
+        ingredientDetails: {},
+        overallSafetyScore: 0,
+        interactionWarnings: [],
       );
     } finally {
       _isProcessing = false;
@@ -66,66 +185,56 @@ class ScannerViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _analyzeIngredientsWithAI(String text) async {
-    const apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
-    const model = String.fromEnvironment('GEMINI_MODEL', defaultValue: 'gemini-3.1-flash-lite');
+  // Task 2: Add an analyzeWithAI(List ingredients) method
+  Future<void> analyzeWithAI(List<String> ingredients) async {
+    _isProcessing = true;
+    _analysisResult = null;
+    notifyListeners();
 
-    if (apiKey.isEmpty || apiKey.startsWith('YOUR_')) {
-      await _runOfflineFallbackAnalysis(text);
+    try {
+      await _analyzeIngredientsWithAIList(ingredients);
+    } catch (e) {
+      debugPrint('Error in analyzeWithAI: $e');
+    } finally {
+      _isProcessing = false;
+      notifyListeners();
+    }
+  }
+
+  // Core helper to call Supabase Edge Function with fallback
+  Future<void> _analyzeIngredientsWithAIList(List<String> ingredients) async {
+    final supabaseUrl = const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+    final supabaseAnonKey = const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+
+    if (supabaseUrl.isEmpty || supabaseUrl.startsWith('YOUR_') || supabaseAnonKey.isEmpty || supabaseAnonKey.startsWith('YOUR_')) {
+      await _runOfflineFallbackAnalysis(ingredients.join(', '));
       return;
     }
 
     try {
-      final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey');
-      final prompt = """
-You are a skincare ingredients safety analyzer.
-Analyze the following ingredients text and return ONLY a JSON object with this exact format:
-{
-  "detectedIngredients": ["ingredient1", "ingredient2"],
-  "safetyRating": "Highly Safe / Moderate Risk / High Risk",
-  "skinTypeSuitability": "suitability description",
-  "recommendations": "your recommendations",
-  "isSafe": true/false
-}
-Do not return any markdown wrappers like ```json or ```, just return the raw JSON object.
-Ingredients text:
-$text
-""";
-
+      final url = Uri.parse('$supabaseUrl/functions/v1/analyze-ingredients');
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $supabaseAnonKey',
+          'apikey': supabaseAnonKey,
+        },
         body: jsonEncode({
-          'contents': [{
-            'parts': [{'text': prompt}]
-          }]
+          'ingredients': ingredients,
         }),
-      ).timeout(const Duration(seconds: 8));
+      ).timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        final textResponse = decoded['candidates'][0]['content']['parts'][0]['text'] as String;
-        
-        var cleanedText = textResponse.trim();
-        if (cleanedText.startsWith('```')) {
-          cleanedText = cleanedText.replaceAll(RegExp(r'^```json\s*'), '');
-          cleanedText = cleanedText.replaceAll(RegExp(r'\s*```$'), '');
-        }
-        
-        final parsedJson = jsonDecode(cleanedText.trim());
-        _analysisResult = IngredientAnalysisResult(
-          detectedIngredients: List<String>.from(parsedJson['detectedIngredients'] ?? []),
-          safetyRating: parsedJson['safetyRating'] ?? 'Unknown',
-          skinTypeSuitability: parsedJson['skinTypeSuitability'] ?? 'N/A',
-          recommendations: parsedJson['recommendations'] ?? 'No recommendations available.',
-          isSafe: parsedJson['isSafe'] ?? true,
-        );
+        final parsedJson = jsonDecode(response.body);
+        _analysisResult = ScanAnalysisResult.fromJson(parsedJson);
+        await _saveScanToHistory(_analysisResult!);
       } else {
-        throw Exception('Gemini API returned status code ${response.statusCode}');
+        throw Exception('Edge function returned status code ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Gemini API call failed: $e. Falling back to offline mock mode.');
-      await _runOfflineFallbackAnalysis(text);
+      debugPrint('AI Ingredient Analysis failed: $e. Falling back to offline fallback.');
+      await _runOfflineFallbackAnalysis(ingredients.join(', '));
     }
   }
 
@@ -140,37 +249,106 @@ $text
 
     final String lowerText = text.toLowerCase();
     final List<String> found = [];
+    final Map<String, String> safetyLevels = {};
+    final Map<String, String> details = {};
+    final List<String> warnings = [];
     
     // Simple local dictionary matching for high-quality mock experience
-    if (lowerText.contains('niacinamide')) found.add('Niacinamide');
+    if (lowerText.contains('niacinamide')) {
+      found.add('Niacinamide');
+      safetyLevels['Niacinamide'] = 'Safe';
+      details['Niacinamide'] = 'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
+    }
     if (lowerText.contains('acid') || lowerText.contains('salicylic')) {
       if (lowerText.contains('hyaluronic')) {
         found.add('Hyaluronic Acid');
+        safetyLevels['Hyaluronic Acid'] = 'Safe';
+        details['Hyaluronic Acid'] = 'Powerful humectant that draws moisture into the skin for hydration.';
       } else if (lowerText.contains('salicylic')) {
         found.add('Salicylic Acid');
+        safetyLevels['Salicylic Acid'] = 'Caution';
+        details['Salicylic Acid'] = 'Exfoliates inside pores. Can cause drying or irritation in high concentrations.';
       } else {
         found.add('Glycolic Acid');
+        safetyLevels['Glycolic Acid'] = 'Caution';
+        details['Glycolic Acid'] = 'Alpha hydroxy acid that helps exfoliate skin but can cause sun sensitivity.';
       }
     }
-    if (lowerText.contains('retinol')) found.add('Retinol');
-    if (lowerText.contains('centella') || lowerText.contains('asiatica')) found.add('Centella Asiatica');
-    if (lowerText.contains('glycerin')) found.add('Glycerin');
-    if (lowerText.contains('panthenol')) found.add('Panthenol');
+    if (lowerText.contains('retinol')) {
+      found.add('Retinol');
+      safetyLevels['Retinol'] = 'Caution';
+      details['Retinol'] = 'Promotes skin cell turnover. May cause peeling, redness, or sun sensitivity.';
+    }
+    if (lowerText.contains('centella') || lowerText.contains('asiatica')) {
+      found.add('Centella Asiatica');
+      safetyLevels['Centella Asiatica'] = 'Safe';
+      details['Centella Asiatica'] = 'Soothes inflammation, speeds healing, and calms sensitive skin.';
+    }
+    if (lowerText.contains('glycerin')) {
+      found.add('Glycerin');
+      safetyLevels['Glycerin'] = 'Safe';
+      details['Glycerin'] = 'Classic humectant that keeps the skin barrier hydrated and soft.';
+    }
+    if (lowerText.contains('panthenol')) {
+      found.add('Panthenol');
+      safetyLevels['Panthenol'] = 'Safe';
+      details['Panthenol'] = 'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
+    }
 
     if (found.isEmpty) {
       found.addAll(['Glycerin', 'Panthenol', 'Niacinamide']); // Seed defaults if text is random
+      safetyLevels['Glycerin'] = 'Safe';
+      details['Glycerin'] = 'Classic humectant that keeps the skin barrier hydrated and soft.';
+      safetyLevels['Panthenol'] = 'Safe';
+      details['Panthenol'] = 'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
+      safetyLevels['Niacinamide'] = 'Safe';
+      details['Niacinamide'] = 'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
     }
 
     // Determine safety rating based on ingredients
     bool containsHarsh = lowerText.contains('paraben') || lowerText.contains('alcohol denat');
     
-    _analysisResult = IngredientAnalysisResult(
+    if (containsHarsh) {
+      if (lowerText.contains('paraben')) {
+        safetyLevels['Paraben'] = 'Avoid';
+        details['Paraben'] = 'Preservative commonly avoided due to potential endocrine disruption concerns.';
+      }
+      if (lowerText.contains('alcohol denat')) {
+        safetyLevels['Alcohol Denat'] = 'Caution';
+        details['Alcohol Denat'] = 'Drying solvent used for quick product absorption, can impair skin barrier.';
+      }
+    }
+
+    // Warnings
+    if (found.contains('Salicylic Acid') && found.contains('Retinol')) {
+      warnings.add('Combining Salicylic Acid (BHA) and Retinol can cause extreme skin irritation and dryness. Use them at different times of the day.');
+    }
+
+    // Calculate score
+    int score = 100;
+    for (var status in safetyLevels.values) {
+      if (status == 'Avoid') {
+        score -= 25;
+      } else if (status == 'Caution') {
+        score -= 10;
+      }
+    }
+    score = score.clamp(0, 100);
+
+    _analysisResult = ScanAnalysisResult(
       detectedIngredients: found,
       safetyRating: containsHarsh ? 'Moderate Risk (Contains Parabens/Drying Alcohols)' : 'Highly Safe (100% Clean)',
       skinTypeSuitability: 'Excellent for Sensitive & Dry Skin. Relieves redness.',
       recommendations: 'This product contains ${found.join(", ")}, which are excellent for moisture barrier support. Highly recommended for daily AM/PM routines.',
       isSafe: !containsHarsh,
+      ingredientSafetyLevels: safetyLevels,
+      ingredientDetails: details,
+      overallSafetyScore: score,
+      interactionWarnings: warnings,
     );
+
+    // Save to history
+    await _saveScanToHistory(_analysisResult!);
   }
 
   void clearScan() {

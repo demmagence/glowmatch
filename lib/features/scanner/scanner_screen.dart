@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   CameraController? _cameraController;
   bool _isCameraInitialized = false;
   bool _isFlashOn = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -74,14 +76,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (!_isCameraInitialized || _cameraController == null) {
       // Simulator fallback simulation
       await vm.scanImage('assets/mock_ingredients.png'); // Trigger local OCR mock parser
-      if (mounted) _showAnalysisResults(context, vm);
+      if (mounted && vm.analysisResult != null) {
+        _showResultSheet(context, vm.analysisResult!, vm);
+      }
       return;
     }
 
     try {
       final file = await _cameraController!.takePicture();
       await vm.scanImage(file.path);
-      if (mounted) _showAnalysisResults(context, vm);
+      if (mounted && vm.analysisResult != null) {
+        _showResultSheet(context, vm.analysisResult!, vm);
+      }
     } catch (e) {
       debugPrint('Capture error: $e');
       if (!mounted) return;
@@ -94,9 +100,127 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final scannerVm = Provider.of<ScannerViewModel>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.black,
+      drawer: Drawer(
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
+                border: Border(bottom: BorderSide(color: borderColor, width: 2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Scan History',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Past product scans',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (scannerVm.scanHistory.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
+                      tooltip: 'Clear history',
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: bgColor,
+                            title: Text('Clear History?', style: TextStyle(color: textColor)),
+                            content: Text('Do you want to delete all past scans?', style: TextStyle(color: textColor)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Clear', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await scannerVm.clearScanHistory();
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: scannerVm.scanHistory.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No past scans found',
+                        style: TextStyle(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: scannerVm.scanHistory.length,
+                      itemBuilder: (context, index) {
+                        final historyItem = scannerVm.scanHistory[index];
+                        final score = historyItem.overallSafetyScore;
+                        final scoreColor = score >= 80 ? Colors.green : (score >= 50 ? Colors.amber : Colors.red);
+                        return ListTile(
+                          title: Text(
+                            historyItem.detectedIngredients.take(3).join(', ') + (historyItem.detectedIngredients.length > 3 ? '...' : ''),
+                            style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            'Score: $score/100 | ${historyItem.safetyRating}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: scoreColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: scoreColor, width: 1.5),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '$score',
+                              style: TextStyle(color: scoreColor, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context); // Close Drawer
+                            _showResultSheet(context, historyItem, scannerVm);
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -111,7 +235,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
               child: Column(
                 children: [
-                  // Header Row: Close, Title Capsule, Flashlight
+                  // Header Row: Close, Title Capsule, Flashlight & History
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -131,7 +255,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       
                       // GLOWMATCH Capsule logo
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
@@ -141,28 +265,50 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             fontWeight: FontWeight.w900,
-                            fontSize: 18,
+                            fontSize: 16,
                             color: Colors.black,
                             letterSpacing: 1.0,
                           ),
                         ),
                       ),
 
-                      // Flashlight toggle
-                      GestureDetector(
-                        onTap: _toggleFlash,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                      // Row of control buttons
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: _toggleFlash,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isFlashOn ? Icons.flashlight_on : Icons.flashlight_off,
+                                color: Colors.black,
+                              ),
+                            ),
                           ),
-                          child: Icon(
-                            _isFlashOn ? Icons.flashlight_on : Icons.flashlight_off,
-                            color: Colors.black,
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              _scaffoldKey.currentState?.openDrawer();
+                            },
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.history,
+                                color: Colors.black,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -173,7 +319,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Colors.white.withOpacity(0.85),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
@@ -210,7 +356,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 4),
-                        color: Colors.white.withValues(alpha: scannerVm.isProcessing ? 0.5 : 1.0),
+                        color: Colors.white.withOpacity(scannerVm.isProcessing ? 0.5 : 1.0),
                       ),
                     ),
                   ),
@@ -258,100 +404,313 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  void _showAnalysisResults(BuildContext context, ScannerViewModel vm) {
-    if (vm.analysisResult == null) return;
-    final result = vm.analysisResult!;
+  void _showResultSheet(BuildContext context, ScanAnalysisResult result, ScannerViewModel vm) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final borderColor = isDark ? Colors.white : Colors.black;
+
+    // Determine overall score status colors
+    final score = result.overallSafetyScore;
+    final scoreColor = score >= 80 ? Colors.green : (score >= 50 ? Colors.amber : Colors.red);
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
+      isScrollControlled: true,
+      backgroundColor: bgColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
         ),
+        side: BorderSide(color: borderColor, width: 2),
       ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'SCAN ANALYSIS',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.6,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'SCAN ANALYSIS',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        // Safety score circular badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: scoreColor.withOpacity(0.1),
+                            border: Border.all(color: scoreColor, width: 2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Score: ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                ),
+                              ),
+                              Text(
+                                '$score/100',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: scoreColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Icon(
-                    result.isSafe ? Icons.check_circle : Icons.warning_rounded,
-                    color: result.isSafe ? Colors.green : Colors.amber,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              
-              // Detected ingredients list
-              const Text('Detected Ingredients:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: result.detectedIngredients.map((ing) {
-                  return Chip(
-                    backgroundColor: Colors.pink.shade50,
-                    label: Text(
-                      ing,
-                      style: TextStyle(fontSize: 12, color: Colors.pink.shade400, fontWeight: FontWeight.bold),
+                    const SizedBox(height: 16),
+
+                    // Interaction warnings box if present
+                    if (result.interactionWarnings.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50.withOpacity(isDark ? 0.1 : 0.85),
+                          border: Border.all(color: Colors.red, width: 2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.warning_amber_rounded, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text(
+                                  'INGREDIENT INTERACTIONS',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: Colors.red,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ...result.interactionWarnings.map((warning) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 6.0),
+                                  child: Text(
+                                    '• $warning',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark ? Colors.red.shade300 : Colors.red.shade800,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Detected ingredients with color-coded chips
+                    const Text(
+                      'Detected Ingredients:',
+                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
                     ),
-                    visualDensity: VisualDensity.compact,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: result.detectedIngredients.map((ing) {
+                        final level = result.ingredientSafetyLevels[ing] ?? 'Safe';
+                        Color chipColor;
+                        Color textChipColor;
+                        if (level == 'Avoid') {
+                          chipColor = Colors.red.shade100.withOpacity(isDark ? 0.2 : 0.9);
+                          textChipColor = isDark ? Colors.red.shade300 : Colors.red.shade800;
+                        } else if (level == 'Caution') {
+                          chipColor = Colors.amber.shade100.withOpacity(isDark ? 0.2 : 0.9);
+                          textChipColor = isDark ? Colors.amber.shade300 : Colors.amber.shade800;
+                        } else {
+                          chipColor = Colors.green.shade100.withOpacity(isDark ? 0.2 : 0.9);
+                          textChipColor = isDark ? Colors.green.shade300 : Colors.green.shade800;
+                        }
 
-              // Suitability profile
-              const Text('Skin Suitability:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              Text(
-                result.skinTypeSuitability,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
+                        return Chip(
+                          backgroundColor: chipColor,
+                          side: BorderSide(color: textChipColor, width: 1.5),
+                          label: Text(
+                            ing,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textChipColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
 
-              // AI Safety summary
-              const Text('Safety & Details:', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              Text(
-                result.recommendations,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
-              ),
-              const SizedBox(height: 24),
+                    // Expandable detail cards
+                    const Text(
+                      'Ingredient Safety & Details (Tap to expand):',
+                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ...result.detectedIngredients.map((ing) {
+                      final level = result.ingredientSafetyLevels[ing] ?? 'Safe';
+                      final detail = result.ingredientDetails[ing] ?? 'No details available.';
+                      Color detailColor = level == 'Avoid'
+                          ? Colors.red
+                          : (level == 'Caution' ? Colors.amber : Colors.green);
+                      
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: borderColor, width: 1.5),
+                        ),
+                        color: isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade50,
+                        child: ExpansionTile(
+                          collapsedIconColor: textColor,
+                          iconColor: textColor,
+                          title: Text(
+                            ing,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: textColor,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Safety status: $level',
+                            style: TextStyle(
+                              color: detailColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 12.0),
+                              child: Text(
+                                detail,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    const SizedBox(height: 16),
 
-              // Close / OK Button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  ),
-                  onPressed: () {
-                    vm.clearScan();
-                    Navigator.pop(context);
-                  },
-                  child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    // Suitability profile
+                    const Text(
+                      'Skin Suitability:',
+                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      result.skinTypeSuitability,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // AI Safety summary
+                    const Text(
+                      'AI Recommendations & Summary:',
+                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      result.recommendations,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Buttons Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: textColor,
+                                side: BorderSide(color: borderColor, width: 2),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context); // Close sheet
+                                Navigator.pop(context, result.detectedIngredients); // Close screen & return ingredients
+                              },
+                              child: const Text(
+                                'Save to Shelf',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isDark ? Colors.white : Colors.black,
+                                foregroundColor: isDark ? Colors.black : Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                  side: BorderSide(color: borderColor, width: 2),
+                                ),
+                              ),
+                              onPressed: () {
+                                vm.clearScan();
+                                Navigator.pop(context); // Close sheet
+                              },
+                              child: const Text(
+                                'OK',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

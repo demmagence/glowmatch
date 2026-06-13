@@ -19,14 +19,7 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const BudgetScreen(),
-    const SizedBox.shrink(), // Placeholder for Scanner FAB
-    const JournalScreen(),
-    const ShelfScreen(),
-  ];
+  List<String>? _preFilledIngredients;
 
   @override
   void initState() {
@@ -53,7 +46,20 @@ class _MainLayoutState extends State<MainLayout> {
       body: SafeArea(
         child: IndexedStack(
           index: _currentIndex == 2 ? 0 : _currentIndex, // Default fallback if 2 selected directly
-          children: _screens,
+          children: [
+            const HomeScreen(),
+            const BudgetScreen(),
+            const SizedBox.shrink(), // Placeholder for Scanner FAB
+            const JournalScreen(),
+            ShelfScreen(
+              initialIngredientsToPreFill: _preFilledIngredients,
+              onClearPreFill: () {
+                setState(() {
+                  _preFilledIngredients = null;
+                });
+              },
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: Container(
@@ -169,13 +175,19 @@ class _MainLayoutState extends State<MainLayout> {
     final btnFg = isDark ? Colors.black : Colors.white;
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         // Direct modal/navigation to OCR scanning camera screen
-        Navigator.of(context).push(
+        final List<String>? ingredients = await Navigator.of(context).push<List<String>>(
           MaterialPageRoute(
             builder: (context) => const ScannerScreen(),
           ),
         );
+        if (ingredients != null) {
+          setState(() {
+            _preFilledIngredients = ingredients;
+            _currentIndex = 4; // Shelf Screen tab
+          });
+        }
       },
       child: Container(
         width: 58,
