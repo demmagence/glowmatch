@@ -74,8 +74,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final illusBg = isDark ? Colors.pink.shade900.withValues(alpha: 0.4) : Colors.pinkAccent.shade100;
+    final dotInactive = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -83,10 +90,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               alignment: Alignment.topRight,
               child: TextButton(
                 onPressed: _completeOnboarding,
-                child: const Text(
+                child: Text(
                   'Skip',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: textColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -113,13 +120,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: 200,
                           height: 200,
                           decoration: BoxDecoration(
-                            color: Colors.pinkAccent.shade100,
+                            color: illusBg,
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.black, width: 4),
-                            boxShadow: const [
+                            border: Border.all(color: borderColor, width: 4),
+                            boxShadow: [
                               BoxShadow(
-                                color: Colors.black,
-                                offset: Offset(6, 6),
+                                color: shadowColor,
+                                offset: const Offset(6, 6),
                                 blurRadius: 0,
                               ),
                             ],
@@ -127,25 +134,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: Icon(
                             _getIconData(_onboardingData[index]['icon']!),
                             size: 100,
-                            color: Colors.black,
+                            color: textColor,
                           ),
                         ),
                         const SizedBox(height: 60),
                         Text(
                           _onboardingData[index]['title']!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
-                            color: Colors.black,
+                            color: textColor,
                           ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 20),
                         Text(
                           _onboardingData[index]['description']!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: Colors.black87,
+                            color: textColor,
                             height: 1.5,
                           ),
                           textAlign: TextAlign.center,
@@ -170,9 +177,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 12,
                         width: _currentPage == index ? 32 : 12,
                         decoration: BoxDecoration(
-                          color: _currentPage == index ? Colors.pinkAccent : Colors.grey.shade300,
+                          color: _currentPage == index ? Colors.pinkAccent : dotInactive,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.black, width: 2),
+                          border: Border.all(color: borderColor, width: 2),
                         ),
                       ),
                     ),
@@ -184,11 +191,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       decoration: BoxDecoration(
                         color: Colors.pinkAccent,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.black, width: 3),
-                        boxShadow: const [
+                        border: Border.all(color: borderColor, width: 3),
+                        boxShadow: [
                           BoxShadow(
-                            color: Colors.black,
-                            offset: Offset(4, 4),
+                            color: shadowColor,
+                            offset: const Offset(4, 4),
                             blurRadius: 0,
                           ),
                         ],

@@ -11,20 +11,23 @@ class GlowMatchHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         RichText(
-          text: const TextSpan(
+          text: TextSpan(
             text: 'GlowMatch',
             style: TextStyle(
               fontFamily: 'Outfit',
               fontSize: 26,
               fontWeight: FontWeight.w800,
-              color: Colors.black,
+              color: textColor,
               letterSpacing: -0.5,
             ),
-            children: [
+            children: const [
               TextSpan(
                 text: '.',
                 style: TextStyle(color: Colors.red, fontSize: 32),
@@ -33,7 +36,7 @@ class GlowMatchHeader extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.account_circle_outlined, size: 28),
+          icon: Icon(Icons.account_circle_outlined, size: 28, color: textColor),
           onPressed: onProfileTap ??
               () {
                 Navigator.push(

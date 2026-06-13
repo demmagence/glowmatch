@@ -65,8 +65,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -82,11 +87,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   decoration: BoxDecoration(
                     color: Colors.pinkAccent,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black, width: 4),
-                    boxShadow: const [
+                    border: Border.all(color: borderColor, width: 4),
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black,
-                        offset: Offset(4, 4),
+                        color: shadowColor,
+                        offset: const Offset(4, 4),
                         blurRadius: 0,
                       ),
                     ],
@@ -100,12 +105,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'GlowMatch',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: textColor,
                     letterSpacing: 2,
                   ),
                 ),

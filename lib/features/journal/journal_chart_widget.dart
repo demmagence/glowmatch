@@ -30,6 +30,13 @@ class JournalChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderCol = isDark ? Colors.white : Colors.black;
+    final shadowCol = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+
     // 1. Filter last 30 days
     final now = DateTime.now();
     final thirtyDaysAgo = now.subtract(const Duration(days: 30));
@@ -46,27 +53,27 @@ class JournalChartWidget extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: Colors.black, width: 2),
+          color: cardBg,
+          border: Border.all(color: borderCol, width: 2),
           borderRadius: BorderRadius.circular(8),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Colors.black,
-              offset: Offset(4, 4),
+              color: shadowCol,
+              offset: const Offset(4, 4),
               blurRadius: 0,
             ),
           ],
         ),
         child: Column(
           children: [
-            const Icon(Icons.show_chart, size: 48, color: Colors.grey),
+            Icon(Icons.show_chart, size: 48, color: isDark ? Colors.grey.shade600 : Colors.grey),
             const SizedBox(height: 12),
             Text(
               'No progress data for the last 30 days.',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+                color: textColor,
               ),
             ),
             const SizedBox(height: 4),
@@ -74,7 +81,7 @@ class JournalChartWidget extends StatelessWidget {
               'Upload progress photos to see your trend! 📈',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade500,
+                color: subtextColor,
               ),
             ),
           ],
@@ -97,13 +104,13 @@ class JournalChartWidget extends StatelessWidget {
       height: 220,
       padding: const EdgeInsets.only(top: 24, bottom: 8, left: 16, right: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black, width: 2),
+        color: cardBg,
+        border: Border.all(color: borderCol, width: 2),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            offset: Offset(4, 4),
+            color: shadowCol,
+            offset: const Offset(4, 4),
             blurRadius: 0,
           ),
         ],
@@ -116,7 +123,7 @@ class JournalChartWidget extends StatelessWidget {
           maxX: spots.length - 0.8,
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
-              tooltipBgColor: Colors.black,
+              tooltipBgColor: isDark ? Colors.grey.shade900 : Colors.black,
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   final entry = filtered[spot.spotIndex];
@@ -133,18 +140,18 @@ class JournalChartWidget extends StatelessWidget {
             drawHorizontalLine: true,
             drawVerticalLine: false,
             getDrawingHorizontalLine: (value) {
-              return const FlLine(
-                color: Color(0xFFEEEEEE),
+              return FlLine(
+                color: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
                 strokeWidth: 1,
-                dashArray: [4, 4],
+                dashArray: const [4, 4],
               );
             },
           ),
           borderData: FlBorderData(
             show: true,
-            border: const Border(
-              bottom: BorderSide(color: Colors.black, width: 1.5),
-              left: BorderSide(color: Colors.black, width: 1.5),
+            border: Border(
+              bottom: BorderSide(color: borderCol, width: 1.5),
+              left: BorderSide(color: borderCol, width: 1.5),
               top: BorderSide.none,
               right: BorderSide.none,
             ),
@@ -161,10 +168,10 @@ class JournalChartWidget extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   return Text(
                     value.toInt().toString(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: textColor,
                     ),
                   );
                 },
@@ -189,10 +196,10 @@ class JournalChartWidget extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
                           filtered[idx].loggedDate,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: textColor,
                           ),
                         ),
                       );
@@ -215,8 +222,8 @@ class JournalChartWidget extends StatelessWidget {
                 getDotPainter: (spot, percent, barData, index) {
                   return FlDotCirclePainter(
                     radius: 5,
-                    color: Colors.white,
-                    strokeColor: Colors.black,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    strokeColor: borderCol,
                     strokeWidth: 2,
                   );
                 },

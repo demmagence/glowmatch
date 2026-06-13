@@ -17,8 +17,15 @@ class HomeScreen extends StatelessWidget {
     final weather = routineVm.weather;
     final shelfVm = Provider.of<ShelfViewModel>(context, listen: false);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final switcherBg = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
+    final stepBadgeBg = isDark ? Colors.pink.shade900.withValues(alpha: 0.4) : Colors.pink.shade50;
+    final stepBadgeText = isDark ? Colors.pink.shade300 : Colors.pink.shade400;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
@@ -49,16 +56,16 @@ class HomeScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       routineVm.activeRoutine == 'AM' ? 'Morning Routine' : 'Evening Routine',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: textColor,
                         letterSpacing: -0.5,
                       ),
                     ),
                   ),
                   if (routineVm.streakData != null && routineVm.streakData!.currentStreak > 0)
-                    _buildStreakBadge(routineVm.streakData!.currentStreak),
+                    _buildStreakBadge(context, routineVm.streakData!.currentStreak),
                 ],
               ),
               const SizedBox(height: 4),
@@ -72,20 +79,20 @@ class HomeScreen extends StatelessWidget {
                         : 'Los Angeles, CA • 33°C',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: subtextColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
               if (routineVm.streakData != null)
-                _buildMotivationalBanner(routineVm.streakData!.currentStreak),
+                _buildMotivationalBanner(context, routineVm.streakData!.currentStreak),
               const SizedBox(height: 24),
 
               // AM / PM Switcher Toggles
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: switcherBg,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 padding: const EdgeInsets.all(4),
@@ -93,6 +100,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _buildToggleItem(
+                        context,
                         label: 'AM',
                         isActive: routineVm.activeRoutine == 'AM',
                         onTap: () => routineVm.setActiveRoutine('AM'),
@@ -100,6 +108,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     Expanded(
                       child: _buildToggleItem(
+                        context,
                         label: 'PM',
                         isActive: routineVm.activeRoutine == 'PM',
                         onTap: () => routineVm.setActiveRoutine('PM'),
@@ -114,18 +123,18 @@ class HomeScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Steps',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: textColor,
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.pink.shade50,
+                      color: stepBadgeBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
@@ -134,7 +143,7 @@ class HomeScreen extends StatelessWidget {
                         '${routineVm.completedCount}/${routineVm.totalCount} Completed',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.pink.shade300,
+                          color: stepBadgeText,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -184,7 +193,7 @@ class HomeScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Used 1 apply of $productName!'),
-                              backgroundColor: Colors.black,
+                              backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
                               duration: const Duration(seconds: 2),
                             ),
                           );
@@ -192,8 +201,9 @@ class HomeScreen extends StatelessWidget {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 1.2),
+                          border: Border.all(color: textColor, width: 1.2),
                           borderRadius: BorderRadius.circular(8),
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         ),
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -204,11 +214,11 @@ class HomeScreen extends StatelessWidget {
                               height: 24,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.black, width: 1.5),
-                                color: isCompleted ? Colors.black : Colors.transparent,
+                                border: Border.all(color: textColor, width: 1.5),
+                                color: isCompleted ? textColor : Colors.transparent,
                               ),
                               child: isCompleted
-                                  ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                  ? Icon(Icons.check, color: isDark ? Colors.black : Colors.white, size: 14)
                                   : null,
                             ),
                             const SizedBox(width: 16),
@@ -222,7 +232,7 @@ class HomeScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                                      color: textColor,
                                       decoration: isCompleted
                                           ? TextDecoration.lineThrough
                                           : null,
@@ -233,7 +243,7 @@ class HomeScreen extends StatelessWidget {
                                     step.description ?? '',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: Colors.grey.shade600,
+                                      color: subtextColor,
                                     ),
                                   ),
                                 ],
@@ -244,7 +254,7 @@ class HomeScreen extends StatelessWidget {
                               'Step ${index + 1}',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey.shade400,
+                                color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -263,17 +273,18 @@ class HomeScreen extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: 1.2),
+                    border: Border.all(color: textColor, width: 1.2),
                     borderRadius: BorderRadius.circular(8),
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 22),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'Click to add',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: textColor,
                       ),
                     ),
                   ),
@@ -288,12 +299,18 @@ class HomeScreen extends StatelessWidget {
                   height: 52,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: routineVm.completedToday ? Colors.grey.shade300 : Colors.black,
-                      foregroundColor: routineVm.completedToday ? Colors.grey.shade600 : Colors.white,
+                      backgroundColor: routineVm.completedToday
+                          ? (isDark ? Colors.grey.shade800 : Colors.grey.shade300)
+                          : (isDark ? Colors.white : Colors.black),
+                      foregroundColor: routineVm.completedToday
+                          ? (isDark ? Colors.grey.shade500 : Colors.grey.shade600)
+                          : (isDark ? Colors.black : Colors.white),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: routineVm.completedToday ? Colors.grey.shade400 : Colors.black,
+                          color: routineVm.completedToday
+                              ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                              : (isDark ? Colors.white : Colors.black),
                           width: 1.5,
                         ),
                       ),
@@ -316,7 +333,7 @@ class HomeScreen extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(msg),
-                                  backgroundColor: Colors.black,
+                                  backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
                                 ),
                               );
                             }
@@ -347,18 +364,24 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildToggleItem({
+  Widget _buildToggleItem(
+    BuildContext context, {
     required String label,
     required bool isActive,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeBg = isDark ? Colors.white : Colors.black;
+    final activeFg = isDark ? Colors.black : Colors.white;
+    final inactiveFg = isDark ? Colors.white70 : Colors.black;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isActive ? Colors.black : Colors.transparent,
+          color: isActive ? activeBg : Colors.transparent,
           borderRadius: BorderRadius.circular(26),
         ),
         child: Center(
@@ -367,7 +390,7 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: isActive ? Colors.white : Colors.black,
+              color: isActive ? activeFg : inactiveFg,
             ),
           ),
         ),
@@ -378,40 +401,80 @@ class HomeScreen extends StatelessWidget {
   void _showAddStepDialog(BuildContext context, String userId, RoutineViewModel vm) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final buttonBg = isDark ? Colors.white : Colors.black;
+    final buttonFg = isDark ? Colors.black : Colors.white;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: const Text('Add Routine Step', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: dialogBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: borderColor, width: 2),
+          ),
+          title: Text(
+            'Add Routine Step',
+            style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Step Name (e.g., Toner)'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Step Name (e.g., Toner)',
+                  labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                  ),
+                ),
               ),
               TextField(
                 controller: descController,
-                decoration: const InputDecoration(labelText: 'Instructions (e.g., Apply with pad)'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Instructions (e.g., Apply with pad)',
+                  labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                  ),
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+              child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonBg,
+                foregroundColor: buttonFg,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  side: BorderSide(color: borderColor, width: 1.5),
+                ),
+              ),
               onPressed: () {
                 if (titleController.text.isNotEmpty) {
                   vm.addCustomStep(userId, titleController.text, descController.text);
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Add', style: TextStyle(color: Colors.white)),
+              child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -419,17 +482,21 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStreakBadge(int streak) {
+  Widget _buildStreakBadge(BuildContext context, int streak) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFFFD54F), // Amber/Orange
-        border: Border.all(color: Colors.black, width: 1.5),
+        border: Border.all(color: borderColor, width: 1.5),
         borderRadius: BorderRadius.circular(4),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            offset: Offset(2, 2),
+            color: shadowColor,
+            offset: const Offset(2, 2),
             blurRadius: 0,
           ),
         ],
@@ -452,12 +519,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMotivationalBanner(int streak) {
+  Widget _buildMotivationalBanner(BuildContext context, int streak) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+
     String message;
     Color bgColor;
+    Color messageColor = Colors.black;
+
     if (streak == 0) {
       message = 'Start your routine today to begin your glowing skin streak! 🔥';
-      bgColor = Colors.grey.shade100;
+      bgColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
+      messageColor = isDark ? Colors.white : Colors.black;
     } else if (streak >= 30) {
       message = '👑 30+ Day Milestone! Skincare Master status unlocked!';
       bgColor = const Color(0xFFE040FB); // Pink/Purple
@@ -478,22 +552,22 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: bgColor,
-        border: Border.all(color: Colors.black, width: 1.5),
+        border: Border.all(color: borderColor, width: 1.5),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black,
-            offset: Offset(3, 3),
+            color: shadowColor,
+            offset: const Offset(3, 3),
             blurRadius: 0,
           ),
         ],
       ),
       child: Text(
         message,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: Colors.black,
+          color: messageColor,
         ),
       ),
     );

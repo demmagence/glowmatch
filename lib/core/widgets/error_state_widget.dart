@@ -18,6 +18,12 @@ class ErrorStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final msgColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final buttonBg = isDark ? Colors.white : Colors.black;
+    final buttonFg = isDark ? Colors.black : Colors.white;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
@@ -34,10 +40,10 @@ class ErrorStateWidget extends StatelessWidget {
             if (title != null) ...[
               Text(
                 title!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: textColor,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -47,7 +53,7 @@ class ErrorStateWidget extends StatelessWidget {
               message,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: msgColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -55,10 +61,11 @@ class ErrorStateWidget extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
+                  backgroundColor: buttonBg,
+                  foregroundColor: buttonFg,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
+                    side: BorderSide(color: isDark ? Colors.white : Colors.black, width: 1),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
