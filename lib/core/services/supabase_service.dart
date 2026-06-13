@@ -17,6 +17,7 @@ class SupabaseService {
   final List<ShelfItem> _mockShelf = [];
   final List<RoutineStep> _mockRoutines = [];
   final List<JournalEntry> _mockJournalEntries = [];
+  final Map<String, StreakData> _mockStreaks = {};
 
   // Initialize Supabase. If credentials are empty/default, we run in Offline/Fallback Mode.
   Future<void> initialize({required String url, required String anonKey}) async {
@@ -467,6 +468,122 @@ class SupabaseService {
     }
   }
 
+  // --- USER STREAKS ---
+  Future<StreakData> getStreakData(String userId) async {
+    if (_isOfflineMode || userId.isEmpty) {
+      return _mockStreaks[userId] ?? StreakData(
+        currentStreak: 0,
+        longestStreak: 0,
+        totalCompletions: 0,
+      );
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from(AppConstants.tableUserStreaks)
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (response == null) {
+        return StreakData(
+          currentStreak: 0,
+          longestStreak: 0,
+          totalCompletions: 0,
+        );
+      }
+      return StreakData.fromJson(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('getStreakData', e);
+      return _mockStreaks[userId] ?? StreakData(
+        currentStreak: 0,
+        longestStreak: 0,
+        totalCompletions: 0,
+      );
+    } catch (e) {
+      _handleGenericException('getStreakData', e);
+      return _mockStreaks[userId] ?? StreakData(
+        currentStreak: 0,
+        longestStreak: 0,
+        totalCompletions: 0,
+      );
+    }
+  }
+
+  Future<StreakData> recordRoutineCompletion(String userId) async {
+    final now = DateTime.now();
+    final current = await getStreakData(userId);
+
+    if (current.lastCompletedDate != null) {
+      if (_isSameDay(current.lastCompletedDate!, now)) {
+        // Already completed today
+        return current;
+      }
+    }
+
+    int nextStreak;
+    if (current.lastCompletedDate == null) {
+      nextStreak = 1;
+    } else if (_isYesterday(current.lastCompletedDate!, now)) {
+      nextStreak = current.currentStreak + 1;
+    } else {
+      nextStreak = 1; // reset streak if gap > 1 day
+    }
+
+    final nextLongest = nextStreak > current.longestStreak ? nextStreak : current.longestStreak;
+    final nextTotal = current.totalCompletions + 1;
+
+    final updated = StreakData(
+      currentStreak: nextStreak,
+      longestStreak: nextLongest,
+      lastCompletedDate: now,
+      totalCompletions: nextTotal,
+    );
+
+    if (_isOfflineMode || userId.isEmpty) {
+      _mockStreaks[userId] = updated;
+      return updated;
+    }
+
+    try {
+      final dataMap = {
+        'id': userId,
+        'user_id': userId,
+        'current_streak': nextStreak,
+        'longest_streak': nextLongest,
+        'last_completed_date': now.toIso8601String(),
+        'total_completions': nextTotal,
+      };
+
+      final response = await Supabase.instance.client
+          .from(AppConstants.tableUserStreaks)
+          .upsert(dataMap, onConflict: 'user_id')
+          .select()
+          .single();
+
+      return StreakData.fromJson(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('recordRoutineCompletion', e);
+      _mockStreaks[userId] = updated;
+      return updated;
+    } catch (e) {
+      _handleGenericException('recordRoutineCompletion', e);
+      _mockStreaks[userId] = updated;
+      return updated;
+    }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _isYesterday(DateTime lastDate, DateTime currentDate) {
+    final yesterday = currentDate.subtract(const Duration(days: 1));
+    return lastDate.year == yesterday.year &&
+        lastDate.month == yesterday.month &&
+        lastDate.day == yesterday.day;
+  }
+
   // STORAGE: Upload journal photo to Supabase Storage bucket
   Future<String> uploadJournalPhoto({
     required String userId,
@@ -512,6 +629,7 @@ class SupabaseService {
     _mockShelf.clear();
     _mockRoutines.clear();
     _mockJournalEntries.clear();
+    _mockStreaks.clear();
     _isOfflineMode = true;
   }
 }

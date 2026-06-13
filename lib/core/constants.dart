@@ -38,6 +38,7 @@ class AppConstants {
   static const String tableSkincareShelf = 'skincare_shelf';
   static const String tableRoutines = 'routines';
   static const String tableJournalEntries = 'journal_entries';
+  static const String tableUserStreaks = 'user_streaks';
 
   // Storage bucket names
   static const String bucketJournalPhotos = 'journal-photos';

@@ -16,6 +16,7 @@ class RoutineViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   WeatherData? _weather;
+  StreakData? _streakData;
 
   List<RoutineStep> get amSteps => _amSteps;
   List<RoutineStep> get pmSteps => _pmSteps;
@@ -24,6 +25,16 @@ class RoutineViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   WeatherData? get weather => _weather;
+  StreakData? get streakData => _streakData;
+
+  bool get completedToday {
+    if (_streakData == null || _streakData!.lastCompletedDate == null) {
+      return false;
+    }
+    final now = DateTime.now();
+    final last = _streakData!.lastCompletedDate!;
+    return last.year == now.year && last.month == now.month && last.day == now.day;
+  }
 
   // Steps matching the active routine (AM or PM)
   List<RoutineStep> get currentSteps => _activeRoutine == 'AM' ? _amSteps : _pmSteps;
@@ -46,12 +57,22 @@ class RoutineViewModel extends ChangeNotifier {
     try {
       await fetchWeather();
       await loadRoutines(userId);
+      await loadStreakData(userId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadStreakData(String userId) async {
+    try {
+      _streakData = await _supabaseService.getStreakData(userId);
+    } catch (e) {
+      debugPrint('Error loading streak data: $e');
+    }
+    notifyListeners();
   }
 
   Future<void> fetchWeather() async {
@@ -118,9 +139,21 @@ class RoutineViewModel extends ChangeNotifier {
   }
 
   Future<void> completeRoutine(String userId) async {
-    // Log completion logic
-    debugPrint('Routine complete logic triggered. Streak incremented.');
-    _completedStepIds.clear(); // reset
+    if (completedToday) {
+      return;
+    }
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      _streakData = await _supabaseService.recordRoutineCompletion(userId);
+      _completedStepIds.clear(); // reset checkboxes
+    } catch (e) {
+      debugPrint('Error completing routine: $e');
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }
