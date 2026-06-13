@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 
 class ProfileViewModel extends ChangeNotifier {
@@ -13,11 +14,25 @@ class ProfileViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  ProfileViewModel({required this.authViewModel});
+  ProfileViewModel({required this.authViewModel}) {
+    _loadNotifications();
+  }
 
-  void toggleNotifications(bool value) {
+  Future<void> _loadNotifications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isNotificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> toggleNotifications(bool value) async {
     _isNotificationsEnabled = value;
     notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notifications_enabled', value);
+    } catch (_) {}
   }
 
   Future<bool> linkEmail(String email, String password) async {

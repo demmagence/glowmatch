@@ -17,6 +17,19 @@ Widget _buildShelf(ShelfViewModel shelfVm) {
   );
 }
 
+Widget _buildShelfDark(ShelfViewModel shelfVm) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AuthViewModel>(create: (_) => AuthViewModel()),
+      ChangeNotifierProvider<ShelfViewModel>.value(value: shelfVm),
+    ],
+    child: MaterialApp(
+      theme: ThemeData.dark(),
+      home: const ShelfScreen(),
+    ),
+  );
+}
+
 void main() {
   setUpAll(() async {
     final svc = SupabaseService();
@@ -77,6 +90,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('My Shelf'), findsOneWidget);
+    });
+
+    testWidgets('renders correctly in dark mode and verifies theme-aware colors', (tester) async {
+      final vm = ShelfViewModel();
+      await tester.pumpWidget(_buildShelfDark(vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final BuildContext context = tester.element(find.byType(ShelfScreen));
+      expect(Theme.of(context).brightness, equals(Brightness.dark));
+
+      // Verify My Shelf text is white in dark mode
+      final Text myShelfText = tester.widget<Text>(find.text('My Shelf'));
+      expect(myShelfText.style?.color, equals(Colors.white));
     });
   });
 
