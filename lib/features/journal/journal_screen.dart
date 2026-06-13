@@ -8,9 +8,59 @@ import '../../core/models/models.dart';
 import '../profile/profile_screen.dart';
 import '../../core/widgets/loading_overlay.dart';
 import '../../core/widgets/error_state_widget.dart';
+import 'journal_chart_widget.dart';
+import 'journal_detail_screen.dart';
+import 'journal_compare_screen.dart';
 
-class JournalScreen extends StatelessWidget {
+class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
+
+  @override
+  State<JournalScreen> createState() => _JournalScreenState();
+}
+
+class _JournalScreenState extends State<JournalScreen> {
+  bool _isCompareMode = false;
+  final Set<String> _selectedEntryIds = {};
+
+  DateTime _parseLoggedDate(String dateStr) {
+    final now = DateTime.now();
+    if (dateStr.toLowerCase() == 'today') {
+      return DateTime(now.year, now.month, now.day);
+    }
+    final parts = dateStr.trim().split(' ');
+    if (parts.length >= 2) {
+      final monthStr = parts[0].toLowerCase();
+      final dayStr = parts[1];
+      final day = int.tryParse(dayStr) ?? 1;
+      int month = now.month;
+      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      final idx = months.indexOf(monthStr);
+      if (idx != -1) {
+        month = idx + 1;
+      }
+      return DateTime(now.year, month, day);
+    }
+    return now;
+  }
+
+  String _getWeekLabel(DateTime entryDate, DateTime now) {
+    final entryDay = DateTime(entryDate.year, entryDate.month, entryDate.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diffDays = today.difference(entryDay).inDays;
+
+    if (diffDays < 0) {
+      return 'This Week';
+    }
+    if (diffDays < 7) {
+      return 'This Week';
+    } else if (diffDays < 14) {
+      return 'Last Week';
+    } else {
+      final weeks = diffDays ~/ 7;
+      return '$weeks Weeks Ago';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +78,27 @@ class JournalScreen extends StatelessWidget {
     final List<JournalEntry> displayEntries = journalVm.entries.isNotEmpty
         ? journalVm.entries
         : [
-            JournalEntry(id: 'j-mock-1', loggedDate: 'Today', photoPath: mockImageUrls[0], skinScore: 84),
-            JournalEntry(id: 'j-mock-2', loggedDate: 'Oct 24', photoPath: mockImageUrls[1], skinScore: 80),
-            JournalEntry(id: 'j-mock-3', loggedDate: 'Oct 17', photoPath: mockImageUrls[2], skinScore: 76),
+            JournalEntry(
+              id: 'j-mock-1',
+              loggedDate: 'Today',
+              photoPath: mockImageUrls[0],
+              skinScore: 84,
+              notes: 'Skin feels deeply hydrated and bright today.',
+            ),
+            JournalEntry(
+              id: 'j-mock-2',
+              loggedDate: 'Oct 24',
+              photoPath: mockImageUrls[1],
+              skinScore: 80,
+              notes: 'Slight redness on cheeks. Sticking to cleanser.',
+            ),
+            JournalEntry(
+              id: 'j-mock-3',
+              loggedDate: 'Oct 17',
+              photoPath: mockImageUrls[2],
+              skinScore: 76,
+              notes: 'Starting my regular morning and evening routines.',
+            ),
           ];
 
     return Scaffold(
@@ -58,6 +126,19 @@ class JournalScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              _isCompareMode ? Icons.close : Icons.compare_arrows,
+              color: Colors.black,
+            ),
+            tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
+            onPressed: () {
+              setState(() {
+                _isCompareMode = !_isCompareMode;
+                _selectedEntryIds.clear();
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined, color: Colors.black),
             onPressed: () {
@@ -166,10 +247,14 @@ class JournalScreen extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 20),
 
+                  // ── Skin Progress Line Chart ──
+                  JournalChartWidget(entries: displayEntries),
+                  const SizedBox(height: 32),
+
                   // ── Photo Grid — grouped into pairs ──
                   ..._buildPhotoGrid(context, displayEntries, authVm.userId, journalVm),
                 ],
-                const SizedBox(height: 100), // bottom padding for FAB
+                const SizedBox(height: 100), // bottom padding for FAB / BottomSheet
               ],
             ),
           ),
@@ -177,7 +262,7 @@ class JournalScreen extends StatelessWidget {
       ),
 
       // ── FAB: Camera picker ──
-      floatingActionButton: journalVm.isUploading
+      floatingActionButton: journalVm.isUploading || _isCompareMode
           ? null
           : FloatingActionButton(
               backgroundColor: Colors.black,
@@ -186,6 +271,69 @@ class JournalScreen extends StatelessWidget {
               tooltip: 'Add Progress Photo',
               onPressed: () => _showPhotoSourceSheet(context, authVm.userId, journalVm),
               child: const Icon(Icons.add_a_photo_outlined),
+            ),
+
+      // ── Floating comparison bottom banner ──
+      bottomSheet: _selectedEntryIds.isEmpty
+          ? null
+          : Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.black, width: 2),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black,
+                    offset: Offset(4, 4),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Selected: ${_selectedEntryIds.length}/2 entries',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedEntryIds.length == 2 ? Colors.black : Colors.grey.shade400,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        side: const BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                    ),
+                    onPressed: _selectedEntryIds.length == 2
+                        ? () {
+                            final selectedList = displayEntries.where((x) => _selectedEntryIds.contains(x.id)).toList();
+                            if (selectedList.length == 2) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => JournalCompareScreen(
+                                    entryA: selectedList[0],
+                                    entryB: selectedList[1],
+                                  ),
+                                ),
+                              ).then((_) {
+                                // Clear selection when returning
+                                setState(() {
+                                  _selectedEntryIds.clear();
+                                  _isCompareMode = false;
+                                });
+                              });
+                            }
+                          }
+                        : null,
+                    child: const Text('Compare', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
             ),
     );
   }
@@ -198,13 +346,15 @@ class JournalScreen extends StatelessWidget {
     JournalViewModel vm,
   ) {
     final List<Widget> rows = [];
+    final now = DateTime.now();
 
-    // Group by week label — simplified: first 2 = "THIS WEEK", rest = "OLDER"
+    // Group by week label based on real DateTime values
     final sections = <String, List<JournalEntry>>{};
-    for (int i = 0; i < entries.length; i++) {
-      final label = i < 2 ? 'THIS WEEK' : 'OLDER';
+    for (final entry in entries) {
+      final entryDate = _parseLoggedDate(entry.loggedDate);
+      final label = _getWeekLabel(entryDate, now).toUpperCase();
       sections.putIfAbsent(label, () => []);
-      sections[label]!.add(entries[i]);
+      sections[label]!.add(entry);
     }
 
     sections.forEach((sectionLabel, sectionEntries) {
@@ -230,8 +380,7 @@ class JournalScreen extends StatelessWidget {
             Expanded(
               child: _buildPhotoCard(
                 context: context,
-                date: a.loggedDate,
-                photoPath: a.photoPath ?? '',
+                entry: a,
               ),
             ),
             const SizedBox(width: 16),
@@ -239,8 +388,7 @@ class JournalScreen extends StatelessWidget {
               child: b != null
                   ? _buildPhotoCard(
                       context: context,
-                      date: b.loggedDate,
-                      photoPath: b.photoPath ?? '',
+                      entry: b,
                     )
                   : _buildEmptySlot(context, userId, vm),
             ),
@@ -258,59 +406,158 @@ class JournalScreen extends StatelessWidget {
   // ── Single photo card ──
   Widget _buildPhotoCard({
     required BuildContext context,
-    required String date,
-    required String photoPath,
+    required JournalEntry entry,
   }) {
-    final bool isLocalFile = photoPath.startsWith('/') || photoPath.startsWith('C:');
-    final bool isNetwork = photoPath.startsWith('http');
+    final bool isSelected = _selectedEntryIds.contains(entry.id);
+    final bool isLocalFile = (entry.photoPath?.startsWith('/') ?? false) || (entry.photoPath?.startsWith('C:') ?? false);
+    final bool isNetwork = entry.photoPath?.startsWith('http') ?? false;
 
-    return Container(
-      height: 190,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 1.2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Photo
-          ClipRRect(
-            borderRadius: BorderRadius.circular(2.5),
-            child: isLocalFile
-                ? Image.file(
-                    File(photoPath),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stack) => _photoPlaceholder(),
-                  )
-                : isNetwork
-                    ? Image.network(
-                        photoPath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stack) => _photoPlaceholder(),
-                      )
-                    : _photoPlaceholder(),
+    return GestureDetector(
+      onTap: () {
+        if (_isCompareMode) {
+          setState(() {
+            if (isSelected) {
+              _selectedEntryIds.remove(entry.id);
+            } else {
+              if (_selectedEntryIds.length < 2) {
+                _selectedEntryIds.add(entry.id);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('You can only select up to 2 entries for comparison.'),
+                    duration: Duration(milliseconds: 1500),
+                  ),
+                );
+              }
+            }
+          });
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => JournalDetailScreen(entry: entry),
+            ),
+          );
+        }
+      },
+      child: Container(
+        height: 190,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.pinkAccent : Colors.black,
+            width: isSelected ? 2.5 : 1.2,
           ),
-          // Date overlay bottom-left
-          Positioned(
-            bottom: 10,
-            left: 10,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.black, width: 1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Photo
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2.5),
+              child: isLocalFile
+                  ? Image.file(
+                      File(entry.photoPath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) => _photoPlaceholder(),
+                    )
+                  : isNetwork
+                      ? Image.network(
+                          entry.photoPath!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stack) => _photoPlaceholder(),
+                        )
+                      : _photoPlaceholder(),
+            ),
+
+            // Notes Overlay snippet if notes exist
+            if (entry.notes != null && entry.notes!.isNotEmpty)
+              Positioned(
+                top: 8,
+                left: 8,
+                right: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Text(
+                    entry.notes!,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              child: Text(
-                date,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+
+            // Date overlay bottom-left
+            Positioned(
+              bottom: 10,
+              left: 10,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.black, width: 1),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                child: Text(
+                  entry.loggedDate,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+
+            // Score overlay bottom-right
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.pink.shade50,
+                  border: Border.all(color: Colors.black, width: 1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Text(
+                  'Score ${entry.skinScore}',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.pinkAccent,
+                  ),
+                ),
+              ),
+            ),
+
+            // Selection Circle Indicator
+            if (_isCompareMode)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? Colors.pinkAccent : Colors.white.withValues(alpha: 0.8),
+                    border: Border.all(color: Colors.black, width: 1.5),
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, color: Colors.white, size: 14)
+                      : null,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -469,29 +716,124 @@ class JournalScreen extends StatelessWidget {
     JournalViewModel vm,
     ImageSource source,
   ) async {
-    final success = await vm.pickAndUploadPhoto(
-      userId: userId,
-      source: source,
-    );
-
-    if (!context.mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('📸 Skin log uploaded! Score updated.'),
-          backgroundColor: Colors.black,
-          duration: Duration(seconds: 2),
-        ),
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1080,
+        maxHeight: 1920,
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Upload cancelled or failed. Try again.'),
-          backgroundColor: Colors.grey.shade700,
-          duration: const Duration(seconds: 2),
-        ),
+
+      if (picked == null) return; // cancelled
+
+      if (!context.mounted) return;
+
+      // Show preview and notes dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          final notesController = TextEditingController();
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: const BorderSide(color: Colors.black, width: 2),
+            ),
+            title: const Text('Add Progress Note', style: TextStyle(fontWeight: FontWeight.bold)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Image preview
+                  Container(
+                    width: double.infinity,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black, width: 1.5),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(2.5),
+                      child: Image.file(
+                        File(picked.path),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'How does your skin feel today? (optional)',
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide: const BorderSide(color: Colors.black, width: 2),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                onPressed: () async {
+                  Navigator.pop(dialogContext); // dismiss dialog
+
+                  // Show uploading overlay or notify loading via VM
+                  final notesText = notesController.text.trim();
+                  final success = await vm.addJournalEntryWithPhoto(
+                    userId: userId,
+                    localFilePath: picked.path,
+                    notes: notesText,
+                  );
+
+                  if (context.mounted) {
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('📸 Skin log uploaded! Score updated.'),
+                          backgroundColor: Colors.black,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Upload failed. Try again.'),
+                          backgroundColor: Colors.black,
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Log Progress', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       );
+    } catch (e) {
+      debugPrint('Error picking image: $e');
     }
   }
 }

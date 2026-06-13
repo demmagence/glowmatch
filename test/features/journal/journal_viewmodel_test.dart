@@ -101,4 +101,31 @@ void main() {
       }
     });
   });
+
+  group('JournalViewModel – deletion and photo entry', () {
+    test('deleteEntry removes the entry and updates score', () async {
+      await vm.fetchJournal('test-user');
+      final initialCount = vm.entries.length;
+      final targetId = vm.entries.first.id;
+
+      await vm.deleteEntry(targetId, 'test-user');
+      expect(vm.entries.length, equals(initialCount - 1));
+      expect(vm.entries.any((e) => e.id == targetId), isFalse);
+    });
+
+    test('addJournalEntryWithPhoto adds a new entry with notes', () async {
+      await vm.fetchJournal('test-user');
+      final initialCount = vm.entries.length;
+
+      final success = await vm.addJournalEntryWithPhoto(
+        userId: 'test-user',
+        localFilePath: 'assets/new_glow.png',
+        notes: 'Feeling extremely fresh and smooth.',
+      );
+
+      expect(success, isTrue);
+      expect(vm.entries.length, equals(initialCount + 1));
+      expect(vm.entries.first.notes, equals('Feeling extremely fresh and smooth.'));
+    });
+  });
 }
