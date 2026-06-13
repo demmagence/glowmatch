@@ -107,7 +107,7 @@ class RoutineViewModel extends ChangeNotifier {
     }
   }
 
-  void toggleStep(String stepId, ShelfViewModel shelfVm) {
+  Future<void> toggleStep(String stepId, ShelfViewModel shelfVm) async {
     if (_completedStepIds.contains(stepId)) {
       _completedStepIds.remove(stepId);
     } else {
@@ -118,24 +118,102 @@ class RoutineViewModel extends ChangeNotifier {
       if (stepIdx != -1) {
         final step = currentSteps[stepIdx];
         if (step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-          shelfVm.useProduct(step.shelfItemId!);
+          await shelfVm.useProduct(step.shelfItemId!);
         }
       }
     }
     notifyListeners();
   }
 
-  Future<void> addCustomStep(String userId, String name, String desc) async {
+  Future<void> addCustomStep(String userId, String name, String desc, {String? shelfItemId}) async {
     final newStep = RoutineStep(
       id: '',
       routineType: _activeRoutine,
       stepNumber: currentSteps.length + 1,
       name: name,
       description: desc,
+      shelfItemId: shelfItemId,
     );
     
     await _supabaseService.addRoutineStep(userId, newStep);
     await loadRoutines(userId);
+  }
+
+  Future<void> updateStep(String userId, RoutineStep step) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _supabaseService.updateRoutineStep(userId, step);
+      await loadRoutines(userId);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteStep(String userId, String stepId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final isAM = _amSteps.any((x) => x.id == stepId);
+      await _supabaseService.deleteRoutineStep(userId, stepId);
+      
+      // Get remaining steps and shift their step numbers sequentially
+      final remainingSteps = isAM 
+          ? _amSteps.where((x) => x.id != stepId).toList() 
+          : _pmSteps.where((x) => x.id != stepId).toList();
+      
+      final reindexedSteps = <RoutineStep>[];
+      for (int i = 0; i < remainingSteps.length; i++) {
+        reindexedSteps.add(remainingSteps[i].copyWith(stepNumber: i + 1));
+      }
+      
+      if (reindexedSteps.isNotEmpty) {
+        await _supabaseService.updateRoutineStepsOrder(userId, reindexedSteps);
+      }
+      
+      await loadRoutines(userId);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> reorderSteps(String userId, int oldIndex, int newIndex) async {
+    final steps = _activeRoutine == 'AM' ? List<RoutineStep>.from(_amSteps) : List<RoutineStep>.from(_pmSteps);
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    if (oldIndex == newIndex) return;
+
+    final item = steps.removeAt(oldIndex);
+    steps.insert(newIndex, item);
+
+    // Re-index steps
+    final updatedSteps = <RoutineStep>[];
+    for (int i = 0; i < steps.length; i++) {
+      updatedSteps.add(steps[i].copyWith(stepNumber: i + 1));
+    }
+
+    // Optimistic update
+    if (_activeRoutine == 'AM') {
+      _amSteps = updatedSteps;
+    } else {
+      _pmSteps = updatedSteps;
+    }
+    notifyListeners();
+
+    try {
+      await _supabaseService.updateRoutineStepsOrder(userId, updatedSteps);
+    } catch (e) {
+      _errorMessage = e.toString();
+      // Rollback
+      await loadRoutines(userId);
+    }
   }
 
   Future<void> completeRoutine(String userId) async {

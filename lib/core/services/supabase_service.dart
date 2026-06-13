@@ -418,6 +418,97 @@ class SupabaseService {
     }
   }
 
+  Future<void> updateRoutineStep(String userId, RoutineStep step) async {
+    final stepMap = {
+      ...step.toJson(),
+      'user_id': userId,
+    };
+    if (_isOfflineMode) {
+      final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
+      if (idx != -1) {
+        _mockRoutines[idx] = step;
+      }
+      return;
+    }
+    try {
+      await Supabase.instance.client
+          .from(AppConstants.tableRoutines)
+          .update(stepMap)
+          .eq('id', step.id);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('updateRoutineStep', e);
+      final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
+      if (idx != -1) {
+        _mockRoutines[idx] = step;
+      }
+    } catch (e) {
+      _handleGenericException('updateRoutineStep', e);
+      final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
+      if (idx != -1) {
+        _mockRoutines[idx] = step;
+      }
+    }
+  }
+
+  Future<void> deleteRoutineStep(String userId, String stepId) async {
+    if (_isOfflineMode) {
+      _mockRoutines.removeWhere((x) => x.id == stepId);
+      return;
+    }
+    try {
+      await Supabase.instance.client
+          .from(AppConstants.tableRoutines)
+          .delete()
+          .eq('id', stepId);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('deleteRoutineStep', e);
+      _mockRoutines.removeWhere((x) => x.id == stepId);
+    } catch (e) {
+      _handleGenericException('deleteRoutineStep', e);
+      _mockRoutines.removeWhere((x) => x.id == stepId);
+    }
+  }
+
+  Future<void> updateRoutineStepsOrder(String userId, List<RoutineStep> steps) async {
+    if (_isOfflineMode) {
+      for (final step in steps) {
+        final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
+        if (idx != -1) {
+          _mockRoutines[idx] = step;
+        }
+      }
+      return;
+    }
+    try {
+      final List<Map<String, dynamic>> stepsMap = steps.map((step) {
+        return {
+          ...step.toJson(),
+          'user_id': userId,
+        };
+      }).toList();
+
+      await Supabase.instance.client
+          .from(AppConstants.tableRoutines)
+          .upsert(stepsMap);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('updateRoutineStepsOrder', e);
+      for (final step in steps) {
+        final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
+        if (idx != -1) {
+          _mockRoutines[idx] = step;
+        }
+      }
+    } catch (e) {
+      _handleGenericException('updateRoutineStepsOrder', e);
+      for (final step in steps) {
+        final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
+        if (idx != -1) {
+          _mockRoutines[idx] = step;
+        }
+      }
+    }
+  }
+
   // JOURNAL ENTRIES
   Future<List<JournalEntry>> getJournalEntries(String userId) async {
     if (_isOfflineMode) {
