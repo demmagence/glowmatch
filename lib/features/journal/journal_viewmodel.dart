@@ -12,12 +12,14 @@ class JournalViewModel extends ChangeNotifier {
   bool _isUploading = false;
   String? _errorMessage;
   int _currentScore = 84;
+  int _currentStreak = 0;
 
   List<JournalEntry> get entries => _entries;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   String? get errorMessage => _errorMessage;
   int get currentScore => _currentScore;
+  int get currentStreak => _currentStreak;
 
   Future<void> fetchJournal(String userId) async {
     _isLoading = true;
@@ -26,6 +28,8 @@ class JournalViewModel extends ChangeNotifier {
 
     try {
       _entries = await _supabaseService.getJournalEntries(userId);
+      final streak = await _supabaseService.getStreakData(userId);
+      _currentStreak = streak.currentStreak;
       _calculateCurrentScore();
     } catch (e) {
       debugPrint('Error fetching journal: $e');
@@ -37,11 +41,11 @@ class JournalViewModel extends ChangeNotifier {
   }
 
   void _calculateCurrentScore() {
-    if (_entries.isEmpty) {
-      _currentScore = 80;
-    } else {
-      _currentScore = (80 + (_entries.length * 2)).clamp(1, 100);
+    int baseScore = 80;
+    if (_entries.isNotEmpty) {
+      baseScore = 80 + (_entries.length * 2);
     }
+    _currentScore = (baseScore + (_currentStreak * 2)).clamp(1, 100);
   }
 
   /// Pick photo from camera or gallery, upload to Supabase Storage, add journal entry.

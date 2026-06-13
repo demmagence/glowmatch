@@ -82,6 +82,13 @@ class _MainLayoutState extends State<MainLayout> {
         setState(() {
           _currentIndex = index;
         });
+        final auth = Provider.of<AuthViewModel>(context, listen: false);
+        final userId = auth.userId;
+        if (index == 0) {
+          Provider.of<RoutineViewModel>(context, listen: false).init(userId);
+        } else if (index == 3) {
+          Provider.of<JournalViewModel>(context, listen: false).fetchJournal(userId);
+        }
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -42,14 +42,24 @@ class HomeScreen extends StatelessWidget {
               )
             else ...[
               // Title and Weather Metadata
-              Text(
-                routineVm.activeRoutine == 'AM' ? 'Morning Routine' : 'Evening Routine',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  letterSpacing: -0.5,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      routineVm.activeRoutine == 'AM' ? 'Morning Routine' : 'Evening Routine',
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  if (routineVm.streakData != null && routineVm.streakData!.currentStreak > 0)
+                    _buildStreakBadge(routineVm.streakData!.currentStreak),
+                ],
               ),
               const SizedBox(height: 4),
               Row(
@@ -68,6 +78,8 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              if (routineVm.streakData != null)
+                _buildMotivationalBanner(routineVm.streakData!.currentStreak),
               const SizedBox(height: 24),
 
               // AM / PM Switcher Toggles
@@ -269,34 +281,54 @@ class HomeScreen extends StatelessWidget {
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
+                    backgroundColor: routineVm.completedToday ? Colors.grey.shade300 : Colors.black,
+                    foregroundColor: routineVm.completedToday ? Colors.grey.shade600 : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: routineVm.completedToday ? Colors.grey.shade400 : Colors.black,
+                        width: 1.5,
+                      ),
                     ),
                     elevation: 0,
                   ),
-                  onPressed: () {
-                    routineVm.completeRoutine(authVm.userId);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Routine Completed! Consistency score updated.'),
-                        backgroundColor: Colors.black,
-                      ),
-                    );
-                  },
-                  child: const Row(
+                  onPressed: routineVm.completedToday
+                      ? null
+                      : () async {
+                          await routineVm.completeRoutine(authVm.userId);
+                          final newStreak = routineVm.streakData?.currentStreak ?? 0;
+                          String msg = 'Routine Completed! Consistency score updated.';
+                          if (newStreak == 7) {
+                            msg = '🎉 7 Day Milestone! Awesome dedication!';
+                          } else if (newStreak == 14) {
+                            msg = '🎉 14 Day Milestone! You are unstoppable!';
+                          } else if (newStreak == 30) {
+                            msg = '🎉 30 Day Milestone! You are a skincare master!';
+                          }
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(msg),
+                                backgroundColor: Colors.black,
+                              ),
+                            );
+                          }
+                        },
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Complete Routine',
-                        style: TextStyle(
+                        routineVm.completedToday ? 'Completed for Today' : 'Complete Routine',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.check_circle_outline, size: 20),
+                      const SizedBox(width: 8),
+                      Icon(
+                        routineVm.completedToday ? Icons.check : Icons.check_circle_outline,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -377,6 +409,86 @@ class HomeScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildStreakBadge(int streak) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFD54F), // Amber/Orange
+        border: Border.all(color: Colors.black, width: 1.5),
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(2, 2),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('🔥', style: TextStyle(fontSize: 16)),
+          const SizedBox(width: 4),
+          Text(
+            '$streak Day Streak',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMotivationalBanner(int streak) {
+    String message;
+    Color bgColor;
+    if (streak == 0) {
+      message = 'Start your routine today to begin your glowing skin streak! 🔥';
+      bgColor = Colors.grey.shade100;
+    } else if (streak >= 30) {
+      message = '👑 30+ Day Milestone! Skincare Master status unlocked!';
+      bgColor = const Color(0xFFE040FB); // Pink/Purple
+    } else if (streak >= 14) {
+      message = '🌟 14 Day Milestone! Your skin barrier is thanking you!';
+      bgColor = const Color(0xFF64DD17); // Light Green
+    } else if (streak >= 7) {
+      message = '🏆 7 Day Milestone! You are building a solid skincare habit!';
+      bgColor = const Color(0xFF29B6F6); // Blue
+    } else {
+      message = '✨ Keep it up! Consistency is the key to glowing skin.';
+      bgColor = const Color(0xFFFF8A80); // Coral/Red
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border.all(color: Colors.black, width: 1.5),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(3, 3),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
     );
   }
 }
