@@ -1,179 +1,293 @@
-# GlowMatch ✨
+# GlowMatch
 
-[![GlowMatch Banner](https://placehold.co/800x200/pink/black?text=GlowMatch+Skincare+Companion)](https://github.com/demmagence/glowmatch)
+GlowMatch is a cross-platform skincare management application built with Flutter. It provides tools for routine planning, ingredient safety analysis, product inventory tracking, budget monitoring, and skin condition journaling -- all backed by Supabase for cloud persistence and offline mock fallback.
 
-GlowMatch is a premium, modern, and highly responsive skincare management companion application built with Flutter. It empowers users to establish consistent skincare routines, analyze ingredient safety via OCR text recognition, monitor their monthly skincare budget and product efficiency, and track skin progress visual logs.
-
----
-
-## 🚀 Key Features
-
-*   **📅 Dynamic Routine Planner**: Manage separate AM and PM skincare routines with step sequences and location-based weather advice (e.g., reminding to use SPF on high UV index days).
-*   **🧪 Smart Ingredient Scanner (OCR + AI)**: Scan product ingredient lists using Google ML Kit Text Recognition and analyze safety, skin type suitability, and recommendations via the Gemini API (with local offline fallback).
-*   **🧴 Skincare Shelf Management**: Catalog products, brand details, price, and track remaining uses with visual indicators and simple decrement actions.
-*   **📊 Cost-Efficiency Budget Tracker**: Monitor monthly skincare expenses grouped by category, and calculate advanced efficiency metrics (cost-per-use) to identify your best-value products.
-*   **📸 Visual Progress Journal**: Log daily skin condition scores (0-100) and track progress visually in a premium gallery layout backed by Supabase Storage.
+**Repository:** [github.com/demmagence/glowmatch](https://github.com/demmagence/glowmatch)
 
 ---
 
-## 🏗️ Architecture
+## Table of Contents
 
-GlowMatch is built using the **MVVM (Model-View-ViewModel)** design pattern coupled with the **Provider** state management library. 
+- [Features](#features)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Running the Application](#running-the-application)
+- [Testing](#testing)
+- [Supabase Configuration](#supabase-configuration)
+- [Environment Variables](#environment-variables)
+- [Offline Mode](#offline-mode)
+- [Contributing](#contributing)
+- [License](#license)
 
-Below is the data flow architecture of GlowMatch:
+---
 
-```mermaid
-graph TD
-    subgraph ViewLayer ["View Layer"]
-        Screen[Screen / UI Widget]
-    end
+## Features
 
-    subgraph ViewModelLayer ["ViewModel Layer (Provider State)"]
-        ViewModel[ViewModel / ChangeNotifier]
-    end
+### Routine Planner
+Separate AM and PM skincare routines with ordered steps. Steps can be linked to products on the shelf. Location-based weather data (via Open-Meteo) is displayed to inform routine adjustments (e.g., SPF reminders on high-temperature days). Routine completion is tracked with a streak system that persists to Supabase.
 
-    subgraph ServiceLayer ["Service Layer (Data Sources)"]
-        SupaService[SupabaseService]
-        WeatherService[WeatherService]
-    end
+### Ingredient Scanner
+On-device OCR text recognition powered by Google ML Kit extracts ingredient lists from product labels. Extracted text is analyzed for safety, skin type suitability, and recommendations using the Gemini API (`gemini-3.1-flash-lite`). If the Gemini API key is not configured, a local dictionary-based fallback analysis runs automatically.
 
-    Screen -->|User Actions & Events| ViewModel
-    ViewModel -->|Rebinds & Triggers Updates| Screen
-    ViewModel -->|Requests Data / Uploads| SupaService
-    ViewModel -->|Fetches Location Weather| WeatherService
-    SupaService -->|Returns Models / Status| ViewModel
-    WeatherService -->|Returns Weather Data| ViewModel
+### Skincare Shelf
+A searchable product inventory with category-based filtering. Tracks product name, brand, category, price, estimated total uses, and remaining uses. Product photos can be uploaded to Supabase Storage (`product-photos` bucket). Low-stock indicators are displayed when remaining uses fall below threshold.
+
+### Budget Tracker
+Monthly spending overview calculated from shelf product data. Displays category-level spending breakdowns and cost-per-use efficiency metrics. Supports configurable budget limits with alerts when spending approaches or exceeds the limit. Includes a monthly spending history bar chart for trend visualization.
+
+### Skin Progress Journal
+Daily skin condition logging with a score (0-100), notes, and photo uploads to Supabase Storage (`journal-photos` bucket). Entries are displayed in a gallery layout. A line chart visualizes score trends over time. A before-and-after comparison screen allows side-by-side review of journal entries.
+
+### Additional Features
+- Dark mode support with system-level toggle
+- Splash screen and onboarding flow for first-time users
+- Profile and settings screen
+- Neobrutalist design language with bold borders, offset shadows, and vibrant accent colors
+
+---
+
+## Architecture
+
+GlowMatch follows the **MVVM (Model-View-ViewModel)** pattern with **Provider** for state management and dependency injection.
+
+```
+View (Screen/Widget)
+    |
+    v
+ViewModel (ChangeNotifier)
+    |
+    v
+Service Layer (SupabaseService, WeatherService)
+```
+
+**Data flow:**
+1. Views dispatch user actions to ViewModels.
+2. ViewModels process logic, call services, and update state.
+3. Views rebuild reactively via `Consumer<T>` or `context.watch<T>()`.
+4. Services handle all external I/O (database, storage, network).
+
+No business logic or direct API calls exist in widget files.
+
+---
+
+## Technology Stack
+
+| Technology | Purpose | Version/Package |
+| :--- | :--- | :--- |
+| Flutter | Cross-platform UI framework | Dart SDK >= 3.11.0 |
+| Provider | State management and DI | `provider: ^6.1.2` |
+| Supabase | Database, auth, and file storage | `supabase_flutter: ^2.5.4` |
+| Google ML Kit | On-device OCR text recognition | `google_mlkit_text_recognition: ^0.12.0` |
+| Gemini API | Ingredient safety analysis | `gemini-3.1-flash-lite` |
+| Open-Meteo | Weather data (no API key required) | REST API via `http: ^1.2.1` |
+| fl_chart | Charts (line chart, bar chart) | `fl_chart: ^0.66.0` |
+| Google Fonts | Typography (Outfit font family) | `google_fonts: ^8.1.0` |
+| Geolocator | Device location for weather | `geolocator: ^11.0.0` |
+| image_picker | Camera and gallery image selection | `image_picker: ^1.1.2` |
+
+---
+
+## Project Structure
+
+```
+glowmatch/
+  lib/
+    main.dart                           # Application entry point
+    core/
+      constants.dart                    # Enums, table names, bucket names, defaults
+      models/
+        shelf_item.dart                 # ShelfItem data model
+        routine_step.dart               # RoutineStep data model
+        journal_entry.dart              # JournalEntry data model
+        streak_data.dart                # StreakData data model
+        models.dart                     # Barrel export
+      services/
+        supabase_service.dart           # Supabase database and storage operations
+        weather_service.dart            # Location weather via Open-Meteo
+      viewmodels/
+        auth_viewmodel.dart             # Authentication state
+        theme_viewmodel.dart            # Theme mode (light/dark) state
+      widgets/
+        neobrutalist_card.dart          # Reusable card with neobrutalist styling
+        glowmatch_header.dart           # Shared header widget
+        error_state_widget.dart         # Error display with retry action
+        loading_overlay.dart            # Full-screen loading indicator
+    features/
+      main_layout.dart                  # Tab navigation shell with bottom bar
+      home/
+        home_screen.dart                # Dashboard with routines, weather, streaks
+        routine_viewmodel.dart          # Routine CRUD and streak logic
+      shelf/
+        shelf_screen.dart               # Product inventory grid with search
+        shelf_viewmodel.dart            # Shelf CRUD, search, photo upload
+      budget/
+        budget_screen.dart              # Spending overview, charts, alerts
+        budget_viewmodel.dart           # Budget calculations, limits, history
+      journal/
+        journal_screen.dart             # Journal gallery and entry creation
+        journal_viewmodel.dart          # Journal CRUD and photo upload
+        journal_detail_screen.dart      # Single entry detail view
+        journal_compare_screen.dart     # Before-and-after comparison
+        journal_chart_widget.dart       # Skin score line chart
+      scanner/
+        scanner_screen.dart             # OCR camera and analysis results UI
+        scanner_viewmodel.dart          # OCR processing and Gemini integration
+      onboarding/
+        onboarding_screen.dart          # First-time user onboarding flow
+      splash/
+        splash_screen.dart              # App launch splash screen
+      profile/
+        profile_screen.dart             # User profile and settings
+        profile_viewmodel.dart          # Profile state
+  test/
+    core/
+      services/                         # Service unit tests
+      widgets/                          # Widget unit tests
+    features/
+      budget/                           # Budget viewmodel tests
+      home/                             # Home screen, routine, streak tests
+      journal/                          # Journal viewmodel tests
+      scanner/                          # Scanner viewmodel tests
+      shelf/                            # Shelf screen tests
+  supabase/
+    migrations/                         # SQL migration scripts
+  secrets.example.json                  # Environment variable template
+  pubspec.yaml                          # Dart/Flutter dependencies
+  analysis_options.yaml                 # Lint rules (flutter_lints)
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Prerequisites
 
-| Technology | Purpose | Details / Libraries |
-| :--- | :--- | :--- |
-| **Flutter** | Cross-platform application framework | Dart SDK >= 3.11.0 |
-| **Provider** | State management & dependency injection | `provider: ^6.1.2` |
-| **Supabase** | Backend Database, Authentication, & Storage | `supabase_flutter: ^2.5.4` |
-| **Google ML Kit** | On-device text recognition (OCR) | `google_mlkit_text_recognition: ^0.12.0` |
-| **Gemini API** | Ingredient safety and suitability analysis | `gemini-3.1-flash-lite` |
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart SDK >= 3.11.0)
+- Android Studio or Xcode (for platform-specific builds)
+- A Supabase project (optional; the app runs in offline mock mode without one)
+- A Gemini API key (optional; ingredient analysis falls back to local dictionary matching)
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup
 
-Follow these step-by-step instructions to get a local copy of GlowMatch up and running:
+1. Clone the repository:
 
-1.  **Clone the repository**:
     ```bash
     git clone https://github.com/demmagence/glowmatch.git
     cd glowmatch
     ```
 
-2.  **Configure Environment Secrets**:
-    *   Copy `secrets.example.json` and save it as `secrets.json` in the root of the project:
-        ```bash
-        cp secrets.example.json secrets.json
-        ```
-    *   Open `secrets.json` and fill in your actual API keys:
-        ```json
-        {
-          "SUPABASE_URL": "https://your-project-id.supabase.co",
-          "SUPABASE_ANON_KEY": "your-supabase-anon-key",
-          "GEMINI_API_KEY": "your-gemini-api-key",
-          "GEMINI_MODEL": "gemini-3.1-flash-lite"
-        }
-        ```
-    *   *Note: If you leave these values as placeholders, GlowMatch will automatically fall back to an Offline Mock Mode with pre-seeded data.*
+2. Create the secrets file:
 
-3.  **Install dependencies**:
+    ```bash
+    cp secrets.example.json secrets.json
+    ```
+
+3. Edit `secrets.json` with your credentials:
+
+    ```json
+    {
+      "SUPABASE_URL": "https://<project-id>.supabase.co",
+      "SUPABASE_ANON_KEY": "<your-anon-key>",
+      "GEMINI_API_KEY": "<your-gemini-api-key>",
+      "GEMINI_MODEL": "gemini-3.1-flash-lite"
+    }
+    ```
+
+    Leave the default placeholder values to run in offline mock mode.
+
+4. Install dependencies:
+
     ```bash
     flutter pub get
     ```
 
-4.  **Run the application**:
-    ```bash
-    flutter run --dart-define-from-file=secrets.json
-    ```
+---
+
+## Running the Application
+
+```bash
+flutter run --dart-define-from-file=secrets.json
+```
+
+The `--dart-define-from-file` flag injects environment variables at compile time. The application reads `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `GEMINI_API_KEY`, and `GEMINI_MODEL` from this file.
 
 ---
 
-## 🗄️ Supabase Setup & Schemas
+## Testing
 
-To run GlowMatch with full cloud syncing, set up a new Supabase project and execute the following SQL scripts to build the tables and enable Row Level Security (RLS).
+Run all unit and widget tests:
 
-### 1. Create Tables
-Execute this script in your Supabase SQL Editor:
-
-```sql
--- Create Skincare Shelf table
-CREATE TABLE public.skincare_shelf (
-    id TEXT PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    brand TEXT,
-    category TEXT DEFAULT 'Other',
-    price NUMERIC(10, 2) DEFAULT 0.0,
-    estimated_uses INT DEFAULT 50,
-    remaining_uses INT DEFAULT 50,
-    indicator_color TEXT DEFAULT '0xFFE040FB',
-    image_url TEXT,
-    ingredients TEXT[] DEFAULT '{}',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Create Routines table
-CREATE TABLE public.routines (
-    id TEXT PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    routine_type TEXT NOT NULL, -- 'AM' or 'PM'
-    step_number INT NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    shelf_item_id TEXT REFERENCES public.skincare_shelf(id) ON DELETE SET NULL
-);
-
--- Create Journal Entries table
-CREATE TABLE public.journal_entries (
-    id TEXT PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    logged_date TEXT NOT NULL,
-    skin_score INT DEFAULT 80,
-    photo_path TEXT,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+```bash
+flutter test
 ```
 
-### 2. Enable Row Level Security (RLS)
-Ensure users can only access their own records:
+Tests are organized to mirror the `lib/` directory structure under `test/`. The test suite covers services, widgets, viewmodels, and screen-level widget tests.
 
-```sql
--- Enable RLS
-ALTER TABLE public.skincare_shelf ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.routines ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
+---
 
--- Create Policies (Example for Skincare Shelf)
-CREATE POLICY "Users can manage their own shelf items" 
-ON public.skincare_shelf 
-FOR ALL 
-TO authenticated 
-USING (auth.uid() = user_id);
+## Supabase Configuration
 
--- Create Policies for Routines
-CREATE POLICY "Users can manage their own routines" 
-ON public.routines 
-FOR ALL 
-TO authenticated 
-USING (auth.uid() = user_id);
+If using Supabase for cloud persistence, execute the migration scripts in your project's SQL Editor in order:
 
--- Create Policies for Journal Entries
-CREATE POLICY "Users can manage their own journal entries" 
-ON public.journal_entries 
-FOR ALL 
-TO authenticated 
-USING (auth.uid() = user_id);
-```
+1. **Initial schema and RLS** -- `supabase/migrations/20260612000000_init_schema_and_rls.sql`
+   - Creates `skincare_shelf`, `routines`, and `journal_entries` tables
+   - Enables Row Level Security on all tables
+   - Creates the `journal-photos` storage bucket with per-user folder policies
 
-### 3. Create Storage Bucket
-Create a new public storage bucket named `journal-photos` to allow visual progress logs to upload successfully. Add a bucket policy permitting authenticated users to upload and view items.
+2. **Streaks table** -- `supabase/migrations/20260613000000_create_streaks_table.sql`
+   - Creates the `user_streaks` table for routine completion tracking
+
+3. **Product photos bucket** -- `supabase/migrations/20260613000001_create_product_photos_bucket.sql`
+   - Creates the `product-photos` storage bucket with per-user folder policies
+
+All migrations are idempotent and safe to re-run.
+
+### Database Schema
+
+| Table | Purpose |
+| :--- | :--- |
+| `skincare_shelf` | Product inventory (name, brand, category, price, uses, ingredients, photo URL) |
+| `routines` | AM/PM routine steps with ordering and optional shelf item linkage |
+| `journal_entries` | Daily skin condition logs (score, photo, notes) |
+| `user_streaks` | Routine completion streak tracking (current, longest, total) |
+
+### Storage Buckets
+
+| Bucket | Purpose |
+| :--- | :--- |
+| `journal-photos` | Skin progress journal photo uploads |
+| `product-photos` | Shelf product photo uploads |
+
+Both buckets enforce per-user folder isolation via RLS policies on `storage.objects`.
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
+| :--- | :--- | :--- |
+| `SUPABASE_URL` | No | Supabase project URL. Defaults to offline mock mode if unset or placeholder. |
+| `SUPABASE_ANON_KEY` | No | Supabase anonymous key. Defaults to offline mock mode if unset or placeholder. |
+| `GEMINI_API_KEY` | No | Google Gemini API key for ingredient analysis. Falls back to local analysis if unset. |
+| `GEMINI_MODEL` | No | Gemini model identifier. Defaults to `gemini-3.1-flash-lite`. |
+
+---
+
+## Offline Mode
+
+GlowMatch is designed to function without any external services. When Supabase credentials are absent or invalid, `SupabaseService` operates with in-memory mock data that is pre-seeded with sample products, routines, and journal entries. When the Gemini API key is absent, the ingredient scanner uses a local dictionary-based analysis engine.
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming conventions, commit message standards, pull request requirements, and code review guidelines.
+
+---
+
+## License
+
+This project is proprietary. All rights reserved.
