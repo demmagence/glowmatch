@@ -101,6 +101,63 @@ class JournalViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> addJournalEntryWithPhoto({
+    required String userId,
+    required String localFilePath,
+    required String notes,
+  }) async {
+    try {
+      _isUploading = true;
+      notifyListeners();
+
+      // Step 1: Upload to Supabase Storage (or local path in offline mode)
+      final String photoUrl = await _supabaseService.uploadJournalPhoto(
+        userId: userId,
+        localFilePath: localFilePath,
+      );
+
+      // Step 2: Build entry with current date
+      final now = DateTime.now();
+      final dateLabel = _formatDate(now);
+      final entry = JournalEntry(
+        id: '',
+        loggedDate: dateLabel,
+        skinScore: _estimateScore(),
+        photoPath: photoUrl,
+        notes: notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
+      );
+
+      // Step 3: Persist entry to Supabase / mock store
+      final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
+      _entries.insert(0, addedEntry);
+      _calculateCurrentScore();
+
+      return true;
+    } catch (e) {
+      debugPrint('JournalViewModel: addJournalEntryWithPhoto error: $e');
+      return false;
+    } finally {
+      _isUploading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteEntry(String entryId, String userId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _supabaseService.deleteJournalEntry(entryId);
+      await fetchJournal(userId);
+    } catch (e) {
+      debugPrint('Error deleting journal entry: $e');
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// Legacy method kept for backward compat (e.g. mocked entries)
   Future<void> addEntry({
     required String userId,

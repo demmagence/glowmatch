@@ -468,6 +468,29 @@ class SupabaseService {
     }
   }
 
+  Future<bool> deleteJournalEntry(String entryId) async {
+    if (_isOfflineMode) {
+      _mockJournalEntries.removeWhere((x) => x.id == entryId);
+      return true;
+    }
+
+    try {
+      await Supabase.instance.client
+          .from(AppConstants.tableJournalEntries)
+          .delete()
+          .eq('id', entryId);
+      return true;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('deleteJournalEntry', e);
+      _mockJournalEntries.removeWhere((x) => x.id == entryId);
+      return true;
+    } catch (e) {
+      _handleGenericException('deleteJournalEntry', e);
+      _mockJournalEntries.removeWhere((x) => x.id == entryId);
+      return true;
+    }
+  }
+
   // --- USER STREAKS ---
   Future<StreakData> getStreakData(String userId) async {
     if (_isOfflineMode || userId.isEmpty) {
