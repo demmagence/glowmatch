@@ -31,7 +31,7 @@ class SupabaseService {
     try {
       await Supabase.initialize(
         url: url,
-        anonKey: anonKey, // ignore: deprecated_member_use
+        anonKey: anonKey,
       );
       _isOfflineMode = false;
       debugPrint('Supabase: Successfully initialized in online cloud mode.');
