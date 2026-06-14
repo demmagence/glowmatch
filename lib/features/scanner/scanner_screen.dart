@@ -543,22 +543,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         final level = result.ingredientSafetyLevels[ing] ?? 'Safe';
                         Color chipColor;
                         Color textChipColor;
+                        String emojiPrefix = '🟢 ';
                         if (level == 'Avoid') {
                           chipColor = Colors.red.shade100.withOpacity(isDark ? 0.2 : 0.9);
                           textChipColor = isDark ? Colors.red.shade300 : Colors.red.shade800;
+                          emojiPrefix = '🔴 ';
                         } else if (level == 'Caution') {
                           chipColor = Colors.amber.shade100.withOpacity(isDark ? 0.2 : 0.9);
                           textChipColor = isDark ? Colors.amber.shade300 : Colors.amber.shade800;
+                          emojiPrefix = '🟡 ';
                         } else {
                           chipColor = Colors.green.shade100.withOpacity(isDark ? 0.2 : 0.9);
                           textChipColor = isDark ? Colors.green.shade300 : Colors.green.shade800;
+                          emojiPrefix = '🟢 ';
                         }
 
                         return Chip(
                           backgroundColor: chipColor,
                           side: BorderSide(color: textChipColor, width: 1.5),
                           label: Text(
-                            ing,
+                            '$emojiPrefix$ing',
                             style: TextStyle(
                               fontSize: 12,
                               color: textChipColor,

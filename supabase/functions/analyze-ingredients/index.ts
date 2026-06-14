@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -58,6 +58,7 @@ Return a JSON object in this exact schema (no markdown, no backticks, just raw J
     "ingredient2": "Explanation for safety level of ingredient2."
   },
   "overallSafetyScore": 85,
+  "safetyRating": "Highly Safe (100% Clean)",
   "skinTypeSuitability": "Excellent for oily skin, caution for dry skin due to drying agents.",
   "interactionWarnings": ["Avoid combining Salicylic Acid and Retinol in the same routine step."],
   "recommendations": "Use sunscreen daily if this product contains Retinol or AHA.",
@@ -101,7 +102,7 @@ Return a JSON object in this exact schema (no markdown, no backticks, just raw J
       JSON.stringify(parsedData),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
-  } catch (err) {
+  } catch (err: any) {
     return new Response(
       JSON.stringify({ error: err.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
