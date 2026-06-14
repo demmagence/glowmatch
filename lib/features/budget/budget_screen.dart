@@ -27,8 +27,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
     super.initState();
     final budgetVm = Provider.of<BudgetViewModel>(context, listen: false);
     budgetVm.loadBudgetLimit();
-    _priceController = TextEditingController(text: budgetVm.productPrice.toStringAsFixed(2));
-    _usesController = TextEditingController(text: budgetVm.estimatedUses.toString());
+    _priceController = TextEditingController(
+      text: budgetVm.productPrice.toStringAsFixed(2),
+    );
+    _usesController = TextEditingController(
+      text: budgetVm.estimatedUses.toString(),
+    );
   }
 
   @override
@@ -38,10 +42,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
     super.dispose();
   }
 
-  void _syncControllersWithProduct(ShelfItem product, BudgetViewModel budgetVm) {
+  void _syncControllersWithProduct(
+    ShelfItem product,
+    BudgetViewModel budgetVm,
+  ) {
     final double price = product.price;
     final int uses = product.estimatedUses;
-    
+
     setState(() {
       _priceController.text = price.toStringAsFixed(2);
       _usesController.text = uses.toString();
@@ -77,7 +84,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               TextSpan(
                 text: '.',
                 style: TextStyle(color: Colors.red, fontSize: 26),
-              )
+              ),
             ],
           ),
         ),
@@ -101,7 +108,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Title: Monthly Spend vs Limit
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -116,7 +122,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   ),
                   const SizedBox(width: 4),
                   IconButton(
-                    icon: Icon(Icons.edit_outlined, size: 18, color: subtextColor),
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: subtextColor,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () => showEditLimitDialog(context, budgetVm),
@@ -125,7 +135,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Spend vs Limit amount
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -152,20 +161,25 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Budget Limit Progress Bar
               Builder(
                 builder: (context) {
                   final spend = budgetVm.totalMonthlySpend;
                   final limit = budgetVm.budgetLimit;
-                  final percent = limit > 0 ? (spend / limit).clamp(0.0, 1.0) : 1.0;
+                  final percent = limit > 0
+                      ? (spend / limit).clamp(0.0, 1.0)
+                      : 1.0;
                   final isOverBudget = spend > limit;
-                  final progressColor = isOverBudget ? const Color(0xFFD50000) : const Color(0xFF64DD17);
+                  final progressColor = isOverBudget
+                      ? const Color(0xFFD50000)
+                      : const Color(0xFF64DD17);
 
                   return Container(
                     width: double.infinity,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                      color: isDark
+                          ? Colors.grey.shade900
+                          : Colors.grey.shade100,
                       border: Border.all(color: borderColor, width: 1.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
@@ -184,25 +198,15 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
               const SizedBox(height: 28),
 
-              // Allocation Card
               AllocationCard(isDark: isDark),
               const SizedBox(height: 24),
 
-              // Spending History Card
-              SpendingHistoryCard(
-                isDark: isDark,
-                budgetVm: budgetVm,
-              ),
+              SpendingHistoryCard(isDark: isDark, budgetVm: budgetVm),
               const SizedBox(height: 24),
 
-              // Smart Alerts Card
-              SmartAlertsCard(
-                isDark: isDark,
-                budgetVm: budgetVm,
-              ),
+              SmartAlertsCard(isDark: isDark, budgetVm: budgetVm),
               const SizedBox(height: 24),
 
-              // Cost-Per-Apply Card
               CalculatorCard(
                 isDark: isDark,
                 selectedProductId: _selectedProductId,
@@ -210,20 +214,28 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 usesController: _usesController,
                 onProductChanged: (val) {
                   if (val != null) {
-                    setState(() { _selectedProductId = val; });
+                    setState(() {
+                      _selectedProductId = val;
+                    });
                     if (val != 'custom') {
-                      final prod = budgetVm.shelfItems.firstWhere((x) => x.id == val);
+                      final prod = budgetVm.shelfItems.firstWhere(
+                        (x) => x.id == val,
+                      );
                       _syncControllersWithProduct(prod, budgetVm);
                     }
                   }
                 },
                 onPriceChanged: (val) {
-                  setState(() { _selectedProductId = 'custom'; });
+                  setState(() {
+                    _selectedProductId = 'custom';
+                  });
                   final parsed = double.tryParse(val);
                   if (parsed != null) budgetVm.updateCalculator(price: parsed);
                 },
                 onUsesChanged: (val) {
-                  setState(() { _selectedProductId = 'custom'; });
+                  setState(() {
+                    _selectedProductId = 'custom';
+                  });
                   final parsed = int.tryParse(val);
                   if (parsed != null) budgetVm.updateCalculator(uses: parsed);
                 },

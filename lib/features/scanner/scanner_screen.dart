@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
@@ -74,8 +73,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (vm.isProcessing) return;
 
     if (!_isCameraInitialized || _cameraController == null) {
-      // Simulator fallback simulation
-      await vm.scanImage('assets/mock_ingredients.png'); // Trigger local OCR mock parser
+      await vm.scanImage('assets/mock_ingredients.png');
       if (mounted && vm.analysisResult != null) {
         _showResultSheet(context, vm.analysisResult!, vm);
       }
@@ -91,9 +89,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     } catch (e) {
       debugPrint('Capture error: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to take picture: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to take picture: $e')));
     }
   }
 
@@ -115,7 +113,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
             DrawerHeader(
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
-                border: Border(bottom: BorderSide(color: borderColor, width: 2)),
+                border: Border(
+                  bottom: BorderSide(color: borderColor, width: 2),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,22 +137,33 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         'Past product scans',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                   if (scannerVm.scanHistory.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete_sweep_outlined,
+                        color: Colors.red,
+                      ),
                       tooltip: 'Clear history',
                       onPressed: () async {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
                             backgroundColor: bgColor,
-                            title: Text('Clear History?', style: TextStyle(color: textColor)),
-                            content: Text('Do you want to delete all past scans?', style: TextStyle(color: textColor)),
+                            title: Text(
+                              'Clear History?',
+                              style: TextStyle(color: textColor),
+                            ),
+                            content: Text(
+                              'Do you want to delete all past scans?',
+                              style: TextStyle(color: textColor),
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
@@ -160,7 +171,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
-                                child: const Text('Clear', style: TextStyle(color: Colors.red)),
+                                child: const Text(
+                                  'Clear',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ),
                             ],
                           ),
@@ -178,7 +192,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ? Center(
                       child: Text(
                         'No past scans found',
-                        style: TextStyle(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.grey.shade600
+                              : Colors.grey.shade400,
+                        ),
                       ),
                     )
                   : ListView.builder(
@@ -186,11 +204,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       itemBuilder: (context, index) {
                         final historyItem = scannerVm.scanHistory[index];
                         final score = historyItem.overallSafetyScore;
-                        final scoreColor = score >= 80 ? Colors.green : (score >= 50 ? Colors.amber : Colors.red);
+                        final scoreColor = score >= 80
+                            ? Colors.green
+                            : (score >= 50 ? Colors.amber : Colors.red);
                         return ListTile(
                           title: Text(
-                            historyItem.detectedIngredients.take(3).join(', ') + (historyItem.detectedIngredients.length > 3 ? '...' : ''),
-                            style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                            historyItem.detectedIngredients.take(3).join(', ') +
+                                (historyItem.detectedIngredients.length > 3
+                                    ? '...'
+                                    : ''),
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           subtitle: Text(
                             'Score: $score/100 | ${historyItem.safetyRating}',
@@ -207,11 +233,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             alignment: Alignment.center,
                             child: Text(
                               '$score',
-                              style: TextStyle(color: scoreColor, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(
+                                color: scoreColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                           onTap: () {
-                            Navigator.pop(context); // Close Drawer
+                            Navigator.pop(context);
                             _showResultSheet(context, historyItem, scannerVm);
                           },
                         );
@@ -224,22 +254,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Camera Live Preview (or dark mockup background if simulator)
           _isCameraInitialized && _cameraController != null
               ? CameraPreview(_cameraController!)
               : _buildSimulatorViewfinder(),
 
-          // 2. Camera Overlay Details
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 12.0,
+              ),
               child: Column(
                 children: [
-                  // Header Row: Close, Title Capsule, Flashlight & History
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Close button "X"
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Container(
@@ -252,10 +281,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           child: const Icon(Icons.close, color: Colors.black),
                         ),
                       ),
-                      
-                      // GLOWMATCH Capsule logo
+
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
@@ -272,7 +303,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         ),
                       ),
 
-                      // Row of control buttons
                       Row(
                         children: [
                           GestureDetector(
@@ -285,7 +315,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                _isFlashOn ? Icons.flashlight_on : Icons.flashlight_off,
+                                _isFlashOn
+                                    ? Icons.flashlight_on
+                                    : Icons.flashlight_off,
                                 color: Colors.black,
                               ),
                             ),
@@ -312,12 +344,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const Spacer(),
 
-                  // ALIGN INGREDIENTS overlay text/box
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.85),
                       borderRadius: BorderRadius.circular(4),
@@ -334,10 +368,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
 
                   const SizedBox(height: 32),
-                  
-                  // Scanning text status
+
                   Text(
-                    scannerVm.isProcessing ? 'Analyzing ingredients...' : 'Scanning ingredients list...',
+                    scannerVm.isProcessing
+                        ? 'Analyzing ingredients...'
+                        : 'Scanning ingredients list...',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white70,
@@ -347,7 +382,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Shutter Button
                   GestureDetector(
                     onTap: () => _captureAndScan(scannerVm),
                     child: Container(
@@ -356,7 +390,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 4),
-                        color: Colors.white.withOpacity(scannerVm.isProcessing ? 0.5 : 1.0),
+                        color: Colors.white.withOpacity(
+                          scannerVm.isProcessing ? 0.5 : 1.0,
+                        ),
                       ),
                     ),
                   ),
@@ -376,7 +412,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Simulated blurry ingredients packaging background to wow the user
           Opacity(
             opacity: 0.25,
             child: Container(
@@ -390,7 +425,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
             ),
           ),
-          // Viewfinder box borders
+
           Container(
             width: 280,
             height: 380,
@@ -404,15 +439,20 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  void _showResultSheet(BuildContext context, ScanAnalysisResult result, ScannerViewModel vm) {
+  void _showResultSheet(
+    BuildContext context,
+    ScanAnalysisResult result,
+    ScannerViewModel vm,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
 
-    // Determine overall score status colors
     final score = result.overallSafetyScore;
-    final scoreColor = score >= 80 ? Colors.green : (score >= 50 ? Colors.amber : Colors.red);
+    final scoreColor = score >= 80
+        ? Colors.green
+        : (score >= 50 ? Colors.amber : Colors.red);
 
     showModalBottomSheet(
       context: context,
@@ -439,7 +479,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -451,9 +490,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             letterSpacing: 1.5,
                           ),
                         ),
-                        // Safety score circular badge
+
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: scoreColor.withOpacity(0.1),
                             border: Border.all(color: scoreColor, width: 2),
@@ -485,12 +527,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Interaction warnings box if present
                     if (result.interactionWarnings.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50.withOpacity(isDark ? 0.1 : 0.85),
+                          color: Colors.red.shade50.withOpacity(
+                            isDark ? 0.1 : 0.85,
+                          ),
                           border: Border.all(color: Colors.red, width: 2),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -499,7 +542,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           children: [
                             const Row(
                               children: [
-                                Icon(Icons.warning_amber_rounded, color: Colors.red),
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.red,
+                                ),
                                 SizedBox(width: 8),
                                 Text(
                                   'INGREDIENT INTERACTIONS',
@@ -513,48 +559,68 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            ...result.interactionWarnings.map((warning) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 6.0),
-                                  child: Text(
-                                    '• $warning',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark ? Colors.red.shade300 : Colors.red.shade800,
-                                      height: 1.3,
-                                    ),
+                            ...result.interactionWarnings.map(
+                              (warning) => Padding(
+                                padding: const EdgeInsets.only(bottom: 6.0),
+                                child: Text(
+                                  '• $warning',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.red.shade300
+                                        : Colors.red.shade800,
+                                    height: 1.3,
                                   ),
-                                )),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 16),
                     ],
 
-                    // Detected ingredients with color-coded chips
                     const Text(
                       'Detected Ingredients:',
-                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: result.detectedIngredients.map((ing) {
-                        final level = result.ingredientSafetyLevels[ing] ?? 'Safe';
+                        final level =
+                            result.ingredientSafetyLevels[ing] ?? 'Safe';
                         Color chipColor;
                         Color textChipColor;
                         String emojiPrefix = '🟢 ';
                         if (level == 'Avoid') {
-                          chipColor = Colors.red.shade100.withOpacity(isDark ? 0.2 : 0.9);
-                          textChipColor = isDark ? Colors.red.shade300 : Colors.red.shade800;
+                          chipColor = Colors.red.shade100.withOpacity(
+                            isDark ? 0.2 : 0.9,
+                          );
+                          textChipColor = isDark
+                              ? Colors.red.shade300
+                              : Colors.red.shade800;
                           emojiPrefix = '🔴 ';
                         } else if (level == 'Caution') {
-                          chipColor = Colors.amber.shade100.withOpacity(isDark ? 0.2 : 0.9);
-                          textChipColor = isDark ? Colors.amber.shade300 : Colors.amber.shade800;
+                          chipColor = Colors.amber.shade100.withOpacity(
+                            isDark ? 0.2 : 0.9,
+                          );
+                          textChipColor = isDark
+                              ? Colors.amber.shade300
+                              : Colors.amber.shade800;
                           emojiPrefix = '🟡 ';
                         } else {
-                          chipColor = Colors.green.shade100.withOpacity(isDark ? 0.2 : 0.9);
-                          textChipColor = isDark ? Colors.green.shade300 : Colors.green.shade800;
+                          chipColor = Colors.green.shade100.withOpacity(
+                            isDark ? 0.2 : 0.9,
+                          );
+                          textChipColor = isDark
+                              ? Colors.green.shade300
+                              : Colors.green.shade800;
                           emojiPrefix = '🟢 ';
                         }
 
@@ -575,19 +641,25 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Expandable detail cards
                     const Text(
                       'Ingredient Safety & Details (Tap to expand):',
-                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ...result.detectedIngredients.map((ing) {
-                      final level = result.ingredientSafetyLevels[ing] ?? 'Safe';
-                      final detail = result.ingredientDetails[ing] ?? 'No details available.';
+                      final level =
+                          result.ingredientSafetyLevels[ing] ?? 'Safe';
+                      final detail =
+                          result.ingredientDetails[ing] ??
+                          'No details available.';
                       Color detailColor = level == 'Avoid'
                           ? Colors.red
                           : (level == 'Caution' ? Colors.amber : Colors.green);
-                      
+
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         elevation: 0,
@@ -595,7 +667,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           borderRadius: BorderRadius.circular(8),
                           side: BorderSide(color: borderColor, width: 1.5),
                         ),
-                        color: isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade50,
+                        color: isDark
+                            ? const Color(0xFF2C2C2C)
+                            : Colors.grey.shade50,
                         child: ExpansionTile(
                           collapsedIconColor: textColor,
                           iconColor: textColor,
@@ -617,12 +691,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
                           children: [
                             Padding(
-                              padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 12.0),
+                              padding: const EdgeInsets.only(
+                                left: 16.0,
+                                right: 16.0,
+                                bottom: 12.0,
+                              ),
                               child: Text(
                                 detail,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                                  color: isDark
+                                      ? Colors.grey.shade300
+                                      : Colors.grey.shade700,
                                   height: 1.4,
                                 ),
                               ),
@@ -633,35 +713,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     }).toList(),
                     const SizedBox(height: 16),
 
-                    // Suitability profile
                     const Text(
                       'Skin Suitability:',
-                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       result.skinTypeSuitability,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
-                    // AI Safety summary
                     const Text(
                       'AI Recommendations & Summary:',
-                      style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       result.recommendations,
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                        color: isDark
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade700,
                         height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 28),
 
-                    // Buttons Row
                     Row(
                       children: [
                         Expanded(
@@ -671,11 +761,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: textColor,
                                 side: BorderSide(color: borderColor, width: 2),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               ),
                               onPressed: () {
-                                Navigator.pop(context); // Close sheet
-                                Navigator.pop(context, result.detectedIngredients); // Close screen & return ingredients
+                                Navigator.pop(context);
+                                Navigator.pop(
+                                  context,
+                                  result.detectedIngredients,
+                                );
                               },
                               child: const Text(
                                 'Save to Shelf',
@@ -690,16 +785,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             height: 48,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.white : Colors.black,
-                                foregroundColor: isDark ? Colors.black : Colors.white,
+                                backgroundColor: isDark
+                                    ? Colors.white
+                                    : Colors.black,
+                                foregroundColor: isDark
+                                    ? Colors.black
+                                    : Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
-                                  side: BorderSide(color: borderColor, width: 2),
+                                  side: BorderSide(
+                                    color: borderColor,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                               onPressed: () {
                                 vm.clearScan();
-                                Navigator.pop(context); // Close sheet
+                                Navigator.pop(context);
                               },
                               child: const Text(
                                 'OK',

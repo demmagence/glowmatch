@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../budget_viewmodel.dart';
 
-// Custom concentric rings painter representing budget allocation categories
 class ConcentricRingsPainter extends CustomPainter {
   final List<CategoryAllocation> allocations;
   final bool isDark;
@@ -28,16 +27,16 @@ class ConcentricRingsPainter extends CustomPainter {
       paint.color = color;
       paint.strokeWidth = strokeWidth;
 
-      // Draw background track line
       final trackPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
-        ..color = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade100;
+        ..color = isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.grey.shade100;
       canvas.drawCircle(center, radius, trackPaint);
 
-      // Draw active circular arc.
       double startAngle = -pi / 2;
-      double sweepAngle = (1.8 - (i * 0.4)) * pi; // varying length of ring
+      double sweepAngle = (1.8 - (i * 0.4)) * pi;
 
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),

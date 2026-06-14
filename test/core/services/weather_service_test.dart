@@ -9,11 +9,8 @@ void main() {
       service = WeatherService();
     });
 
-    test(
-        'fetchLocalWeather returns fallback WeatherData when location '
+    test('fetchLocalWeather returns fallback WeatherData when location '
         'unavailable (MissingPluginException or disabled)', () async {
-      // In a test environment geolocator platform plugin is not registered,
-      // so the call throws and the catch block returns _mockFallback.
       final result = await service.fetchLocalWeather();
 
       expect(result, isA<WeatherData>());
@@ -24,7 +21,7 @@ void main() {
 
     test('fallback locationName contains the reason string', () async {
       final result = await service.fetchLocalWeather();
-      // The reason injected is either 'Offline / Timeout' or a platform error string
+
       expect(result.locationName, isNotEmpty);
       expect(result.locationName, contains('Los Angeles, CA'));
     });

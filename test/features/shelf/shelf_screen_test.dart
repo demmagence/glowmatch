@@ -23,10 +23,7 @@ Widget _buildShelfDark(ShelfViewModel shelfVm) {
       ChangeNotifierProvider<AuthViewModel>(create: (_) => AuthViewModel()),
       ChangeNotifierProvider<ShelfViewModel>.value(value: shelfVm),
     ],
-    child: MaterialApp(
-      theme: ThemeData.dark(),
-      home: const ShelfScreen(),
-    ),
+    child: MaterialApp(theme: ThemeData.dark(), home: const ShelfScreen()),
   );
 }
 
@@ -46,8 +43,9 @@ void main() {
       expect(find.text('FILTER'), findsOneWidget);
     });
 
-    testWidgets('add card with "tekan untuk tambah" text is present',
-        (tester) async {
+    testWidgets('add card with "tekan untuk tambah" text is present', (
+      tester,
+    ) async {
       final vm = ShelfViewModel();
       await tester.pumpWidget(_buildShelf(vm));
       await tester.pump(const Duration(milliseconds: 300));
@@ -58,20 +56,21 @@ void main() {
       );
     });
 
-    testWidgets('product grid renders seeded items after fetchShelf',
-        (tester) async {
+    testWidgets('product grid renders seeded items after fetchShelf', (
+      tester,
+    ) async {
       final vm = ShelfViewModel();
       await vm.fetchShelf('test-user');
 
       await tester.pumpWidget(_buildShelf(vm));
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Seeded shelf has 'GlowBomb' as first product
       expect(find.text('GlowBomb'), findsOneWidget);
     });
 
-    testWidgets('grid has add card + N product cards after fetchShelf',
-        (tester) async {
+    testWidgets('grid has add card + N product cards after fetchShelf', (
+      tester,
+    ) async {
       final vm = ShelfViewModel();
       await vm.fetchShelf('test-user');
 
@@ -80,7 +79,7 @@ void main() {
 
       final itemCount = vm.filteredItems.length;
       expect(itemCount, greaterThan(0));
-      // Add card is always last (+1)
+
       expect(find.byType(GridView), findsOneWidget);
     });
 
@@ -92,18 +91,20 @@ void main() {
       expect(find.text('My Shelf'), findsOneWidget);
     });
 
-    testWidgets('renders correctly in dark mode and verifies theme-aware colors', (tester) async {
-      final vm = ShelfViewModel();
-      await tester.pumpWidget(_buildShelfDark(vm));
-      await tester.pump(const Duration(milliseconds: 300));
+    testWidgets(
+      'renders correctly in dark mode and verifies theme-aware colors',
+      (tester) async {
+        final vm = ShelfViewModel();
+        await tester.pumpWidget(_buildShelfDark(vm));
+        await tester.pump(const Duration(milliseconds: 300));
 
-      final BuildContext context = tester.element(find.byType(ShelfScreen));
-      expect(Theme.of(context).brightness, equals(Brightness.dark));
+        final BuildContext context = tester.element(find.byType(ShelfScreen));
+        expect(Theme.of(context).brightness, equals(Brightness.dark));
 
-      // Verify My Shelf text is white in dark mode
-      final Text myShelfText = tester.widget<Text>(find.text('My Shelf'));
-      expect(myShelfText.style?.color, equals(Colors.white));
-    });
+        final Text myShelfText = tester.widget<Text>(find.text('My Shelf'));
+        expect(myShelfText.style?.color, equals(Colors.white));
+      },
+    );
   });
 
   group('ShelfViewModel and SkincareCategory tests', () {
@@ -114,44 +115,41 @@ void main() {
       expect(SkincareCategory.eyeCream.displayName, 'Eye Cream');
 
       expect(SkincareCategory.fromString('Toner'), SkincareCategory.toner);
-      expect(SkincareCategory.fromString('exfoliant'), SkincareCategory.exfoliant);
+      expect(
+        SkincareCategory.fromString('exfoliant'),
+        SkincareCategory.exfoliant,
+      );
       expect(SkincareCategory.fromString('MASK'), SkincareCategory.mask);
-      expect(SkincareCategory.fromString('eye cream'), SkincareCategory.eyeCream);
+      expect(
+        SkincareCategory.fromString('eye cream'),
+        SkincareCategory.eyeCream,
+      );
     });
 
     test('ShelfViewModel filters by search query and category', () async {
       final vm = ShelfViewModel();
       await vm.fetchShelf('test-user');
 
-      // Seeded mock items:
-      // item-1: GlowBomb (Serum, Glow Recipe)
-      // item-2: Centella Sunscreen (Sunscreen, Skin1004)
-      // item-3: 5% Panthenol Cream (Moisturizer, Florasis)
-
       expect(vm.shelfItems.length, 3);
 
-      // Search by name
       vm.setSearchQuery('glow');
       expect(vm.filteredItems.length, 1);
       expect(vm.filteredItems.first.name, 'GlowBomb');
 
-      // Search by brand
       vm.setSearchQuery('skin1004');
       expect(vm.filteredItems.length, 1);
       expect(vm.filteredItems.first.name, 'Centella Sunscreen');
 
-      // Clear search
       vm.setSearchQuery('');
       expect(vm.filteredItems.length, 3);
 
-      // Filter by category and search combination
       vm.setFilter('Serum');
       vm.setSearchQuery('bomb');
       expect(vm.filteredItems.length, 1);
       expect(vm.filteredItems.first.name, 'GlowBomb');
 
       vm.setFilter('Moisturizer');
-      // "bomb" doesn't exist in Moisturizer category
+
       expect(vm.filteredItems.isEmpty, true);
     });
   });

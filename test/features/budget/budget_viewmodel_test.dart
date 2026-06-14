@@ -12,10 +12,7 @@ void main() {
       vm = BudgetViewModel();
     });
 
-    // ── efficiencyMetric ──────────────────────────────────────────────────
-
     test('efficiencyMetric: 120 / 60 = 2.00', () {
-      // Default values are price=120, uses=60
       expect(vm.efficiencyMetric, closeTo(2.00, 0.001));
     });
 
@@ -34,25 +31,75 @@ void main() {
       expect(vm.efficiencyMetric, closeTo(0.70, 0.001));
     });
 
-    // ── updateFromShelf / allocation grouping ────────────────────────────
-
     test('updateFromShelf groups items by category and sums amounts', () {
       vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
-        ShelfItem(id: '2', category: 'Serum', price: 18.0, name: 'S2', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
-        ShelfItem(id: '3', category: 'Moisturizer', price: 58.0, name: 'M1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFD50000', ingredients: const []),
+        ShelfItem(
+          id: '1',
+          category: 'Serum',
+          price: 42.0,
+          name: 'S1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '2',
+          category: 'Serum',
+          price: 18.0,
+          name: 'S2',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '3',
+          category: 'Moisturizer',
+          price: 58.0,
+          name: 'M1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFD50000',
+          ingredients: const [],
+        ),
       ]);
 
       final serum = vm.allocations.firstWhere((a) => a.category == 'Serum');
-      final moist = vm.allocations.firstWhere((a) => a.category == 'Moisturizer');
+      final moist = vm.allocations.firstWhere(
+        (a) => a.category == 'Moisturizer',
+      );
       expect(serum.amount, closeTo(60.0, 0.001));
       expect(moist.amount, closeTo(58.0, 0.001));
     });
 
     test('updateFromShelf assigns correct colorHex per category', () {
       vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Sunscreen', price: 20.0, name: 'Sun1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF64DD17', ingredients: const []),
-        ShelfItem(id: '2', category: 'Cleanser', price: 15.0, name: 'C1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF29B6F6', ingredients: const []),
+        ShelfItem(
+          id: '1',
+          category: 'Sunscreen',
+          price: 20.0,
+          name: 'Sun1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFF64DD17',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '2',
+          category: 'Cleanser',
+          price: 15.0,
+          name: 'C1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFF29B6F6',
+          ingredients: const [],
+        ),
       ]);
 
       final sun = vm.allocations.firstWhere((a) => a.category == 'Sunscreen');
@@ -63,9 +110,39 @@ void main() {
 
     test('updateFromShelf sorts allocations descending by amount', () {
       vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Cleanser', price: 10.0, name: 'C1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF29B6F6', ingredients: const []),
-        ShelfItem(id: '2', category: 'Moisturizer', price: 58.0, name: 'M1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFD50000', ingredients: const []),
-        ShelfItem(id: '3', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
+        ShelfItem(
+          id: '1',
+          category: 'Cleanser',
+          price: 10.0,
+          name: 'C1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFF29B6F6',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '2',
+          category: 'Moisturizer',
+          price: 58.0,
+          name: 'M1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFD50000',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '3',
+          category: 'Serum',
+          price: 42.0,
+          name: 'S1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
       ]);
 
       final amounts = vm.allocations.map((a) => a.amount).toList();
@@ -74,13 +151,41 @@ void main() {
       }
     });
 
-    // ── totalMonthlySpend ─────────────────────────────────────────────────
-
     test('totalMonthlySpend sums all allocation amounts', () {
       vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
-        ShelfItem(id: '2', category: 'Sunscreen', price: 20.0, name: 'Sun1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFF64DD17', ingredients: const []),
-        ShelfItem(id: '3', category: 'Moisturizer', price: 58.0, name: 'M1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFD50000', ingredients: const []),
+        ShelfItem(
+          id: '1',
+          category: 'Serum',
+          price: 42.0,
+          name: 'S1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '2',
+          category: 'Sunscreen',
+          price: 20.0,
+          name: 'Sun1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFF64DD17',
+          ingredients: const [],
+        ),
+        ShelfItem(
+          id: '3',
+          category: 'Moisturizer',
+          price: 58.0,
+          name: 'M1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFD50000',
+          ingredients: const [],
+        ),
       ]);
       expect(vm.totalMonthlySpend, closeTo(120.0, 0.001));
     });
@@ -90,21 +195,17 @@ void main() {
       expect(vm.totalMonthlySpend, equals(0.0));
     });
 
-    // ── updateCalculator ──────────────────────────────────────────────────
-
     test('updateCalculator updates productPrice only', () {
       vm.updateCalculator(price: 200.0);
       expect(vm.productPrice, equals(200.0));
-      expect(vm.estimatedUses, equals(60)); // unchanged
+      expect(vm.estimatedUses, equals(60));
     });
 
     test('updateCalculator updates estimatedUses only', () {
       vm.updateCalculator(uses: 100);
       expect(vm.estimatedUses, equals(100));
-      expect(vm.productPrice, equals(120.0)); // unchanged
+      expect(vm.productPrice, equals(120.0));
     });
-
-    // ── budgetLimit persistence ───────────────────────────────────────────
 
     test('loadBudgetLimit returns default 150.0 when not set', () async {
       await vm.loadBudgetLimit();
@@ -114,18 +215,25 @@ void main() {
     test('setBudgetLimit sets and persists the limit', () async {
       await vm.setBudgetLimit(200.0);
       expect(vm.budgetLimit, equals(200.0));
-      
-      // Re-create VM to verify persistence
+
       final vm2 = BudgetViewModel();
       await vm2.loadBudgetLimit();
       expect(vm2.budgetLimit, equals(200.0));
     });
 
-    // ── spendingHistory and labels ────────────────────────────────────────
-
     test('spendingHistory includes mock months plus total dynamic spend', () {
       vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Serum', price: 42.0, name: 'S1', brand: '', estimatedUses: 50, remainingUses: 50, indicatorColor: '0xFFE040FB', ingredients: const []),
+        ShelfItem(
+          id: '1',
+          category: 'Serum',
+          price: 42.0,
+          name: 'S1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
       ]);
       expect(vm.spendingHistory.length, equals(6));
       expect(vm.spendingHistory.last, equals(42.0));
@@ -135,54 +243,117 @@ void main() {
       expect(vm.spendingHistoryLabels.length, equals(6));
     });
 
-    // ── smartAlerts ───────────────────────────────────────────────────────
+    test(
+      'smartAlerts is empty when totalMonthlySpend is 0 and products are healthy',
+      () {
+        vm.updateFromShelf([]);
+        expect(vm.smartAlerts, isEmpty);
+      },
+    );
 
-    test('smartAlerts is empty when totalMonthlySpend is 0 and products are healthy', () {
-      vm.updateFromShelf([]);
-      expect(vm.smartAlerts, isEmpty);
-    });
+    test(
+      'smartAlerts generates danger alert when budget is exceeded',
+      () async {
+        await vm.setBudgetLimit(100.0);
+        vm.updateFromShelf([
+          ShelfItem(
+            id: '1',
+            category: 'Serum',
+            price: 120.0,
+            name: 'S1',
+            brand: 'B1',
+            estimatedUses: 100,
+            remainingUses: 100,
+            indicatorColor: '0xFFE040FB',
+            ingredients: const [],
+          ),
+        ]);
 
-    test('smartAlerts generates danger alert when budget is exceeded', () async {
-      await vm.setBudgetLimit(100.0);
-      vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Serum', price: 120.0, name: 'S1', brand: 'B1', estimatedUses: 100, remainingUses: 100, indicatorColor: '0xFFE040FB', ingredients: const []),
-      ]);
-      
-      final dangerAlerts = vm.smartAlerts.where((a) => a.type == 'danger').toList();
-      expect(dangerAlerts.length, equals(1));
-      expect(dangerAlerts.first.title, contains('Budget Exceeded'));
-    });
+        final dangerAlerts = vm.smartAlerts
+            .where((a) => a.type == 'danger')
+            .toList();
+        expect(dangerAlerts.length, equals(1));
+        expect(dangerAlerts.first.title, contains('Budget Exceeded'));
+      },
+    );
 
-    test('smartAlerts generates warning alert when spend is > 80% of budget limit', () async {
-      await vm.setBudgetLimit(100.0);
-      vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Serum', price: 85.0, name: 'S1', brand: 'B1', estimatedUses: 100, remainingUses: 100, indicatorColor: '0xFFE040FB', ingredients: const []),
-      ]);
-      
-      final warningAlerts = vm.smartAlerts.where((a) => a.type == 'warning').toList();
-      expect(warningAlerts.length, equals(1));
-      expect(warningAlerts.first.title, contains('Approaching Budget Limit'));
-    });
+    test(
+      'smartAlerts generates warning alert when spend is > 80% of budget limit',
+      () async {
+        await vm.setBudgetLimit(100.0);
+        vm.updateFromShelf([
+          ShelfItem(
+            id: '1',
+            category: 'Serum',
+            price: 85.0,
+            name: 'S1',
+            brand: 'B1',
+            estimatedUses: 100,
+            remainingUses: 100,
+            indicatorColor: '0xFFE040FB',
+            ingredients: const [],
+          ),
+        ]);
+
+        final warningAlerts = vm.smartAlerts
+            .where((a) => a.type == 'warning')
+            .toList();
+        expect(warningAlerts.length, equals(1));
+        expect(warningAlerts.first.title, contains('Approaching Budget Limit'));
+      },
+    );
 
     test('smartAlerts generates low stock warning when remainingUses <= 5', () {
       vm.updateFromShelf([
-        ShelfItem(id: '1', category: 'Serum', price: 30.0, name: 'Low Stock Product', brand: 'B1', estimatedUses: 50, remainingUses: 4, indicatorColor: '0xFFE040FB', ingredients: const []),
+        ShelfItem(
+          id: '1',
+          category: 'Serum',
+          price: 30.0,
+          name: 'Low Stock Product',
+          brand: 'B1',
+          estimatedUses: 50,
+          remainingUses: 4,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
       ]);
-      
-      final stockAlerts = vm.smartAlerts.where((a) => a.title.contains('Low Uses Remaining')).toList();
+
+      final stockAlerts = vm.smartAlerts
+          .where((a) => a.title.contains('Low Uses Remaining'))
+          .toList();
       expect(stockAlerts.length, equals(1));
-      expect(stockAlerts.first.description, contains('Only 4 applications left'));
+      expect(
+        stockAlerts.first.description,
+        contains('Only 4 applications left'),
+      );
     });
 
-    test('smartAlerts generates high cost-per-apply warning when metric > 1.50', () {
-      vm.updateFromShelf([
-        // cost-per-apply = 80 / 40 = 2.00
-        ShelfItem(id: '1', category: 'Serum', price: 80.0, name: 'Expensive Serum', brand: 'B1', estimatedUses: 40, remainingUses: 40, indicatorColor: '0xFFE040FB', ingredients: const []),
-      ]);
-      
-      final efficiencyAlerts = vm.smartAlerts.where((a) => a.title.contains('High Cost-Per-Apply')).toList();
-      expect(efficiencyAlerts.length, equals(1));
-      expect(efficiencyAlerts.first.description, contains('costs \$2.00 per application'));
-    });
+    test(
+      'smartAlerts generates high cost-per-apply warning when metric > 1.50',
+      () {
+        vm.updateFromShelf([
+          ShelfItem(
+            id: '1',
+            category: 'Serum',
+            price: 80.0,
+            name: 'Expensive Serum',
+            brand: 'B1',
+            estimatedUses: 40,
+            remainingUses: 40,
+            indicatorColor: '0xFFE040FB',
+            ingredients: const [],
+          ),
+        ]);
+
+        final efficiencyAlerts = vm.smartAlerts
+            .where((a) => a.title.contains('High Cost-Per-Apply'))
+            .toList();
+        expect(efficiencyAlerts.length, equals(1));
+        expect(
+          efficiencyAlerts.first.description,
+          contains('costs \$2.00 per application'),
+        );
+      },
+    );
   });
 }

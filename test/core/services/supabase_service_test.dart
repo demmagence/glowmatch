@@ -8,13 +8,11 @@ void main() {
   setUp(() async {
     service = SupabaseService();
     service.resetForTesting();
-    // Trigger offline/seed mode with placeholder credentials
+
     await service.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
   });
 
   group('SupabaseService – offline CRUD', () {
-    // ── SHELF ────────────────────────────────────────────────────────────────
-
     test('getShelfItems returns seeded mock shelf in offline mode', () async {
       final items = await service.getShelfItems('test-user');
       expect(items, isNotEmpty);
@@ -23,24 +21,26 @@ void main() {
 
     test('addShelfItem persists item to mock shelf and returns it', () async {
       final before = await service.getShelfItems('test-user');
-      final result = await service.addShelfItem('test-user', ShelfItem(
-        id: 'new-1',
-        name: 'Test Serum',
-        brand: 'TestBrand',
-        category: 'Serum',
-        price: 25.0,
-        estimatedUses: 30,
-        remainingUses: 30,
-        indicatorColor: '0xFFE040FB',
-        ingredients: const [],
-      ));
+      final result = await service.addShelfItem(
+        'test-user',
+        ShelfItem(
+          id: 'new-1',
+          name: 'Test Serum',
+          brand: 'TestBrand',
+          category: 'Serum',
+          price: 25.0,
+          estimatedUses: 30,
+          remainingUses: 30,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+        ),
+      );
       final after = await service.getShelfItems('test-user');
       expect(result.name, equals('Test Serum'));
       expect(after.length, equals(before.length + 1));
     });
 
     test('decrementShelfItemUses reduces remaining_uses by 1', () async {
-      // item-1 from seed has remaining_uses = 45
       final updated = await service.decrementShelfItemUses('item-1');
       expect(updated, isNotNull);
       expect(updated!.remainingUses, equals(44));
@@ -60,8 +60,6 @@ void main() {
       expect(after.any((i) => i.id == 'item-2'), isFalse);
     });
 
-    // ── ROUTINES ─────────────────────────────────────────────────────────────
-
     test('getRoutines returns AM steps from seeded data', () async {
       final steps = await service.getRoutines('test-user', 'AM');
       expect(steps, isNotEmpty);
@@ -76,19 +74,20 @@ void main() {
 
     test('addRoutineStep persists step to mock routines', () async {
       final before = await service.getRoutines('test-user', 'PM');
-      await service.addRoutineStep('test-user', RoutineStep(
-        id: '',
-        routineType: 'PM',
-        stepNumber: before.length + 1,
-        name: 'Night Cream',
-        description: 'Apply before sleep',
-      ));
+      await service.addRoutineStep(
+        'test-user',
+        RoutineStep(
+          id: '',
+          routineType: 'PM',
+          stepNumber: before.length + 1,
+          name: 'Night Cream',
+          description: 'Apply before sleep',
+        ),
+      );
       final after = await service.getRoutines('test-user', 'PM');
       expect(after.length, equals(before.length + 1));
       expect(after.any((s) => s.name == 'Night Cream'), isTrue);
     });
-
-    // ── JOURNAL ──────────────────────────────────────────────────────────────
 
     test('getJournalEntries returns seeded journal entries', () async {
       final entries = await service.getJournalEntries('test-user');
@@ -98,13 +97,16 @@ void main() {
 
     test('addJournalEntry inserts entry at front of list', () async {
       final before = await service.getJournalEntries('test-user');
-      final result = await service.addJournalEntry('test-user', JournalEntry(
-        id: '',
-        loggedDate: 'Jun 12',
-        skinScore: 90,
-        photoPath: 'assets/test.png',
-        notes: 'Test entry',
-      ));
+      final result = await service.addJournalEntry(
+        'test-user',
+        JournalEntry(
+          id: '',
+          loggedDate: 'Jun 12',
+          skinScore: 90,
+          photoPath: 'assets/test.png',
+          notes: 'Test entry',
+        ),
+      );
       final after = await service.getJournalEntries('test-user');
       expect(result.skinScore, equals(90));
       expect(after.length, equals(before.length + 1));

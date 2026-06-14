@@ -25,7 +25,8 @@ Widget _buildSplash({required bool hasSeenOnboarding}) {
       ChangeNotifierProvider(create: (_) => ShelfViewModel()),
       ChangeNotifierProxyProvider<ShelfViewModel, BudgetViewModel>(
         create: (_) => BudgetViewModel(),
-        update: (_, shelf, budget) => budget!..updateFromShelf(shelf.shelfItems),
+        update: (_, shelf, budget) =>
+            budget!..updateFromShelf(shelf.shelfItems),
       ),
       ChangeNotifierProvider(create: (_) => ScannerViewModel()),
       ChangeNotifierProvider(create: (_) => JournalViewModel()),
@@ -56,7 +57,6 @@ void main() {
       expect(find.text('GlowMatch'), findsOneWidget);
       expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
 
-      // Advance past the 2-second timer so it doesn't stay pending
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
     });
@@ -70,7 +70,6 @@ void main() {
       await tester.pumpWidget(_buildSplash(hasSeenOnboarding: false));
       await tester.pump();
 
-      // Advance past the 2-second splash delay
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
 
@@ -87,13 +86,11 @@ void main() {
       await tester.pumpWidget(_buildSplash(hasSeenOnboarding: true));
       await tester.pump();
 
-      // Advance past the 2-second splash delay
       await tester.pump(const Duration(seconds: 3));
-      // Use pump with duration instead of pumpAndSettle to avoid animation timeouts
+
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(const Duration(milliseconds: 500));
 
-      // MainLayout rendered — check for bottom nav labels
       expect(find.text('Home'), findsWidgets);
       expect(find.text('Shelf'), findsWidgets);
     });

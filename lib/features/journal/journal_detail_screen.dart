@@ -15,7 +15,9 @@ class JournalDetailScreen extends StatelessWidget {
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
     final journalVm = Provider.of<JournalViewModel>(context, listen: false);
 
-    final bool isLocalFile = (entry.photoPath?.startsWith('/') ?? false) || (entry.photoPath?.startsWith('C:') ?? false);
+    final bool isLocalFile =
+        (entry.photoPath?.startsWith('/') ?? false) ||
+        (entry.photoPath?.startsWith('C:') ?? false);
     final bool isNetwork = entry.photoPath?.startsWith('http') ?? false;
 
     return Scaffold(
@@ -43,7 +45,6 @@ class JournalDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image card
             Container(
               width: double.infinity,
               height: 380,
@@ -67,23 +68,24 @@ class JournalDetailScreen extends StatelessWidget {
                         errorBuilder: (c, e, s) => _placeholder(),
                       )
                     : isNetwork
-                        ? Image.network(
-                            entry.photoPath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => _placeholder(),
-                          )
-                        : _placeholder(),
+                    ? Image.network(
+                        entry.photoPath!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (c, e, s) => _placeholder(),
+                      )
+                    : _placeholder(),
               ),
             ),
             const SizedBox(height: 24),
 
-            // Metadata card
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Date
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black,
                     borderRadius: BorderRadius.circular(4),
@@ -97,15 +99,21 @@ class JournalDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Score
+
                 Row(
                   children: [
                     const Text(
                       'Score: ',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.pink.shade50,
                         border: Border.all(color: Colors.black, width: 1.5),
@@ -126,7 +134,6 @@ class JournalDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Notes Section
             const Text(
               'NOTES',
               style: TextStyle(
@@ -158,13 +165,12 @@ class JournalDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
 
-            // Delete Button
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF8A80), // Coral/Red
+                  backgroundColor: const Color(0xFFFF8A80),
                   foregroundColor: Colors.black,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -172,7 +178,8 @@ class JournalDetailScreen extends StatelessWidget {
                     side: const BorderSide(color: Colors.black, width: 2),
                   ),
                 ),
-                onPressed: () => _confirmDelete(context, authVm.userId, journalVm),
+                onPressed: () =>
+                    _confirmDelete(context, authVm.userId, journalVm),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -204,7 +211,11 @@ class JournalDetailScreen extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, String userId, JournalViewModel vm) {
+  void _confirmDelete(
+    BuildContext context,
+    String userId,
+    JournalViewModel vm,
+  ) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -213,12 +224,20 @@ class JournalDetailScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             side: const BorderSide(color: Colors.black, width: 2),
           ),
-          title: const Text('Delete Entry?', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: const Text('Are you sure you want to permanently delete this progress log?'),
+          title: const Text(
+            'Delete Entry?',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Are you sure you want to permanently delete this progress log?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -230,10 +249,10 @@ class JournalDetailScreen extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
-                Navigator.pop(dialogContext); // dismiss dialog
+                Navigator.pop(dialogContext);
                 await vm.deleteEntry(entry.id, userId);
                 if (context.mounted) {
-                  Navigator.pop(context); // pop detail screen
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('🗑️ Entry deleted.'),
@@ -242,7 +261,13 @@ class JournalDetailScreen extends StatelessWidget {
                   );
                 }
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Delete',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );

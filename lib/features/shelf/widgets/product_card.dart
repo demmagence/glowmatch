@@ -20,7 +20,9 @@ class ProductCard extends StatelessWidget {
     final int remainingUses = item.remainingUses;
     final double price = item.price;
     final bool isEmpty = remainingUses <= 0;
-    final double progress = estimatedUses > 0 ? (remainingUses / estimatedUses).clamp(0.0, 1.0) : 0.0;
+    final double progress = estimatedUses > 0
+        ? (remainingUses / estimatedUses).clamp(0.0, 1.0)
+        : 0.0;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
@@ -33,7 +35,6 @@ class ProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product Packaging Image
           Expanded(
             child: Stack(
               children: [
@@ -54,12 +55,15 @@ class ProductCard extends StatelessWidget {
                     child: buildProductImage(item.imageUrl),
                   ),
                 ),
-                // Price Badge
+
                 Positioned(
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.yellowAccent,
                       border: Border.all(color: Colors.black, width: 1),
@@ -75,7 +79,7 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Delete Button
+
                 Positioned(
                   top: 4,
                   right: 4,
@@ -88,17 +92,26 @@ class ProductCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: textColor, width: 1),
                       ),
-                      child: Icon(Icons.delete_outline_rounded, size: 16, color: textColor),
+                      child: Icon(
+                        Icons.delete_outline_rounded,
+                        size: 16,
+                        color: textColor,
+                      ),
                     ),
                   ),
                 ),
-                // Finished Overlay
+
                 if (isEmpty)
                   Container(
-                    color: isDark ? Colors.black.withValues(alpha: 0.65) : Colors.white.withValues(alpha: 0.65),
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.65)
+                        : Colors.white.withValues(alpha: 0.65),
                     alignment: Alignment.center,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.redAccent,
                         border: Border.all(color: textColor, width: 1.5),
@@ -118,7 +131,7 @@ class ProductCard extends StatelessWidget {
               ],
             ),
           ),
-          // Product Info Details
+
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -142,10 +155,7 @@ class ProductCard extends StatelessWidget {
                         item.brand,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: subtextColor,
-                        ),
+                        style: TextStyle(fontSize: 11, color: subtextColor),
                       ),
                     ),
                     Container(
@@ -159,13 +169,15 @@ class ProductCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // Progress indicator
+
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: progress,
                     color: dotColor,
-                    backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                    backgroundColor: isDark
+                        ? Colors.grey.shade800
+                        : Colors.grey.shade200,
                     minHeight: 4,
                   ),
                 ),
@@ -189,12 +201,17 @@ class ProductCard extends StatelessWidget {
                             SnackBar(
                               content: Text('Used 1 apply of ${item.name}!'),
                               duration: const Duration(seconds: 1),
-                              backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
+                              backgroundColor: isDark
+                                  ? Colors.grey.shade900
+                                  : Colors.black,
                             ),
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: textColor,
                             borderRadius: BorderRadius.circular(2),

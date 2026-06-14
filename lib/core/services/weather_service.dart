@@ -26,7 +26,6 @@ class WeatherService {
       bool serviceEnabled;
       LocationPermission permission;
 
-      // Check if location services are enabled
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return _mockFallback('Location Services Disabled');
@@ -44,16 +43,15 @@ class WeatherService {
         return _mockFallback('Permission Permanently Denied');
       }
 
-      // Get current location coordinates
       final Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.low,
         timeLimit: const Duration(seconds: 5),
       );
 
-      // Call Open-Meteo free weather endpoint (no API key needed)
       final url = Uri.parse(
-          'https://api.open-meteo.com/v1/forecast?latitude=${position.latitude}&longitude=${position.longitude}&current=temperature_2m,weather_code');
-      
+        'https://api.open-meteo.com/v1/forecast?latitude=${position.latitude}&longitude=${position.longitude}&current=temperature_2m,weather_code',
+      );
+
       final response = await http.get(url).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
@@ -72,10 +70,9 @@ class WeatherService {
           condition = 'Thunderstorm';
         }
 
-        // Translate coords to a generic friendly name (or Indonesian/US standard)
-        // Since we are not running a full geocoding client, we label it by coords or timezone
         return WeatherData(
-          locationName: 'My Location (${position.latitude.toStringAsFixed(1)}°, ${position.longitude.toStringAsFixed(1)}°)',
+          locationName:
+              'My Location (${position.latitude.toStringAsFixed(1)}°, ${position.longitude.toStringAsFixed(1)}°)',
           temperature: temp,
           condition: condition,
         );
@@ -89,7 +86,6 @@ class WeatherService {
   }
 
   WeatherData _mockFallback(String status) {
-    // Default mock data matches the morning routine screenshot mockup: "Los Angeles, CA • 33°C"
     return WeatherData(
       locationName: '${AppConstants.defaultMockLocation} ($status)',
       temperature: AppConstants.defaultMockTemperature,

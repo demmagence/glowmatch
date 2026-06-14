@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../budget_viewmodel.dart';
 
 void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
-  final controller = TextEditingController(text: budgetVm.budgetLimit.toStringAsFixed(0));
+  final controller = TextEditingController(
+    text: budgetVm.budgetLimit.toStringAsFixed(0),
+  );
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
   final borderColor = isDark ? Colors.white : Colors.black;
@@ -29,21 +31,30 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: 'Budget Limit (\$)',
-            labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+            labelStyle: TextStyle(
+              color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+            ),
             prefixText: '\$ ',
             prefixStyle: TextStyle(color: textColor),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+              borderSide: BorderSide(
+                color: isDark ? Colors.white30 : Colors.black26,
+              ),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+              borderSide: BorderSide(
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -61,7 +72,10 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
                 Navigator.pop(context);
               }
             },
-            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Save',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       );

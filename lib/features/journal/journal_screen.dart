@@ -39,11 +39,10 @@ class _JournalScreenState extends State<JournalScreen> {
         maxHeight: 1920,
       );
 
-      if (picked == null) return; // cancelled
+      if (picked == null) return;
 
       if (!context.mounted) return;
 
-      // Show preview and notes dialog
       showAddProgressNoteDialog(
         context: context,
         userId: userId,
@@ -63,16 +62,16 @@ class _JournalScreenState extends State<JournalScreen> {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
 
-    // Fallback stock images if no real photo
     final List<String> mockImageUrls = [
       'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&q=80&w=400',
       'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=400',
       'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=400',
     ];
 
-    // Merge real entries + mock for display
     final List<JournalEntry> displayEntries = journalVm.entries.isNotEmpty
         ? journalVm.entries
         : [
@@ -119,7 +118,7 @@ class _JournalScreenState extends State<JournalScreen> {
               TextSpan(
                 text: '.',
                 style: TextStyle(color: Colors.red, fontSize: 26),
-              )
+              ),
             ],
           ),
         ),
@@ -155,7 +154,10 @@ class _JournalScreenState extends State<JournalScreen> {
           onRefresh: () => journalVm.fetchJournal(authVm.userId),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -172,7 +174,6 @@ class _JournalScreenState extends State<JournalScreen> {
                     onRetry: () => journalVm.fetchJournal(authVm.userId),
                   )
                 else ...[
-                  // Header Row: Title + Score
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +201,7 @@ class _JournalScreenState extends State<JournalScreen> {
                           ),
                         ],
                       ),
-                      // Consistency Score Badge
+
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -242,14 +243,14 @@ class _JournalScreenState extends State<JournalScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Divider(color: isDark ? Colors.white24 : Colors.grey.shade300),
+                  Divider(
+                    color: isDark ? Colors.white24 : Colors.grey.shade300,
+                  ),
                   const SizedBox(height: 20),
 
-                  // Skin Progress Line Chart
                   JournalChartWidget(entries: displayEntries),
                   const SizedBox(height: 32),
 
-                  // Photo Grid
                   PhotoGridWidget(
                     entries: displayEntries,
                     userId: authVm.userId,
@@ -266,7 +267,9 @@ class _JournalScreenState extends State<JournalScreen> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('You can only select up to 2 entries for comparison.'),
+                                content: Text(
+                                  'You can only select up to 2 entries for comparison.',
+                                ),
                                 duration: Duration(milliseconds: 1500),
                               ),
                             );
@@ -274,7 +277,8 @@ class _JournalScreenState extends State<JournalScreen> {
                         }
                       });
                     },
-                    onShowPhotoSourceSheet: (ctx, uid, v) => showPhotoSourceSheet(ctx, uid, v, _doUpload),
+                    onShowPhotoSourceSheet: (ctx, uid, v) =>
+                        showPhotoSourceSheet(ctx, uid, v, _doUpload),
                   ),
                 ],
                 const SizedBox(height: 100),
@@ -290,7 +294,12 @@ class _JournalScreenState extends State<JournalScreen> {
               foregroundColor: isDark ? Colors.black : Colors.white,
               shape: const CircleBorder(),
               tooltip: 'Add Progress Photo',
-              onPressed: () => showPhotoSourceSheet(context, authVm.userId, journalVm, _doUpload),
+              onPressed: () => showPhotoSourceSheet(
+                context,
+                authVm.userId,
+                journalVm,
+                _doUpload,
+              ),
               child: const Icon(Icons.add_a_photo_outlined),
             ),
       bottomSheet: _selectedEntryIds.isEmpty
@@ -315,13 +324,19 @@ class _JournalScreenState extends State<JournalScreen> {
                 children: [
                   Text(
                     'Selected: ${_selectedEntryIds.length}/2 entries',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: textColor,
+                    ),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedEntryIds.length == 2
                           ? (isDark ? Colors.white : Colors.black)
-                          : (isDark ? Colors.grey.shade800 : Colors.grey.shade400),
+                          : (isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade400),
                       foregroundColor: _selectedEntryIds.length == 2
                           ? (isDark ? Colors.black : Colors.white)
                           : (isDark ? Colors.white30 : Colors.white60),
@@ -333,7 +348,9 @@ class _JournalScreenState extends State<JournalScreen> {
                     ),
                     onPressed: _selectedEntryIds.length == 2
                         ? () {
-                            final selectedList = displayEntries.where((x) => _selectedEntryIds.contains(x.id)).toList();
+                            final selectedList = displayEntries
+                                .where((x) => _selectedEntryIds.contains(x.id))
+                                .toList();
                             if (selectedList.length == 2) {
                               Navigator.push(
                                 context,
@@ -352,7 +369,10 @@ class _JournalScreenState extends State<JournalScreen> {
                             }
                           }
                         : null,
-                    child: const Text('Compare', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Compare',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),

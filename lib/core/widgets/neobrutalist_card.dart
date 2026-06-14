@@ -33,9 +33,13 @@ class NeobrutalistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final resolvedBg = backgroundColor ?? (isDark ? const Color(0xFF1E1E1E) : Colors.white);
-    final resolvedBorder = borderColor ?? (isDark ? Colors.white : Colors.black);
-    final resolvedShadow = shadowColor ?? (isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black87);
+    final resolvedBg =
+        backgroundColor ?? (isDark ? const Color(0xFF1E1E1E) : Colors.white);
+    final resolvedBorder =
+        borderColor ?? (isDark ? Colors.white : Colors.black);
+    final resolvedShadow =
+        shadowColor ??
+        (isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black87);
 
     final cardWidget = Container(
       width: width,
@@ -47,21 +51,14 @@ class NeobrutalistCard extends StatelessWidget {
         border: Border.all(color: resolvedBorder, width: borderWidth),
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
-          BoxShadow(
-            color: resolvedShadow,
-            blurRadius: 0,
-            offset: shadowOffset,
-          ),
+          BoxShadow(color: resolvedShadow, blurRadius: 0, offset: shadowOffset),
         ],
       ),
       child: child,
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: cardWidget,
-      );
+      return GestureDetector(onTap: onTap, child: cardWidget);
     }
 
     return cardWidget;

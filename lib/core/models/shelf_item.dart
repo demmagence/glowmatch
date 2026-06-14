@@ -31,7 +31,9 @@ class ShelfItem {
       category: json['category'] as String? ?? 'Other',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       estimatedUses: json['estimated_uses'] as int? ?? 50,
-      remainingUses: json['remaining_uses'] as int? ?? (json['estimated_uses'] as int? ?? 50),
+      remainingUses:
+          json['remaining_uses'] as int? ??
+          (json['estimated_uses'] as int? ?? 50),
       indicatorColor: json['indicator_color'] as String? ?? '0xFFE040FB',
       imageUrl: json['image_url'] as String?,
       ingredients: json['ingredients'] != null

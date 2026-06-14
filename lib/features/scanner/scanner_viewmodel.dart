@@ -10,8 +10,8 @@ class ScanAnalysisResult {
   final String skinTypeSuitability;
   final String recommendations;
   final bool isSafe;
-  final Map<String, String> ingredientSafetyLevels; // e.g. {"Niacinamide": "Safe", "Retinol": "Caution"}
-  final Map<String, String> ingredientDetails; // e.g. {"Niacinamide": "Hydrates skin...", "Retinol": "May cause irritation..."}
+  final Map<String, String> ingredientSafetyLevels;
+  final Map<String, String> ingredientDetails;
   final int overallSafetyScore;
   final List<String> interactionWarnings;
 
@@ -32,10 +32,15 @@ class ScanAnalysisResult {
       detectedIngredients: List<String>.from(json['detectedIngredients'] ?? []),
       safetyRating: json['safetyRating'] ?? 'Unknown',
       skinTypeSuitability: json['skinTypeSuitability'] ?? 'N/A',
-      recommendations: json['recommendations'] ?? 'No recommendations available.',
+      recommendations:
+          json['recommendations'] ?? 'No recommendations available.',
       isSafe: json['isSafe'] ?? true,
-      ingredientSafetyLevels: Map<String, String>.from(json['ingredientSafetyLevels'] ?? {}),
-      ingredientDetails: Map<String, String>.from(json['ingredientDetails'] ?? {}),
+      ingredientSafetyLevels: Map<String, String>.from(
+        json['ingredientSafetyLevels'] ?? {},
+      ),
+      ingredientDetails: Map<String, String>.from(
+        json['ingredientDetails'] ?? {},
+      ),
       overallSafetyScore: json['overallSafetyScore'] ?? 100,
       interactionWarnings: List<String>.from(json['interactionWarnings'] ?? []),
     );
@@ -57,8 +62,10 @@ class ScanAnalysisResult {
 }
 
 class ScannerViewModel extends ChangeNotifier {
-  final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-  
+  final TextRecognizer _textRecognizer = TextRecognizer(
+    script: TextRecognitionScript.latin,
+  );
+
   bool _isProcessing = false;
   bool get isProcessing => _isProcessing;
 
@@ -81,7 +88,6 @@ class ScannerViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  // Load history from SharedPreferences
   Future<void> loadScanHistory() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -95,13 +101,11 @@ class ScannerViewModel extends ChangeNotifier {
     }
   }
 
-  // Save scan to history
   Future<void> _saveScanToHistory(ScanAnalysisResult result) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final historyJson = prefs.getStringList('scan_history') ?? [];
-      
-      // Limit history to last 20 scans
+
       if (historyJson.length >= 20) {
         historyJson.removeLast();
       }
@@ -116,7 +120,6 @@ class ScannerViewModel extends ChangeNotifier {
     }
   }
 
-  // Clear history
   Future<void> clearScanHistory() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -128,7 +131,6 @@ class ScannerViewModel extends ChangeNotifier {
     }
   }
 
-  // Parse text into individual ingredients list
   List<String> _parseIngredientsList(String text) {
     if (text.isEmpty) return [];
     var cleaned = text.trim();
@@ -138,7 +140,7 @@ class ScannerViewModel extends ChangeNotifier {
     } else if (lowerCleaned.startsWith('ingredients')) {
       cleaned = cleaned.substring('ingredients'.length).trim();
     }
-    
+
     cleaned = cleaned.replaceAll('\n', ' ');
     final rawParts = cleaned.split(RegExp(r'[,;]'));
     final List<String> result = [];
@@ -151,7 +153,6 @@ class ScannerViewModel extends ChangeNotifier {
     return result;
   }
 
-  // Analyze text via image OCR
   Future<void> scanImage(String filePath) async {
     _isProcessing = true;
     _analysisResult = null;
@@ -159,20 +160,24 @@ class ScannerViewModel extends ChangeNotifier {
 
     try {
       final inputImage = InputImage.fromFilePath(filePath);
-      final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
-      
+      final RecognizedText recognizedText = await _textRecognizer.processImage(
+        inputImage,
+      );
+
       _scannedText = recognizedText.text;
       final ingredients = _parseIngredientsList(_scannedText);
 
       await _analyzeIngredientsWithAIList(ingredients);
     } catch (e) {
       debugPrint('OCR Scanning Error: $e');
-      _scannedText = 'Failed to extract text. Please try again with clear lighting.';
+      _scannedText =
+          'Failed to extract text. Please try again with clear lighting.';
       _analysisResult = ScanAnalysisResult(
         detectedIngredients: ['Unknown'],
         safetyRating: 'N/A',
         skinTypeSuitability: 'Unknown',
-        recommendations: 'Unable to scan text clearly. Make sure ingredients are aligned within the box.',
+        recommendations:
+            'Unable to scan text clearly. Make sure ingredients are aligned within the box.',
         isSafe: false,
         ingredientSafetyLevels: {},
         ingredientDetails: {},
@@ -185,7 +190,6 @@ class ScannerViewModel extends ChangeNotifier {
     }
   }
 
-  // Task 2: Add an analyzeWithAI(List ingredients) method
   Future<void> analyzeWithAI(List<String> ingredients) async {
     _isProcessing = true;
     _analysisResult = null;
@@ -201,39 +205,51 @@ class ScannerViewModel extends ChangeNotifier {
     }
   }
 
-  // Core helper to call Supabase Edge Function with fallback
   Future<void> _analyzeIngredientsWithAIList(List<String> ingredients) async {
-    final supabaseUrl = const String.fromEnvironment('SUPABASE_URL', defaultValue: '');
-    final supabaseAnonKey = const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+    final supabaseUrl = const String.fromEnvironment(
+      'SUPABASE_URL',
+      defaultValue: '',
+    );
+    final supabaseAnonKey = const String.fromEnvironment(
+      'SUPABASE_ANON_KEY',
+      defaultValue: '',
+    );
 
-    if (supabaseUrl.isEmpty || supabaseUrl.startsWith('YOUR_') || supabaseAnonKey.isEmpty || supabaseAnonKey.startsWith('YOUR_')) {
+    if (supabaseUrl.isEmpty ||
+        supabaseUrl.startsWith('YOUR_') ||
+        supabaseAnonKey.isEmpty ||
+        supabaseAnonKey.startsWith('YOUR_')) {
       await _runOfflineFallbackAnalysis(ingredients.join(', '));
       return;
     }
 
     try {
       final url = Uri.parse('$supabaseUrl/functions/v1/analyze-ingredients');
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $supabaseAnonKey',
-          'apikey': supabaseAnonKey,
-        },
-        body: jsonEncode({
-          'ingredients': ingredients,
-        }),
-      ).timeout(const Duration(seconds: 12));
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $supabaseAnonKey',
+              'apikey': supabaseAnonKey,
+            },
+            body: jsonEncode({'ingredients': ingredients}),
+          )
+          .timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200) {
         final parsedJson = jsonDecode(response.body);
         _analysisResult = ScanAnalysisResult.fromJson(parsedJson);
         await _saveScanToHistory(_analysisResult!);
       } else {
-        throw Exception('Edge function returned status code ${response.statusCode}');
+        throw Exception(
+          'Edge function returned status code ${response.statusCode}',
+        );
       }
     } catch (e) {
-      debugPrint('AI Ingredient Analysis failed: $e. Falling back to offline fallback.');
+      debugPrint(
+        'AI Ingredient Analysis failed: $e. Falling back to offline fallback.',
+      );
       await _runOfflineFallbackAnalysis(ingredients.join(', '));
     }
   }
@@ -241,10 +257,8 @@ class ScannerViewModel extends ChangeNotifier {
   Future<void> _runOfflineFallbackAnalysis(String text) =>
       runOfflineFallbackAnalysis(text);
 
-  /// Exposed for unit testing. Runs local ingredient dictionary matching.
   @visibleForTesting
   Future<void> runOfflineFallbackAnalysis(String text) async {
-    // Simulate API delay for a high-quality feel
     await Future.delayed(const Duration(seconds: 2));
 
     final String lowerText = text.toLowerCase();
@@ -252,79 +266,91 @@ class ScannerViewModel extends ChangeNotifier {
     final Map<String, String> safetyLevels = {};
     final Map<String, String> details = {};
     final List<String> warnings = [];
-    
-    // Simple local dictionary matching for high-quality mock experience
+
     if (lowerText.contains('niacinamide')) {
       found.add('Niacinamide');
       safetyLevels['Niacinamide'] = 'Safe';
-      details['Niacinamide'] = 'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
+      details['Niacinamide'] =
+          'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
     }
     if (lowerText.contains('acid') || lowerText.contains('salicylic')) {
       if (lowerText.contains('hyaluronic')) {
         found.add('Hyaluronic Acid');
         safetyLevels['Hyaluronic Acid'] = 'Safe';
-        details['Hyaluronic Acid'] = 'Powerful humectant that draws moisture into the skin for hydration.';
+        details['Hyaluronic Acid'] =
+            'Powerful humectant that draws moisture into the skin for hydration.';
       } else if (lowerText.contains('salicylic')) {
         found.add('Salicylic Acid');
         safetyLevels['Salicylic Acid'] = 'Caution';
-        details['Salicylic Acid'] = 'Exfoliates inside pores. Can cause drying or irritation in high concentrations.';
+        details['Salicylic Acid'] =
+            'Exfoliates inside pores. Can cause drying or irritation in high concentrations.';
       } else {
         found.add('Glycolic Acid');
         safetyLevels['Glycolic Acid'] = 'Caution';
-        details['Glycolic Acid'] = 'Alpha hydroxy acid that helps exfoliate skin but can cause sun sensitivity.';
+        details['Glycolic Acid'] =
+            'Alpha hydroxy acid that helps exfoliate skin but can cause sun sensitivity.';
       }
     }
     if (lowerText.contains('retinol')) {
       found.add('Retinol');
       safetyLevels['Retinol'] = 'Caution';
-      details['Retinol'] = 'Promotes skin cell turnover. May cause peeling, redness, or sun sensitivity.';
+      details['Retinol'] =
+          'Promotes skin cell turnover. May cause peeling, redness, or sun sensitivity.';
     }
     if (lowerText.contains('centella') || lowerText.contains('asiatica')) {
       found.add('Centella Asiatica');
       safetyLevels['Centella Asiatica'] = 'Safe';
-      details['Centella Asiatica'] = 'Soothes inflammation, speeds healing, and calms sensitive skin.';
+      details['Centella Asiatica'] =
+          'Soothes inflammation, speeds healing, and calms sensitive skin.';
     }
     if (lowerText.contains('glycerin')) {
       found.add('Glycerin');
       safetyLevels['Glycerin'] = 'Safe';
-      details['Glycerin'] = 'Classic humectant that keeps the skin barrier hydrated and soft.';
+      details['Glycerin'] =
+          'Classic humectant that keeps the skin barrier hydrated and soft.';
     }
     if (lowerText.contains('panthenol')) {
       found.add('Panthenol');
       safetyLevels['Panthenol'] = 'Safe';
-      details['Panthenol'] = 'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
+      details['Panthenol'] =
+          'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
     }
 
     if (found.isEmpty) {
-      found.addAll(['Glycerin', 'Panthenol', 'Niacinamide']); // Seed defaults if text is random
+      found.addAll(['Glycerin', 'Panthenol', 'Niacinamide']);
       safetyLevels['Glycerin'] = 'Safe';
-      details['Glycerin'] = 'Classic humectant that keeps the skin barrier hydrated and soft.';
+      details['Glycerin'] =
+          'Classic humectant that keeps the skin barrier hydrated and soft.';
       safetyLevels['Panthenol'] = 'Safe';
-      details['Panthenol'] = 'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
+      details['Panthenol'] =
+          'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
       safetyLevels['Niacinamide'] = 'Safe';
-      details['Niacinamide'] = 'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
+      details['Niacinamide'] =
+          'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
     }
 
-    // Determine safety rating based on ingredients
-    bool containsHarsh = lowerText.contains('paraben') || lowerText.contains('alcohol denat');
-    
+    bool containsHarsh =
+        lowerText.contains('paraben') || lowerText.contains('alcohol denat');
+
     if (containsHarsh) {
       if (lowerText.contains('paraben')) {
         safetyLevels['Paraben'] = 'Avoid';
-        details['Paraben'] = 'Preservative commonly avoided due to potential endocrine disruption concerns.';
+        details['Paraben'] =
+            'Preservative commonly avoided due to potential endocrine disruption concerns.';
       }
       if (lowerText.contains('alcohol denat')) {
         safetyLevels['Alcohol Denat'] = 'Caution';
-        details['Alcohol Denat'] = 'Drying solvent used for quick product absorption, can impair skin barrier.';
+        details['Alcohol Denat'] =
+            'Drying solvent used for quick product absorption, can impair skin barrier.';
       }
     }
 
-    // Warnings
     if (found.contains('Salicylic Acid') && found.contains('Retinol')) {
-      warnings.add('Combining Salicylic Acid (BHA) and Retinol can cause extreme skin irritation and dryness. Use them at different times of the day.');
+      warnings.add(
+        'Combining Salicylic Acid (BHA) and Retinol can cause extreme skin irritation and dryness. Use them at different times of the day.',
+      );
     }
 
-    // Calculate score
     int score = 100;
     for (var status in safetyLevels.values) {
       if (status == 'Avoid') {
@@ -337,9 +363,13 @@ class ScannerViewModel extends ChangeNotifier {
 
     _analysisResult = ScanAnalysisResult(
       detectedIngredients: found,
-      safetyRating: containsHarsh ? 'Moderate Risk (Contains Parabens/Drying Alcohols)' : 'Highly Safe (100% Clean)',
-      skinTypeSuitability: 'Excellent for Sensitive & Dry Skin. Relieves redness.',
-      recommendations: 'This product contains ${found.join(", ")}, which are excellent for moisture barrier support. Highly recommended for daily AM/PM routines.',
+      safetyRating: containsHarsh
+          ? 'Moderate Risk (Contains Parabens/Drying Alcohols)'
+          : 'Highly Safe (100% Clean)',
+      skinTypeSuitability:
+          'Excellent for Sensitive & Dry Skin. Relieves redness.',
+      recommendations:
+          'This product contains ${found.join(", ")}, which are excellent for moisture barrier support. Highly recommended for daily AM/PM routines.',
       isSafe: !containsHarsh,
       ingredientSafetyLevels: safetyLevels,
       ingredientDetails: details,
@@ -347,7 +377,6 @@ class ScannerViewModel extends ChangeNotifier {
       interactionWarnings: warnings,
     );
 
-    // Save to history
     await _saveScanToHistory(_analysisResult!);
   }
 

@@ -23,7 +23,20 @@ class JournalCompareScreen extends StatelessWidget {
       final dayStr = parts[1];
       final day = int.tryParse(dayStr) ?? 1;
       int month = now.month;
-      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const months = [
+        'jan',
+        'feb',
+        'mar',
+        'apr',
+        'may',
+        'jun',
+        'jul',
+        'aug',
+        'sep',
+        'oct',
+        'nov',
+        'dec',
+      ];
       final idx = months.indexOf(monthStr);
       if (idx != -1) {
         month = idx + 1;
@@ -39,9 +52,10 @@ class JournalCompareScreen extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
 
-    // Order them chronologically so A is earlier, B is later
     final dateA = _parseLoggedDate(entryA.loggedDate);
     final dateB = _parseLoggedDate(entryB.loggedDate);
     final isAFirst = dateA.isBefore(dateB);
@@ -52,13 +66,13 @@ class JournalCompareScreen extends StatelessWidget {
     final String diffSign = diff >= 0 ? '+' : '';
     final String diffText = '$diffSign$diff';
 
-    Color diffColor = const Color(0xFFFFD54F); // Amber (no change)
+    Color diffColor = const Color(0xFFFFD54F);
     String diffMsg = 'No change. Consistency is key! ⚖️';
     if (diff > 0) {
-      diffColor = const Color(0xFF64DD17); // Green (improved)
+      diffColor = const Color(0xFF64DD17);
       diffMsg = '+$diff improvement! Great progress! 📈';
     } else if (diff < 0) {
-      diffColor = const Color(0xFFFF8A80); // Red (declined)
+      diffColor = const Color(0xFFFF8A80);
       diffMsg = '$diff difference. Keep consistent! 📉';
     }
 
@@ -86,7 +100,6 @@ class JournalCompareScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Side-by-side photos
             Row(
               children: [
                 Expanded(
@@ -94,10 +107,20 @@ class JournalCompareScreen extends StatelessWidget {
                     children: [
                       Text(
                         'BEFORE',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1, color: textColor),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                          color: textColor,
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      _buildCompareImageCard(earlier, isDark, borderColor, shadowColor),
+                      _buildCompareImageCard(
+                        earlier,
+                        isDark,
+                        borderColor,
+                        shadowColor,
+                      ),
                     ],
                   ),
                 ),
@@ -107,10 +130,20 @@ class JournalCompareScreen extends StatelessWidget {
                     children: [
                       Text(
                         'AFTER',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1, color: textColor),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                          color: textColor,
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      _buildCompareImageCard(later, isDark, borderColor, shadowColor),
+                      _buildCompareImageCard(
+                        later,
+                        isDark,
+                        borderColor,
+                        shadowColor,
+                      ),
                     ],
                   ),
                 ),
@@ -118,7 +151,6 @@ class JournalCompareScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Comparison Metrics Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -150,9 +182,18 @@ class JournalCompareScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildScoreDetailColumn('Before Score', earlier.skinScore, earlier.loggedDate, textColor, subtextColor),
+                      _buildScoreDetailColumn(
+                        'Before Score',
+                        earlier.skinScore,
+                        earlier.loggedDate,
+                        textColor,
+                        subtextColor,
+                      ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: diffColor,
                           border: Border.all(color: borderColor, width: 1.5),
@@ -174,11 +215,20 @@ class JournalCompareScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _buildScoreDetailColumn('After Score', later.skinScore, later.loggedDate, textColor, subtextColor),
+                      _buildScoreDetailColumn(
+                        'After Score',
+                        later.skinScore,
+                        later.loggedDate,
+                        textColor,
+                        subtextColor,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Divider(color: isDark ? Colors.white24 : Colors.grey.shade300, height: 1),
+                  Divider(
+                    color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    height: 1,
+                  ),
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
@@ -196,7 +246,6 @@ class JournalCompareScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Close button
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -227,29 +276,55 @@ class JournalCompareScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreDetailColumn(String label, int score, String date, Color textColor, Color subtextColor) {
+  Widget _buildScoreDetailColumn(
+    String label,
+    int score,
+    String date,
+    Color textColor,
+    Color subtextColor,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: subtextColor, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 11,
+            color: subtextColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           score.toString(),
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -1, color: textColor),
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            color: textColor,
+          ),
         ),
         Text(
           date,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildCompareImageCard(JournalEntry entry, bool isDark, Color borderColor, Color shadowColor) {
-    final bool isLocalFile = (entry.photoPath?.startsWith('/') ?? false) || (entry.photoPath?.startsWith('C:') ?? false);
+  Widget _buildCompareImageCard(
+    JournalEntry entry,
+    bool isDark,
+    Color borderColor,
+    Color shadowColor,
+  ) {
+    final bool isLocalFile =
+        (entry.photoPath?.startsWith('/') ?? false) ||
+        (entry.photoPath?.startsWith('C:') ?? false);
     final bool isNetwork = entry.photoPath?.startsWith('http') ?? false;
 
     return Container(
@@ -275,12 +350,12 @@ class JournalCompareScreen extends StatelessWidget {
                 errorBuilder: (c, e, s) => _placeholder(isDark),
               )
             : isNetwork
-                ? Image.network(
-                    entry.photoPath!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (c, e, s) => _placeholder(isDark),
-                  )
-                : _placeholder(isDark),
+            ? Image.network(
+                entry.photoPath!,
+                fit: BoxFit.cover,
+                errorBuilder: (c, e, s) => _placeholder(isDark),
+              )
+            : _placeholder(isDark),
       ),
     );
   }
@@ -288,7 +363,11 @@ class JournalCompareScreen extends StatelessWidget {
   Widget _placeholder(bool isDark) {
     return Container(
       color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      child: Icon(Icons.face, color: isDark ? Colors.grey.shade600 : Colors.grey, size: 40),
+      child: Icon(
+        Icons.face,
+        color: isDark ? Colors.grey.shade600 : Colors.grey,
+        size: 40,
+      ),
     );
   }
 }

@@ -52,14 +52,17 @@ void main() {
       expect(routineVm.completedToday, isFalse);
     });
 
-    test('completeRoutine updates streak and marks completedToday as true', () async {
-      await routineVm.init('user-2');
-      expect(routineVm.completedToday, isFalse);
+    test(
+      'completeRoutine updates streak and marks completedToday as true',
+      () async {
+        await routineVm.init('user-2');
+        expect(routineVm.completedToday, isFalse);
 
-      await routineVm.completeRoutine('user-2');
-      expect(routineVm.completedToday, isTrue);
-      expect(routineVm.streakData?.currentStreak, equals(1));
-    });
+        await routineVm.completeRoutine('user-2');
+        expect(routineVm.completedToday, isTrue);
+        expect(routineVm.streakData?.currentStreak, equals(1));
+      },
+    );
   });
 
   group('JournalViewModel Score Calculation with Streak', () {
@@ -70,15 +73,12 @@ void main() {
     });
 
     test('currentScore adds streak bonus correctly', () async {
-      // 1. Create a streak of 1 day by recording completion
       final svc = SupabaseService();
       final streakData = await svc.recordRoutineCompletion('user-3');
       expect(streakData.currentStreak, equals(1));
 
-      // 2. Fetch journal entries (0 entries + streak 1)
       await journalVm.fetchJournal('user-3');
-      // baseScore is 80 (since entries is empty), streak bonus is currentStreak * 2 = 2.
-      // Expected score: 82.
+
       expect(journalVm.currentScore, equals(82));
     });
   });

@@ -21,7 +21,7 @@ class ThemeViewModel extends ChangeNotifier {
       } else if (modeString == 'light') {
         _themeMode = ThemeMode.light;
       } else {
-        _themeMode = ThemeMode.light; // Default to light mode for GlowMatch
+        _themeMode = ThemeMode.light;
       }
       notifyListeners();
     } catch (e) {

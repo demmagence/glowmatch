@@ -7,7 +7,8 @@ void showPhotoSourceSheet(
   BuildContext context,
   String userId,
   JournalViewModel vm,
-  Future<void> Function(BuildContext, String, JournalViewModel, ImageSource) doUpload,
+  Future<void> Function(BuildContext, String, JournalViewModel, ImageSource)
+  doUpload,
 ) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final textColor = isDark ? Colors.white : Colors.black;
@@ -43,7 +44,6 @@ void showPhotoSourceSheet(
               ),
               const SizedBox(height: 24),
 
-              // Camera option
               SourceOption(
                 icon: Icons.camera_alt_outlined,
                 label: 'Take Photo',
@@ -55,7 +55,6 @@ void showPhotoSourceSheet(
               ),
               const SizedBox(height: 12),
 
-              // Gallery option
               SourceOption(
                 icon: Icons.photo_library_outlined,
                 label: 'Choose from Gallery',

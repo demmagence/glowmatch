@@ -20,7 +20,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('shows overlay when isLoading is true', (WidgetTester tester) async {
+    testWidgets('shows overlay when isLoading is true', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -37,10 +39,8 @@ void main() {
         ),
       );
 
-      // Child is still rendered
       expect(find.text('Underneath Child'), findsOneWidget);
 
-      // Spinner and message are rendered
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Custom Message'), findsOneWidget);
     });

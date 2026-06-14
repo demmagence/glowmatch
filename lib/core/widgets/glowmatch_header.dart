@@ -4,10 +4,7 @@ import 'package:glowmatch/features/profile/profile_screen.dart';
 class GlowMatchHeader extends StatelessWidget {
   final VoidCallback? onProfileTap;
 
-  const GlowMatchHeader({
-    super.key,
-    this.onProfileTap,
-  });
+  const GlowMatchHeader({super.key, this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
@@ -31,17 +28,20 @@ class GlowMatchHeader extends StatelessWidget {
               TextSpan(
                 text: '.',
                 style: TextStyle(color: Colors.red, fontSize: 32),
-              )
+              ),
             ],
           ),
         ),
         IconButton(
           icon: Icon(Icons.account_circle_outlined, size: 28, color: textColor),
-          onPressed: onProfileTap ??
+          onPressed:
+              onProfileTap ??
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
                 );
               },
         ),
