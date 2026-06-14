@@ -11,7 +11,9 @@ import 'widgets/filter_dialog.dart';
 import 'widgets/add_product_dialog.dart';
 
 class ShelfScreen extends StatefulWidget {
-  const ShelfScreen({super.key});
+  final List<String>? initialIngredientsToPreFill;
+  final VoidCallback? onClearPreFill;
+  const ShelfScreen({super.key, this.initialIngredientsToPreFill, this.onClearPreFill});
 
   @override
   State<ShelfScreen> createState() => _ShelfScreenState();
@@ -24,6 +26,34 @@ class _ShelfScreenState extends State<ShelfScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    if (widget.initialIngredientsToPreFill != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showAddProductDialog(
+          context,
+          Provider.of<AuthViewModel>(context, listen: false).userId,
+          Provider.of<ShelfViewModel>(context, listen: false),
+          preFilledIngredients: widget.initialIngredientsToPreFill,
+        );
+        widget.onClearPreFill?.call();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ShelfScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialIngredientsToPreFill != null &&
+        widget.initialIngredientsToPreFill != oldWidget.initialIngredientsToPreFill) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showAddProductDialog(
+          context,
+          Provider.of<AuthViewModel>(context, listen: false).userId,
+          Provider.of<ShelfViewModel>(context, listen: false),
+          preFilledIngredients: widget.initialIngredientsToPreFill,
+        );
+        widget.onClearPreFill?.call();
+      });
+    }
   }
 
   @override

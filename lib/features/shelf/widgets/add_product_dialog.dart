@@ -4,12 +4,14 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants.dart';
 import '../shelf_viewmodel.dart';
 
-  void showAddProductDialog(BuildContext context, String userId, ShelfViewModel vm) {
+  void showAddProductDialog(BuildContext context, String userId, ShelfViewModel vm, {List<String>? preFilledIngredients}) {
     final nameController = TextEditingController();
     final brandController = TextEditingController();
     final priceController = TextEditingController();
     final usesController = TextEditingController();
-    final ingredientsController = TextEditingController();
+    final ingredientsController = TextEditingController(
+      text: preFilledIngredients != null ? preFilledIngredients.join(', ') : '',
+    );
     String selectedCategory = 'Serum';
     String? localImagePath;
 

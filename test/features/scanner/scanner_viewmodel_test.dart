@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glowmatch/features/scanner/scanner_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   // Required: platform channel calls (TextRecognizer.close) need binding
@@ -8,6 +9,7 @@ void main() {
   late ScannerViewModel vm;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     vm = ScannerViewModel();
   });
 
