@@ -9,6 +9,7 @@ import 'widgets/calculator_card.dart';
 import 'widgets/edit_limit_dialog.dart';
 import 'widgets/spending_history_card.dart';
 import 'widgets/smart_alerts_card.dart';
+
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
 
@@ -47,6 +48,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     });
     budgetVm.updateCalculator(price: price, uses: uses);
   }
+
   @override
   Widget build(BuildContext context) {
     final budgetVm = Provider.of<BudgetViewModel>(context);
@@ -233,4 +235,3 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 }
-

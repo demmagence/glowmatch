@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/models/models.dart';
+import '../../../core/models/models.dart';
 import '../journal_viewmodel.dart';
 import 'photo_card.dart';
 import 'empty_slot.dart';
