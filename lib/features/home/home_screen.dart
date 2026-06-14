@@ -21,7 +21,9 @@ class HomeScreen extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final switcherBg = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
-    final stepBadgeBg = isDark ? Colors.pink.shade900.withValues(alpha: 0.4) : Colors.pink.shade50;
+    final stepBadgeBg = isDark
+        ? Colors.pink.shade900.withValues(alpha: 0.4)
+        : Colors.pink.shade50;
     final stepBadgeText = isDark ? Colors.pink.shade300 : Colors.pink.shade400;
 
     return Scaffold(
@@ -31,7 +33,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: GlowMatch.
             const GlowMatchHeader(),
             const SizedBox(height: 24),
 
@@ -48,14 +49,15 @@ class HomeScreen extends StatelessWidget {
                 onRetry: () => routineVm.init(authVm.userId),
               )
             else ...[
-              // Title and Weather Metadata
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Text(
-                      routineVm.activeRoutine == 'AM' ? 'Morning Routine' : 'Evening Routine',
+                      routineVm.activeRoutine == 'AM'
+                          ? 'Morning Routine'
+                          : 'Evening Routine',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -64,14 +66,22 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (routineVm.streakData != null && routineVm.streakData!.currentStreak > 0)
-                    _buildStreakBadge(context, routineVm.streakData!.currentStreak),
+                  if (routineVm.streakData != null &&
+                      routineVm.streakData!.currentStreak > 0)
+                    _buildStreakBadge(
+                      context,
+                      routineVm.streakData!.currentStreak,
+                    ),
                 ],
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.wb_sunny_outlined, size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.wb_sunny_outlined,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     weather != null
@@ -86,10 +96,12 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               if (routineVm.streakData != null)
-                _buildMotivationalBanner(context, routineVm.streakData!.currentStreak),
+                _buildMotivationalBanner(
+                  context,
+                  routineVm.streakData!.currentStreak,
+                ),
               const SizedBox(height: 24),
 
-              // AM / PM Switcher Toggles
               Container(
                 decoration: BoxDecoration(
                   color: switcherBg,
@@ -119,7 +131,6 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // Steps Progress Indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -132,13 +143,19 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: stepBadgeBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4.0,
+                        vertical: 2.0,
+                      ),
                       child: Text(
                         '${routineVm.completedCount}/${routineVm.totalCount} Completed',
                         style: TextStyle(
@@ -152,11 +169,12 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // Steps Routine Checklist cards
+
               if (routineVm.currentSteps.isEmpty)
                 const ErrorStateWidget(
                   icon: Icons.event_note,
-                  message: 'No routine steps yet. Tap below to add your first step!',
+                  message:
+                      'No routine steps yet. Tap below to add your first step!',
                 )
               else
                 ReorderableListView.builder(
@@ -169,11 +187,13 @@ class HomeScreen extends StatelessWidget {
                   },
                   itemBuilder: (context, index) {
                     final RoutineStep step = routineVm.currentSteps[index];
-                    final isCompleted = routineVm.completedStepIds.contains(step.id);
+                    final isCompleted = routineVm.completedStepIds.contains(
+                      step.id,
+                    );
 
-                    // Find linked product from Shelf
                     ShelfItem? linkedProduct;
-                    if (step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+                    if (step.shelfItemId != null &&
+                        step.shelfItemId!.isNotEmpty) {
                       try {
                         linkedProduct = shelfVm.shelfItems.firstWhere(
                           (p) => p.id == step.shelfItemId,
@@ -194,7 +214,6 @@ class HomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          // Custom Drag Handle
                           ReorderableDragStartListener(
                             index: index,
                             child: Padding(
@@ -206,20 +225,28 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // Custom circular check indicator
+
                           GestureDetector(
                             onTap: () {
                               final bool isCompleting = !isCompleted;
                               routineVm.toggleStep(step.id, shelfVm);
 
-                              if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-                                final productName = linkedProduct != null && linkedProduct.name.isNotEmpty 
-                                    ? linkedProduct.name 
+                              if (isCompleting &&
+                                  step.shelfItemId != null &&
+                                  step.shelfItemId!.isNotEmpty) {
+                                final productName =
+                                    linkedProduct != null &&
+                                        linkedProduct.name.isNotEmpty
+                                    ? linkedProduct.name
                                     : step.name;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Used 1 apply of $productName!'),
-                                    backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
+                                    content: Text(
+                                      'Used 1 apply of $productName!',
+                                    ),
+                                    backgroundColor: isDark
+                                        ? Colors.grey.shade900
+                                        : Colors.black,
                                     duration: const Duration(seconds: 2),
                                   ),
                                 );
@@ -230,30 +257,49 @@ class HomeScreen extends StatelessWidget {
                               height: 24,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: textColor, width: 1.5),
-                                color: isCompleted ? textColor : Colors.transparent,
+                                border: Border.all(
+                                  color: textColor,
+                                  width: 1.5,
+                                ),
+                                color: isCompleted
+                                    ? textColor
+                                    : Colors.transparent,
                               ),
                               child: isCompleted
-                                  ? Icon(Icons.check, color: isDark ? Colors.black : Colors.white, size: 14)
+                                  ? Icon(
+                                      Icons.check,
+                                      color: isDark
+                                          ? Colors.black
+                                          : Colors.white,
+                                      size: 14,
+                                    )
                                   : null,
                             ),
                           ),
                           const SizedBox(width: 12),
-                          // Titles and subtitles
+
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
                                 final bool isCompleting = !isCompleted;
                                 routineVm.toggleStep(step.id, shelfVm);
 
-                                if (isCompleting && step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-                                  final productName = linkedProduct != null && linkedProduct.name.isNotEmpty 
-                                      ? linkedProduct.name 
+                                if (isCompleting &&
+                                    step.shelfItemId != null &&
+                                    step.shelfItemId!.isNotEmpty) {
+                                  final productName =
+                                      linkedProduct != null &&
+                                          linkedProduct.name.isNotEmpty
+                                      ? linkedProduct.name
                                       : step.name;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Used 1 apply of $productName!'),
-                                      backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
+                                      content: Text(
+                                        'Used 1 apply of $productName!',
+                                      ),
+                                      backgroundColor: isDark
+                                          ? Colors.grey.shade900
+                                          : Colors.black,
                                       duration: const Duration(seconds: 2),
                                     ),
                                   );
@@ -263,7 +309,9 @@ class HomeScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    step.name.isEmpty ? 'Custom Step' : step.name,
+                                    step.name.isEmpty
+                                        ? 'Custom Step'
+                                        : step.name,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -273,7 +321,8 @@ class HomeScreen extends StatelessWidget {
                                           : null,
                                     ),
                                   ),
-                                  if (step.description != null && step.description!.isNotEmpty) ...[
+                                  if (step.description != null &&
+                                      step.description!.isNotEmpty) ...[
                                     const SizedBox(height: 4),
                                     Text(
                                       step.description!,
@@ -287,7 +336,11 @@ class HomeScreen extends StatelessWidget {
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [
-                                        Icon(Icons.link, size: 12, color: stepBadgeText),
+                                        Icon(
+                                          Icons.link,
+                                          size: 12,
+                                          color: stepBadgeText,
+                                        ),
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
@@ -308,7 +361,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Step label & Edit actions
+
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -316,17 +369,29 @@ class HomeScreen extends StatelessWidget {
                                 'Step ${index + 1}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                                  color: isDark
+                                      ? Colors.grey.shade500
+                                      : Colors.grey.shade400,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(width: 4),
                               IconButton(
-                                icon: Icon(Icons.edit_outlined, color: subtextColor, size: 18),
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: subtextColor,
+                                  size: 18,
+                                ),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                                 onPressed: () {
-                                  _showEditStepDialog(context, authVm.userId, routineVm, step, shelfVm);
+                                  _showEditStepDialog(
+                                    context,
+                                    authVm.userId,
+                                    routineVm,
+                                    step,
+                                    shelfVm,
+                                  );
                                 },
                               ),
                             ],
@@ -339,9 +404,13 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Click to add Card
               GestureDetector(
-                onTap: () => _showAddStepDialog(context, authVm.userId, routineVm, shelfVm),
+                onTap: () => _showAddStepDialog(
+                  context,
+                  authVm.userId,
+                  routineVm,
+                  shelfVm,
+                ),
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -364,7 +433,6 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 28),
 
-              // Complete Routine Button
               if (routineVm.currentSteps.isNotEmpty)
                 SizedBox(
                   width: double.infinity,
@@ -372,16 +440,22 @@ class HomeScreen extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: routineVm.completedToday
-                          ? (isDark ? Colors.grey.shade800 : Colors.grey.shade300)
+                          ? (isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade300)
                           : (isDark ? Colors.white : Colors.black),
                       foregroundColor: routineVm.completedToday
-                          ? (isDark ? Colors.grey.shade500 : Colors.grey.shade600)
+                          ? (isDark
+                                ? Colors.grey.shade500
+                                : Colors.grey.shade600)
                           : (isDark ? Colors.black : Colors.white),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
                           color: routineVm.completedToday
-                              ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                              ? (isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade400)
                               : (isDark ? Colors.white : Colors.black),
                           width: 1.5,
                         ),
@@ -392,20 +466,25 @@ class HomeScreen extends StatelessWidget {
                         ? null
                         : () async {
                             await routineVm.completeRoutine(authVm.userId);
-                            final newStreak = routineVm.streakData?.currentStreak ?? 0;
-                            String msg = 'Routine Completed! Consistency score updated.';
+                            final newStreak =
+                                routineVm.streakData?.currentStreak ?? 0;
+                            String msg =
+                                'Routine Completed! Consistency score updated.';
                             if (newStreak == 7) {
                               msg = '🎉 7 Day Milestone! Awesome dedication!';
                             } else if (newStreak == 14) {
                               msg = '🎉 14 Day Milestone! You are unstoppable!';
                             } else if (newStreak == 30) {
-                              msg = '🎉 30 Day Milestone! You are a skincare master!';
+                              msg =
+                                  '🎉 30 Day Milestone! You are a skincare master!';
                             }
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(msg),
-                                  backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
+                                  backgroundColor: isDark
+                                      ? Colors.grey.shade900
+                                      : Colors.black,
                                 ),
                               );
                             }
@@ -414,7 +493,9 @@ class HomeScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          routineVm.completedToday ? 'Completed for Today' : 'Complete Routine',
+                          routineVm.completedToday
+                              ? 'Completed for Today'
+                              : 'Complete Routine',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -422,7 +503,9 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Icon(
-                          routineVm.completedToday ? Icons.check : Icons.check_circle_outline,
+                          routineVm.completedToday
+                              ? Icons.check
+                              : Icons.check_circle_outline,
                           size: 20,
                         ),
                       ],
@@ -470,7 +553,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showAddStepDialog(BuildContext context, String userId, RoutineViewModel vm, ShelfViewModel shelfVm) {
+  void _showAddStepDialog(
+    BuildContext context,
+    String userId,
+    RoutineViewModel vm,
+    ShelfViewModel shelfVm,
+  ) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
     String? selectedShelfItemId;
@@ -507,12 +595,20 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Step Name (e.g., Toner)',
-                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700,
+                        ),
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white30 : Colors.black26,
+                          ),
                         ),
                         focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -522,12 +618,20 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Instructions (e.g., Apply with pad)',
-                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700,
+                        ),
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white30 : Colors.black26,
+                          ),
                         ),
                         focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -537,7 +641,9 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade700,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -545,7 +651,9 @@ class HomeScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.all(color: borderColor, width: 1.2),
                         borderRadius: BorderRadius.circular(6),
-                        color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                        color: isDark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade50,
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: DropdownButtonHideUnderline(
@@ -556,20 +664,30 @@ class HomeScreen extends StatelessWidget {
                           style: TextStyle(color: textColor, fontSize: 14),
                           hint: Text(
                             'Select product',
-                            style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade400),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.grey.shade500
+                                  : Colors.grey.shade400,
+                            ),
                           ),
                           items: [
                             DropdownMenuItem<String?>(
                               value: null,
                               child: Text(
                                 'None',
-                                style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
+                                ),
                               ),
                             ),
                             ...shelfVm.shelfItems.map((item) {
                               return DropdownMenuItem<String?>(
                                 value: item.id,
-                                child: Text('${item.brand} - ${item.name} (${item.remainingUses} left)'),
+                                child: Text(
+                                  '${item.brand} - ${item.name} (${item.remainingUses} left)',
+                                ),
                               );
                             }),
                           ],
@@ -587,7 +705,13 @@ class HomeScreen extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -609,7 +733,10 @@ class HomeScreen extends StatelessWidget {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Add',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             );
@@ -619,7 +746,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showEditStepDialog(BuildContext context, String userId, RoutineViewModel vm, RoutineStep step, ShelfViewModel shelfVm) {
+  void _showEditStepDialog(
+    BuildContext context,
+    String userId,
+    RoutineViewModel vm,
+    RoutineStep step,
+    ShelfViewModel shelfVm,
+  ) {
     final titleController = TextEditingController(text: step.name);
     final descController = TextEditingController(text: step.description ?? '');
     String? selectedShelfItemId = step.shelfItemId;
@@ -656,12 +789,20 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Step Name',
-                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700,
+                        ),
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white30 : Colors.black26,
+                          ),
                         ),
                         focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -671,12 +812,20 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Instructions',
-                        labelStyle: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700,
+                        ),
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white30 : Colors.black26),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white30 : Colors.black26,
+                          ),
                         ),
                         focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: isDark ? Colors.white : Colors.black),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -686,7 +835,9 @@ class HomeScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade700,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -694,7 +845,9 @@ class HomeScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.all(color: borderColor, width: 1.2),
                         borderRadius: BorderRadius.circular(6),
-                        color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                        color: isDark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade50,
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: DropdownButtonHideUnderline(
@@ -705,20 +858,30 @@ class HomeScreen extends StatelessWidget {
                           style: TextStyle(color: textColor, fontSize: 14),
                           hint: Text(
                             'Select product',
-                            style: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade400),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.grey.shade500
+                                  : Colors.grey.shade400,
+                            ),
                           ),
                           items: [
                             DropdownMenuItem<String?>(
                               value: null,
                               child: Text(
                                 'None',
-                                style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
+                                ),
                               ),
                             ),
                             ...shelfVm.shelfItems.map((item) {
                               return DropdownMenuItem<String?>(
                                 value: item.id,
-                                child: Text('${item.brand} - ${item.name} (${item.remainingUses} left)'),
+                                child: Text(
+                                  '${item.brand} - ${item.name} (${item.remainingUses} left)',
+                                ),
                               );
                             }),
                           ],
@@ -738,19 +901,26 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                      ),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
                       onPressed: () {
                         _showDeleteConfirmDialog(context, userId, vm, step);
                       },
-                      child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                     Row(
                       children: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -772,7 +942,10 @@ class HomeScreen extends StatelessWidget {
                               Navigator.pop(context);
                             }
                           },
-                          child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
@@ -786,7 +959,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmDialog(BuildContext context, String userId, RoutineViewModel vm, RoutineStep step) {
+  void _showDeleteConfirmDialog(
+    BuildContext context,
+    String userId,
+    RoutineViewModel vm,
+    RoutineStep step,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -812,7 +990,10 @@ class HomeScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -825,12 +1006,15 @@ class HomeScreen extends StatelessWidget {
               ),
               onPressed: () {
                 vm.deleteStep(userId, step.id);
-                // Close confirm dialog
+
                 Navigator.pop(context);
-                // Close edit dialog
+
                 Navigator.pop(context);
               },
-              child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Delete',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -841,12 +1025,14 @@ class HomeScreen extends StatelessWidget {
   Widget _buildStreakBadge(BuildContext context, int streak) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFD54F), // Amber/Orange
+        color: const Color(0xFFFFD54F),
         border: Border.all(color: borderColor, width: 1.5),
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
@@ -878,28 +1064,31 @@ class HomeScreen extends StatelessWidget {
   Widget _buildMotivationalBanner(BuildContext context, int streak) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
 
     String message;
     Color bgColor;
     Color messageColor = Colors.black;
 
     if (streak == 0) {
-      message = 'Start your routine today to begin your glowing skin streak! 🔥';
+      message =
+          'Start your routine today to begin your glowing skin streak! 🔥';
       bgColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
       messageColor = isDark ? Colors.white : Colors.black;
     } else if (streak >= 30) {
       message = '👑 30+ Day Milestone! Skincare Master status unlocked!';
-      bgColor = const Color(0xFFE040FB); // Pink/Purple
+      bgColor = const Color(0xFFE040FB);
     } else if (streak >= 14) {
       message = '🌟 14 Day Milestone! Your skin barrier is thanking you!';
-      bgColor = const Color(0xFF64DD17); // Light Green
+      bgColor = const Color(0xFF64DD17);
     } else if (streak >= 7) {
       message = '🏆 7 Day Milestone! You are building a solid skincare habit!';
-      bgColor = const Color(0xFF29B6F6); // Blue
+      bgColor = const Color(0xFF29B6F6);
     } else {
       message = '✨ Keep it up! Consistency is the key to glowing skin.';
-      bgColor = const Color(0xFFFF8A80); // Coral/Red
+      bgColor = const Color(0xFFFF8A80);
     }
 
     return Container(

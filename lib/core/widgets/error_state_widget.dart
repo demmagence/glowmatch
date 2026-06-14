@@ -31,11 +31,7 @@ class ErrorStateWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            Icon(icon, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             if (title != null) ...[
               Text(
@@ -51,10 +47,7 @@ class ErrorStateWidget extends StatelessWidget {
             ],
             Text(
               message,
-              style: TextStyle(
-                fontSize: 14,
-                color: msgColor,
-              ),
+              style: TextStyle(fontSize: 14, color: msgColor),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
@@ -65,9 +58,15 @@ class ErrorStateWidget extends StatelessWidget {
                   foregroundColor: buttonFg,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
-                    side: BorderSide(color: isDark ? Colors.white : Colors.black, width: 1),
+                    side: BorderSide(
+                      color: isDark ? Colors.white : Colors.black,
+                      width: 1,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 onPressed: onRetry,
                 child: Text(

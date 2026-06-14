@@ -13,36 +13,40 @@ class SupabaseService {
   bool _isOfflineMode = true;
   bool get isOfflineMode => _isOfflineMode;
 
-  // Mock Database in-memory cache for offline/fallback mode
   final List<ShelfItem> _mockShelf = [];
   final List<RoutineStep> _mockRoutines = [];
   final List<JournalEntry> _mockJournalEntries = [];
   final Map<String, StreakData> _mockStreaks = {};
 
-  // Initialize Supabase. If credentials are empty/default, we run in Offline/Fallback Mode.
-  Future<void> initialize({required String url, required String anonKey}) async {
-    if (url.isEmpty || url.startsWith('YOUR_') || anonKey.isEmpty || anonKey.startsWith('YOUR_')) {
-      debugPrint('Supabase: Running in Offline/Mock mode due to placeholder credentials.');
+  Future<void> initialize({
+    required String url,
+    required String anonKey,
+  }) async {
+    if (url.isEmpty ||
+        url.startsWith('YOUR_') ||
+        anonKey.isEmpty ||
+        anonKey.startsWith('YOUR_')) {
+      debugPrint(
+        'Supabase: Running in Offline/Mock mode due to placeholder credentials.',
+      );
       _isOfflineMode = true;
       _seedMockData();
       return;
     }
 
     try {
-      await Supabase.initialize(
-        url: url,
-        anonKey: anonKey,
-      );
+      await Supabase.initialize(url: url, anonKey: anonKey);
       _isOfflineMode = false;
       debugPrint('Supabase: Successfully initialized in online cloud mode.');
     } catch (e) {
-      debugPrint('Supabase initialization failed: $e. Falling back to Offline mode.');
+      debugPrint(
+        'Supabase initialization failed: $e. Falling back to Offline mode.',
+      );
       _isOfflineMode = true;
       _seedMockData();
     }
   }
 
-  // Check if user is authenticated, otherwise perform anonymous sign-in
   Future<User?> getOrCreateUser() async {
     if (_isOfflineMode) {
       return null;
@@ -54,7 +58,7 @@ class SupabaseService {
       if (session != null) {
         return session.user;
       }
-      // Attempt anonymous sign in
+
       final AuthResponse response = await client.auth.signInAnonymously();
       return response.user;
     } catch (e) {
@@ -63,7 +67,6 @@ class SupabaseService {
     }
   }
 
-  // Seed mock data for stunning first impression on startup
   void _seedMockData() {
     if (_mockShelf.isEmpty) {
       _mockShelf.addAll([
@@ -75,9 +78,13 @@ class SupabaseService {
           price: 42.00,
           estimatedUses: 60,
           remainingUses: 45,
-          indicatorColor: '0xFFE040FB', // Pink
+          indicatorColor: '0xFFE040FB',
           imageUrl: 'https://placehold.co/150/pink/white?text=GlowBomb',
-          ingredients: const ['Hyaluronic Acid', 'Niacinamide', 'Watermelon Extract'],
+          ingredients: const [
+            'Hyaluronic Acid',
+            'Niacinamide',
+            'Watermelon Extract',
+          ],
         ),
         ShelfItem(
           id: 'item-2',
@@ -87,9 +94,13 @@ class SupabaseService {
           price: 20.00,
           estimatedUses: 50,
           remainingUses: 32,
-          indicatorColor: '0xFF64DD17', // Green
+          indicatorColor: '0xFF64DD17',
           imageUrl: 'https://placehold.co/150/lightgreen/white?text=Skin1004',
-          ingredients: const ['Centella Asiatica', 'Zinc Oxide', 'Titanium Dioxide'],
+          ingredients: const [
+            'Centella Asiatica',
+            'Zinc Oxide',
+            'Titanium Dioxide',
+          ],
         ),
         ShelfItem(
           id: 'item-3',
@@ -99,10 +110,10 @@ class SupabaseService {
           price: 58.00,
           estimatedUses: 80,
           remainingUses: 75,
-          indicatorColor: '0xFFD50000', // Red
+          indicatorColor: '0xFFD50000',
           imageUrl: 'https://placehold.co/150/purple/white?text=Panthenol',
           ingredients: const ['Panthenol', 'Squalane', 'Ceramide NP'],
-        )
+        ),
       ]);
     }
 
@@ -155,7 +166,7 @@ class SupabaseService {
           name: 'Sleeping Mask',
           description: 'Overnight deep hydration booster',
           shelfItemId: 'item-3',
-        )
+        ),
       ]);
     }
 
@@ -166,7 +177,8 @@ class SupabaseService {
           loggedDate: 'Today',
           skinScore: 84,
           photoPath: 'assets/skin_today.png',
-          notes: 'Skin barrier feels extremely strong today. Redness has completely gone.',
+          notes:
+              'Skin barrier feels extremely strong today. Redness has completely gone.',
         ),
         JournalEntry(
           id: 'j-2',
@@ -181,32 +193,33 @@ class SupabaseService {
           skinScore: 76,
           photoPath: 'assets/skin_oct17.png',
           notes: 'Started new routine steps.',
-        )
+        ),
       ]);
     }
   }
 
-  // --- Exception Helpers ---
-
   void _handlePostgrestException(String operation, PostgrestException e) {
     if (e.code == '42501') {
-      debugPrint('Supabase Security: [RLS/Permission Denied] in $operation. Code: ${e.code}, Message: ${e.message}, Details: ${e.details}');
+      debugPrint(
+        'Supabase Security: [RLS/Permission Denied] in $operation. Code: ${e.code}, Message: ${e.message}, Details: ${e.details}',
+      );
     } else {
-      debugPrint('Supabase PostgrestException in $operation. Code: ${e.code}, Message: ${e.message}, Details: ${e.details}');
+      debugPrint(
+        'Supabase PostgrestException in $operation. Code: ${e.code}, Message: ${e.message}, Details: ${e.details}',
+      );
     }
   }
 
   void _handleStorageException(String operation, StorageException e) {
-    debugPrint('Supabase StorageException in $operation. Code: ${e.statusCode}, Message: ${e.message}');
+    debugPrint(
+      'Supabase StorageException in $operation. Code: ${e.statusCode}, Message: ${e.message}',
+    );
   }
 
   void _handleGenericException(String operation, dynamic e) {
     debugPrint('Supabase Generic Exception in $operation: $e');
   }
 
-  // --- CRUD API ---
-
-  // SHELF ITEMS
   Future<List<ShelfItem>> getShelfItems(String userId) async {
     if (_isOfflineMode) {
       return List.from(_mockShelf);
@@ -216,7 +229,9 @@ class SupabaseService {
           .from(AppConstants.tableSkincareShelf)
           .select()
           .eq('user_id', userId);
-      return (response as List).map((x) => ShelfItem.fromJson(x as Map<String, dynamic>)).toList();
+      return (response as List)
+          .map((x) => ShelfItem.fromJson(x as Map<String, dynamic>))
+          .toList();
     } on PostgrestException catch (e) {
       _handlePostgrestException('getShelfItems', e);
       return List.from(_mockShelf);
@@ -227,7 +242,9 @@ class SupabaseService {
   }
 
   Future<ShelfItem> addShelfItem(String userId, ShelfItem item) async {
-    final String id = item.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : item.id;
+    final String id = item.id.isEmpty
+        ? DateTime.now().millisecondsSinceEpoch.toString()
+        : item.id;
     final newItem = item.copyWith(id: id);
     final newItemMap = {
       ...newItem.toJson(),
@@ -259,10 +276,7 @@ class SupabaseService {
   }
 
   Future<ShelfItem?> updateShelfItem(String itemId, ShelfItem updates) async {
-    final newItemMap = {
-      ...updates.toJson(),
-      'id': itemId,
-    };
+    final newItemMap = {...updates.toJson(), 'id': itemId};
 
     if (_isOfflineMode) {
       final idx = _mockShelf.indexWhere((x) => x.id == itemId);
@@ -374,7 +388,6 @@ class SupabaseService {
     }
   }
 
-  // ROUTINES
   Future<List<RoutineStep>> getRoutines(String userId, String type) async {
     if (_isOfflineMode) {
       return _mockRoutines.where((r) => r.routineType == type).toList();
@@ -386,7 +399,9 @@ class SupabaseService {
           .eq('user_id', userId)
           .eq('routine_type', type)
           .order('step_number', ascending: true);
-      return (response as List).map((x) => RoutineStep.fromJson(x as Map<String, dynamic>)).toList();
+      return (response as List)
+          .map((x) => RoutineStep.fromJson(x as Map<String, dynamic>))
+          .toList();
     } on PostgrestException catch (e) {
       _handlePostgrestException('getRoutines', e);
       return _mockRoutines.where((r) => r.routineType == type).toList();
@@ -397,18 +412,19 @@ class SupabaseService {
   }
 
   Future<void> addRoutineStep(String userId, RoutineStep step) async {
-    final String id = step.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : step.id;
+    final String id = step.id.isEmpty
+        ? DateTime.now().millisecondsSinceEpoch.toString()
+        : step.id;
     final newStep = step.copyWith(id: id);
-    final newStepMap = {
-      ...newStep.toJson(),
-      'user_id': userId,
-    };
+    final newStepMap = {...newStep.toJson(), 'user_id': userId};
     if (_isOfflineMode) {
       _mockRoutines.add(newStep);
       return;
     }
     try {
-      await Supabase.instance.client.from(AppConstants.tableRoutines).insert(newStepMap);
+      await Supabase.instance.client
+          .from(AppConstants.tableRoutines)
+          .insert(newStepMap);
     } on PostgrestException catch (e) {
       _handlePostgrestException('addRoutineStep', e);
       _mockRoutines.add(newStep);
@@ -419,10 +435,7 @@ class SupabaseService {
   }
 
   Future<void> updateRoutineStep(String userId, RoutineStep step) async {
-    final stepMap = {
-      ...step.toJson(),
-      'user_id': userId,
-    };
+    final stepMap = {...step.toJson(), 'user_id': userId};
     if (_isOfflineMode) {
       final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
       if (idx != -1) {
@@ -469,7 +482,10 @@ class SupabaseService {
     }
   }
 
-  Future<void> updateRoutineStepsOrder(String userId, List<RoutineStep> steps) async {
+  Future<void> updateRoutineStepsOrder(
+    String userId,
+    List<RoutineStep> steps,
+  ) async {
     if (_isOfflineMode) {
       for (final step in steps) {
         final idx = _mockRoutines.indexWhere((x) => x.id == step.id);
@@ -481,10 +497,7 @@ class SupabaseService {
     }
     try {
       final List<Map<String, dynamic>> stepsMap = steps.map((step) {
-        return {
-          ...step.toJson(),
-          'user_id': userId,
-        };
+        return {...step.toJson(), 'user_id': userId};
       }).toList();
 
       await Supabase.instance.client
@@ -509,7 +522,6 @@ class SupabaseService {
     }
   }
 
-  // JOURNAL ENTRIES
   Future<List<JournalEntry>> getJournalEntries(String userId) async {
     if (_isOfflineMode) {
       return List.from(_mockJournalEntries);
@@ -520,7 +532,9 @@ class SupabaseService {
           .select()
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
-      return (response as List).map((x) => JournalEntry.fromJson(x as Map<String, dynamic>)).toList();
+      return (response as List)
+          .map((x) => JournalEntry.fromJson(x as Map<String, dynamic>))
+          .toList();
     } on PostgrestException catch (e) {
       _handlePostgrestException('getJournalEntries', e);
       return List.from(_mockJournalEntries);
@@ -530,13 +544,15 @@ class SupabaseService {
     }
   }
 
-  Future<JournalEntry> addJournalEntry(String userId, JournalEntry entry) async {
-    final String id = entry.id.isEmpty ? DateTime.now().millisecondsSinceEpoch.toString() : entry.id;
+  Future<JournalEntry> addJournalEntry(
+    String userId,
+    JournalEntry entry,
+  ) async {
+    final String id = entry.id.isEmpty
+        ? DateTime.now().millisecondsSinceEpoch.toString()
+        : entry.id;
     final newEntry = entry.copyWith(id: id);
-    final newEntryMap = {
-      ...newEntry.toJson(),
-      'user_id': userId,
-    };
+    final newEntryMap = {...newEntry.toJson(), 'user_id': userId};
     if (_isOfflineMode) {
       _mockJournalEntries.insert(0, newEntry);
       return newEntry;
@@ -582,14 +598,10 @@ class SupabaseService {
     }
   }
 
-  // --- USER STREAKS ---
   Future<StreakData> getStreakData(String userId) async {
     if (_isOfflineMode || userId.isEmpty) {
-      return _mockStreaks[userId] ?? StreakData(
-        currentStreak: 0,
-        longestStreak: 0,
-        totalCompletions: 0,
-      );
+      return _mockStreaks[userId] ??
+          StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
     }
 
     try {
@@ -609,18 +621,12 @@ class SupabaseService {
       return StreakData.fromJson(response);
     } on PostgrestException catch (e) {
       _handlePostgrestException('getStreakData', e);
-      return _mockStreaks[userId] ?? StreakData(
-        currentStreak: 0,
-        longestStreak: 0,
-        totalCompletions: 0,
-      );
+      return _mockStreaks[userId] ??
+          StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
     } catch (e) {
       _handleGenericException('getStreakData', e);
-      return _mockStreaks[userId] ?? StreakData(
-        currentStreak: 0,
-        longestStreak: 0,
-        totalCompletions: 0,
-      );
+      return _mockStreaks[userId] ??
+          StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
     }
   }
 
@@ -630,7 +636,6 @@ class SupabaseService {
 
     if (current.lastCompletedDate != null) {
       if (_isSameDay(current.lastCompletedDate!, now)) {
-        // Already completed today
         return current;
       }
     }
@@ -641,10 +646,12 @@ class SupabaseService {
     } else if (_isYesterday(current.lastCompletedDate!, now)) {
       nextStreak = current.currentStreak + 1;
     } else {
-      nextStreak = 1; // reset streak if gap > 1 day
+      nextStreak = 1;
     }
 
-    final nextLongest = nextStreak > current.longestStreak ? nextStreak : current.longestStreak;
+    final nextLongest = nextStreak > current.longestStreak
+        ? nextStreak
+        : current.longestStreak;
     final nextTotal = current.totalCompletions + 1;
 
     final updated = StreakData(
@@ -698,14 +705,14 @@ class SupabaseService {
         lastDate.day == yesterday.day;
   }
 
-  // STORAGE: Upload journal photo to Supabase Storage bucket
   Future<String> uploadJournalPhoto({
     required String userId,
     required String localFilePath,
   }) async {
-    // Offline mode: just return local file path so UI can display it
     if (_isOfflineMode) {
-      debugPrint('SupabaseService [OFFLINE]: Returning local path as photo URL.');
+      debugPrint(
+        'SupabaseService [OFFLINE]: Returning local path as photo URL.',
+      );
       return localFilePath;
     }
 
@@ -719,7 +726,10 @@ class SupabaseService {
           .upload(
             fileName,
             file,
-            fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: false,
+            ),
           );
 
       final publicUrl = Supabase.instance.client.storage
@@ -737,14 +747,14 @@ class SupabaseService {
     }
   }
 
-  // STORAGE: Upload product photo to Supabase Storage bucket
   Future<String> uploadProductPhoto({
     required String userId,
     required String localFilePath,
   }) async {
-    // Offline mode: just return local file path so UI can display it
     if (_isOfflineMode) {
-      debugPrint('SupabaseService [OFFLINE]: Returning local path as product photo URL.');
+      debugPrint(
+        'SupabaseService [OFFLINE]: Returning local path as product photo URL.',
+      );
       return localFilePath;
     }
 
@@ -758,7 +768,10 @@ class SupabaseService {
           .upload(
             fileName,
             file,
-            fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false),
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: false,
+            ),
           );
 
       final publicUrl = Supabase.instance.client.storage
@@ -776,8 +789,6 @@ class SupabaseService {
     }
   }
 
-
-  /// Clears all in-memory mock data. Only call from tests.
   @visibleForTesting
   void resetForTesting() {
     _mockShelf.clear();

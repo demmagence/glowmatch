@@ -11,7 +11,7 @@ class RoutineViewModel extends ChangeNotifier {
   List<RoutineStep> _amSteps = [];
   List<RoutineStep> _pmSteps = [];
   final Set<String> _completedStepIds = {};
-  
+
   String _activeRoutine = 'AM';
   bool _isLoading = false;
   String? _errorMessage;
@@ -33,20 +33,20 @@ class RoutineViewModel extends ChangeNotifier {
     }
     final now = DateTime.now();
     final last = _streakData!.lastCompletedDate!;
-    return last.year == now.year && last.month == now.month && last.day == now.day;
+    return last.year == now.year &&
+        last.month == now.month &&
+        last.day == now.day;
   }
 
-  // Steps matching the active routine (AM or PM)
-  List<RoutineStep> get currentSteps => _activeRoutine == 'AM' ? _amSteps : _pmSteps;
+  List<RoutineStep> get currentSteps =>
+      _activeRoutine == 'AM' ? _amSteps : _pmSteps;
 
-  // Completed count for the current active routine
   int get completedCount {
     final steps = currentSteps;
     if (steps.isEmpty) return 0;
     return steps.where((step) => _completedStepIds.contains(step.id)).length;
   }
 
-  // Total steps for current routine
   int get totalCount => currentSteps.length;
 
   Future<void> init(String userId) async {
@@ -88,8 +88,7 @@ class RoutineViewModel extends ChangeNotifier {
     try {
       _amSteps = await _supabaseService.getRoutines(userId, 'AM');
       _pmSteps = await _supabaseService.getRoutines(userId, 'PM');
-      
-      // Reset completion status when loading new lists
+
       _completedStepIds.clear();
     } catch (e) {
       debugPrint('Error loading routines: $e');
@@ -102,7 +101,7 @@ class RoutineViewModel extends ChangeNotifier {
   void setActiveRoutine(String routine) {
     if (_activeRoutine != routine) {
       _activeRoutine = routine;
-      _completedStepIds.clear(); // Reset status when switching routines
+      _completedStepIds.clear();
       notifyListeners();
     }
   }
@@ -113,7 +112,6 @@ class RoutineViewModel extends ChangeNotifier {
     } else {
       _completedStepIds.add(stepId);
 
-      // Decrement associated shelf product uses
       final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
       if (stepIdx != -1) {
         final step = currentSteps[stepIdx];
@@ -125,7 +123,12 @@ class RoutineViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addCustomStep(String userId, String name, String desc, {String? shelfItemId}) async {
+  Future<void> addCustomStep(
+    String userId,
+    String name,
+    String desc, {
+    String? shelfItemId,
+  }) async {
     final newStep = RoutineStep(
       id: '',
       routineType: _activeRoutine,
@@ -134,7 +137,7 @@ class RoutineViewModel extends ChangeNotifier {
       description: desc,
       shelfItemId: shelfItemId,
     );
-    
+
     await _supabaseService.addRoutineStep(userId, newStep);
     await loadRoutines(userId);
   }
@@ -159,21 +162,20 @@ class RoutineViewModel extends ChangeNotifier {
     try {
       final isAM = _amSteps.any((x) => x.id == stepId);
       await _supabaseService.deleteRoutineStep(userId, stepId);
-      
-      // Get remaining steps and shift their step numbers sequentially
-      final remainingSteps = isAM 
-          ? _amSteps.where((x) => x.id != stepId).toList() 
+
+      final remainingSteps = isAM
+          ? _amSteps.where((x) => x.id != stepId).toList()
           : _pmSteps.where((x) => x.id != stepId).toList();
-      
+
       final reindexedSteps = <RoutineStep>[];
       for (int i = 0; i < remainingSteps.length; i++) {
         reindexedSteps.add(remainingSteps[i].copyWith(stepNumber: i + 1));
       }
-      
+
       if (reindexedSteps.isNotEmpty) {
         await _supabaseService.updateRoutineStepsOrder(userId, reindexedSteps);
       }
-      
+
       await loadRoutines(userId);
     } catch (e) {
       _errorMessage = e.toString();
@@ -184,7 +186,9 @@ class RoutineViewModel extends ChangeNotifier {
   }
 
   Future<void> reorderSteps(String userId, int oldIndex, int newIndex) async {
-    final steps = _activeRoutine == 'AM' ? List<RoutineStep>.from(_amSteps) : List<RoutineStep>.from(_pmSteps);
+    final steps = _activeRoutine == 'AM'
+        ? List<RoutineStep>.from(_amSteps)
+        : List<RoutineStep>.from(_pmSteps);
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
@@ -193,13 +197,11 @@ class RoutineViewModel extends ChangeNotifier {
     final item = steps.removeAt(oldIndex);
     steps.insert(newIndex, item);
 
-    // Re-index steps
     final updatedSteps = <RoutineStep>[];
     for (int i = 0; i < steps.length; i++) {
       updatedSteps.add(steps[i].copyWith(stepNumber: i + 1));
     }
 
-    // Optimistic update
     if (_activeRoutine == 'AM') {
       _amSteps = updatedSteps;
     } else {
@@ -211,7 +213,7 @@ class RoutineViewModel extends ChangeNotifier {
       await _supabaseService.updateRoutineStepsOrder(userId, updatedSteps);
     } catch (e) {
       _errorMessage = e.toString();
-      // Rollback
+
       await loadRoutines(userId);
     }
   }
@@ -225,7 +227,7 @@ class RoutineViewModel extends ChangeNotifier {
 
     try {
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
-      _completedStepIds.clear(); // reset checkboxes
+      _completedStepIds.clear();
     } catch (e) {
       debugPrint('Error completing routine: $e');
       _errorMessage = e.toString();

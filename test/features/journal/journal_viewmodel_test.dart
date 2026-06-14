@@ -17,10 +17,8 @@ void main() {
 
   group('JournalViewModel – _calculateCurrentScore', () {
     test('currentScore is 80 when entries list is empty', () async {
-      // fresh VM, no entries loaded → _calculateCurrentScore sets 80
       await vm.fetchJournal('test-user');
-      // seeded data has 3 entries → score = (80 + 3*2).clamp = 86
-      // But we need to verify the formula: 80 + length*2
+
       final expected = (80 + vm.entries.length * 2).clamp(1, 100);
       expect(vm.currentScore, equals(expected));
     });
@@ -31,7 +29,6 @@ void main() {
       final countAtLoad = vm.entries.length;
       expect(scoreAtLoad, equals((80 + countAtLoad * 2).clamp(1, 100)));
 
-      // Add one more entry and re-check
       await vm.addEntry(
         userId: 'test-user',
         photoPath: 'assets/test.png',
@@ -43,7 +40,6 @@ void main() {
     });
 
     test('currentScore is clamped to maximum 100', () async {
-      // Simulate 11+ entries to push score to 100 (80 + 11*2 = 102 → 100)
       for (int i = 0; i < 12; i++) {
         await vm.addEntry(
           userId: 'test-user',
@@ -65,17 +61,33 @@ void main() {
         notes: 'Format check',
       );
       final date = vm.entries.first.loggedDate;
-      // Should match e.g. "Jun 12"
+
       final monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       final parts = date.split(' ');
       expect(parts.length, equals(2));
-      expect(monthNames.contains(parts[0]), isTrue,
-          reason: '"${parts[0]}" is not a valid month abbreviation');
-      expect(int.tryParse(parts[1]), isNotNull,
-          reason: '"${parts[1]}" is not a valid day number');
+      expect(
+        monthNames.contains(parts[0]),
+        isTrue,
+        reason: '"${parts[0]}" is not a valid month abbreviation',
+      );
+      expect(
+        int.tryParse(parts[1]),
+        isNotNull,
+        reason: '"${parts[1]}" is not a valid day number',
+      );
     });
   });
 
@@ -83,7 +95,7 @@ void main() {
     test('estimated score stays within ±1 of currentScore', () async {
       await vm.fetchJournal('test-user');
       final base = vm.currentScore;
-      // _estimateScore delta = (entries.length % 3) - 1 → -1, 0, or +1
+
       final delta = (vm.entries.length % 3) - 1;
       final estimated = (base + delta).clamp(1, 100);
       expect(estimated, greaterThanOrEqualTo(1));
@@ -125,7 +137,10 @@ void main() {
 
       expect(success, isTrue);
       expect(vm.entries.length, equals(initialCount + 1));
-      expect(vm.entries.first.notes, equals('Feeling extremely fresh and smooth.'));
+      expect(
+        vm.entries.first.notes,
+        equals('Feeling extremely fresh and smooth.'),
+      );
     });
   });
 }

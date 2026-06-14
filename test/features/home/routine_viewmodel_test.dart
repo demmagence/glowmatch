@@ -8,7 +8,6 @@ void main() {
   late ShelfViewModel shelfVm;
 
   setUpAll(() async {
-    // Seed offline mock data once for the suite
     final svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
@@ -43,7 +42,7 @@ void main() {
   group('RoutineViewModel – completedCount', () {
     test('completedCount is 0 when no steps are completed', () async {
       await vm.loadRoutines('test-user');
-      // clear any pre-existing completions
+
       for (final id in List.from(vm.completedStepIds)) {
         vm.toggleStep(id, shelfVm);
       }
@@ -84,7 +83,7 @@ void main() {
 
     test('setActiveRoutine to same value is a no-op', () {
       vm.toggleStep('step-y', shelfVm);
-      vm.setActiveRoutine('AM'); // already AM
+      vm.setActiveRoutine('AM');
       expect(vm.completedStepIds.contains('step-y'), isTrue);
     });
   });
@@ -107,85 +106,114 @@ void main() {
   });
 
   group('RoutineViewModel – CRUD, Reordering, and Shelf Linking', () {
-    test('addCustomStep with shelfItemId links the product correctly', () async {
-      await vm.loadRoutines('test-user');
-      final initialCount = vm.amSteps.length;
-      await vm.addCustomStep('test-user', 'Linked Toner', 'Use cotton pad', shelfItemId: 'item-2');
-      
-      expect(vm.amSteps.length, equals(initialCount + 1));
-      final newStep = vm.amSteps.last;
-      expect(newStep.name, equals('Linked Toner'));
-      expect(newStep.shelfItemId, equals('item-2'));
-    });
+    test(
+      'addCustomStep with shelfItemId links the product correctly',
+      () async {
+        await vm.loadRoutines('test-user');
+        final initialCount = vm.amSteps.length;
+        await vm.addCustomStep(
+          'test-user',
+          'Linked Toner',
+          'Use cotton pad',
+          shelfItemId: 'item-2',
+        );
+
+        expect(vm.amSteps.length, equals(initialCount + 1));
+        final newStep = vm.amSteps.last;
+        expect(newStep.name, equals('Linked Toner'));
+        expect(newStep.shelfItemId, equals('item-2'));
+      },
+    );
 
     test('updateStep persists updated name and description', () async {
       await vm.loadRoutines('test-user');
       final step = vm.amSteps.first;
-      final updatedStep = step.copyWith(name: 'Super Hydrator', description: 'Apply 4 drops');
-      
+      final updatedStep = step.copyWith(
+        name: 'Super Hydrator',
+        description: 'Apply 4 drops',
+      );
+
       await vm.updateStep('test-user', updatedStep);
-      
-      // Reload and verify
+
       expect(vm.amSteps.first.name, equals('Super Hydrator'));
       expect(vm.amSteps.first.description, equals('Apply 4 drops'));
     });
 
-    test('deleteStep removes step and shifts stepNumbers sequentially', () async {
-      await vm.loadRoutines('test-user');
-      // Ensure we have at least 3 steps
-      while (vm.amSteps.length < 3) {
-        await vm.addCustomStep('test-user', 'Temp Step', 'Desc');
-      }
-      
-      final stepIdToDelete = vm.amSteps[1].id; // Delete the middle step (Step 2)
-      final initialCount = vm.amSteps.length;
-      
-      await vm.deleteStep('test-user', stepIdToDelete);
-      
-      expect(vm.amSteps.length, equals(initialCount - 1));
-      // Verify step numbers are sequential starting from 1 (1, 2, ..., N)
-      for (int i = 0; i < vm.amSteps.length; i++) {
-        expect(vm.amSteps[i].stepNumber, equals(i + 1));
-      }
-    });
+    test(
+      'deleteStep removes step and shifts stepNumbers sequentially',
+      () async {
+        await vm.loadRoutines('test-user');
 
-    test('reorderSteps shifts elements and updates stepNumbers correctly', () async {
-      await vm.loadRoutines('test-user');
-      // Ensure we have at least 3 steps
-      while (vm.amSteps.length < 3) {
-        await vm.addCustomStep('test-user', 'Temp Step', 'Desc');
-      }
+        while (vm.amSteps.length < 3) {
+          await vm.addCustomStep('test-user', 'Temp Step', 'Desc');
+        }
 
-      final step0Id = vm.amSteps[0].id;
-      final step1Id = vm.amSteps[1].id;
-      
-      // Move index 0 to index 2 (which becomes index 1 after deletion/shifting internally)
-      await vm.reorderSteps('test-user', 0, 2);
-      
-      // The old index 0 should now be at index 1
-      expect(vm.amSteps[1].id, equals(step0Id));
-      expect(vm.amSteps[0].id, equals(step1Id));
-      
-      // All stepNumbers must be sequential 1, 2, ..., N
-      for (int i = 0; i < vm.amSteps.length; i++) {
-        expect(vm.amSteps[i].stepNumber, equals(i + 1));
-      }
-    });
+        final stepIdToDelete = vm.amSteps[1].id;
+        final initialCount = vm.amSteps.length;
 
-    test('toggleStep on linked step decrements remainingUses of shelf item', () async {
-      // Initialize shelf item uses
-      await shelfVm.fetchShelf('test-user');
-      final initialUses = shelfVm.shelfItems.firstWhere((item) => item.id == 'item-1').remainingUses;
-      
-      await vm.loadRoutines('test-user');
-      // Create a step linked to item-1
-      await vm.addCustomStep('test-user', 'Linked Serum', 'Apply it', shelfItemId: 'item-1');
-      
-      final linkedStep = vm.amSteps.firstWhere((step) => step.shelfItemId == 'item-1');
-      await vm.toggleStep(linkedStep.id, shelfVm);
-      
-      expect(vm.completedStepIds.contains(linkedStep.id), isTrue);
-      expect(shelfVm.shelfItems.firstWhere((item) => item.id == 'item-1').remainingUses, equals(initialUses - 1));
-    });
+        await vm.deleteStep('test-user', stepIdToDelete);
+
+        expect(vm.amSteps.length, equals(initialCount - 1));
+
+        for (int i = 0; i < vm.amSteps.length; i++) {
+          expect(vm.amSteps[i].stepNumber, equals(i + 1));
+        }
+      },
+    );
+
+    test(
+      'reorderSteps shifts elements and updates stepNumbers correctly',
+      () async {
+        await vm.loadRoutines('test-user');
+
+        while (vm.amSteps.length < 3) {
+          await vm.addCustomStep('test-user', 'Temp Step', 'Desc');
+        }
+
+        final step0Id = vm.amSteps[0].id;
+        final step1Id = vm.amSteps[1].id;
+
+        await vm.reorderSteps('test-user', 0, 2);
+
+        expect(vm.amSteps[1].id, equals(step0Id));
+        expect(vm.amSteps[0].id, equals(step1Id));
+
+        for (int i = 0; i < vm.amSteps.length; i++) {
+          expect(vm.amSteps[i].stepNumber, equals(i + 1));
+        }
+      },
+    );
+
+    test(
+      'toggleStep on linked step decrements remainingUses of shelf item',
+      () async {
+        await shelfVm.fetchShelf('test-user');
+        final initialUses = shelfVm.shelfItems
+            .firstWhere((item) => item.id == 'item-1')
+            .remainingUses;
+
+        await vm.loadRoutines('test-user');
+
+        await vm.addCustomStep(
+          'test-user',
+          'Linked Serum',
+          'Apply it',
+          shelfItemId: 'item-1',
+        );
+
+        final linkedStep = vm.amSteps.firstWhere(
+          (step) => step.shelfItemId == 'item-1',
+        );
+        await vm.toggleStep(linkedStep.id, shelfVm);
+
+        expect(vm.completedStepIds.contains(linkedStep.id), isTrue);
+        expect(
+          shelfVm.shelfItems
+              .firstWhere((item) => item.id == 'item-1')
+              .remainingUses,
+          equals(initialUses - 1),
+        );
+      },
+    );
   });
 }

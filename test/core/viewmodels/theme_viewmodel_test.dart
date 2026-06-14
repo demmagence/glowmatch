@@ -53,7 +53,6 @@ void main() {
       SharedPreferences.setMockInitialValues({'theme_mode': 'dark'});
       final vm2 = ThemeViewModel();
 
-      // Wait for async _loadTheme to complete
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(vm2.themeMode, equals(ThemeMode.dark));

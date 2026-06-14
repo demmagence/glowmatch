@@ -11,7 +11,8 @@ class PhotoGridWidget extends StatelessWidget {
   final Set<String> selectedEntryIds;
   final bool isCompareMode;
   final Function(String id) onToggleSelection;
-  final Function(BuildContext ctx, String uid, JournalViewModel v) onShowPhotoSourceSheet;
+  final Function(BuildContext ctx, String uid, JournalViewModel v)
+  onShowPhotoSourceSheet;
 
   const PhotoGridWidget({
     super.key,
@@ -35,7 +36,20 @@ class PhotoGridWidget extends StatelessWidget {
       final dayStr = parts[1];
       final day = int.tryParse(dayStr) ?? 1;
       int month = now.month;
-      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const months = [
+        'jan',
+        'feb',
+        'mar',
+        'apr',
+        'may',
+        'jun',
+        'jul',
+        'aug',
+        'sep',
+        'oct',
+        'nov',
+        'dec',
+      ];
       final idx = months.indexOf(monthStr);
       if (idx != -1) {
         month = idx + 1;
@@ -69,7 +83,6 @@ class PhotoGridWidget extends StatelessWidget {
     final now = DateTime.now();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Group by week label based on real DateTime values
     final sections = <String, List<JournalEntry>>{};
     for (final entry in entries) {
       final entryDate = _parseLoggedDate(entry.loggedDate);
@@ -92,47 +105,45 @@ class PhotoGridWidget extends StatelessWidget {
       );
       rows.add(const SizedBox(height: 16));
 
-      // Pair up entries in rows of 2
       for (int i = 0; i < sectionEntries.length; i += 2) {
         final a = sectionEntries[i];
         final b = i + 1 < sectionEntries.length ? sectionEntries[i + 1] : null;
 
-        rows.add(Row(
-          children: [
-            Expanded(
-              child: PhotoCard(
-                entry: a,
-                isSelected: selectedEntryIds.contains(a.id),
-                isCompareMode: isCompareMode,
-                onToggleSelection: () => onToggleSelection(a.id),
+        rows.add(
+          Row(
+            children: [
+              Expanded(
+                child: PhotoCard(
+                  entry: a,
+                  isSelected: selectedEntryIds.contains(a.id),
+                  isCompareMode: isCompareMode,
+                  onToggleSelection: () => onToggleSelection(a.id),
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: b != null
-                  ? PhotoCard(
-                      entry: b,
-                      isSelected: selectedEntryIds.contains(b.id),
-                      isCompareMode: isCompareMode,
-                      onToggleSelection: () => onToggleSelection(b.id),
-                    )
-                  : EmptySlot(
-                      userId: userId,
-                      vm: vm,
-                      onShowPhotoSourceSheet: onShowPhotoSourceSheet,
-                    ),
-            ),
-          ],
-        ));
+              const SizedBox(width: 16),
+              Expanded(
+                child: b != null
+                    ? PhotoCard(
+                        entry: b,
+                        isSelected: selectedEntryIds.contains(b.id),
+                        isCompareMode: isCompareMode,
+                        onToggleSelection: () => onToggleSelection(b.id),
+                      )
+                    : EmptySlot(
+                        userId: userId,
+                        vm: vm,
+                        onShowPhotoSourceSheet: onShowPhotoSourceSheet,
+                      ),
+              ),
+            ],
+          ),
+        );
         rows.add(const SizedBox(height: 16));
       }
 
       rows.add(const SizedBox(height: 16));
     });
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: rows,
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
 }

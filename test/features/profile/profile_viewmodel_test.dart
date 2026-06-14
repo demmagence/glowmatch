@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/features/profile/profile_viewmodel.dart';
 import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
 
-/// A minimal fake AuthViewModel that simulates linkEmailAccount behavior.
 class _FakeAuthViewModel extends AuthViewModel {
   bool shouldThrow = false;
   String? lastLinkedEmail;
@@ -16,7 +15,6 @@ class _FakeAuthViewModel extends AuthViewModel {
     if (shouldThrow) {
       throw Exception('Linking failed: email already in use');
     }
-    // Simulate successful linking (no-op in fake)
   }
 }
 
@@ -55,7 +53,6 @@ void main() {
     });
 
     test('sets isSubmittingLink to true during submission', () async {
-      // Capture the submitting state mid-flight
       bool wasSubmitting = false;
       vm.addListener(() {
         if (vm.isSubmittingLink) wasSubmitting = true;
@@ -96,7 +93,6 @@ void main() {
       SharedPreferences.setMockInitialValues({'notifications_enabled': false});
       final vm2 = ProfileViewModel(authViewModel: fakeAuth);
 
-      // Wait for async _loadNotifications
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(vm2.isNotificationsEnabled, isFalse);

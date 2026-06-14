@@ -24,13 +24,16 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
-    // Pre-fetch data for all view models on startup
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthViewModel>(context, listen: false);
       final userId = auth.userId;
       Provider.of<RoutineViewModel>(context, listen: false).init(userId);
       Provider.of<ShelfViewModel>(context, listen: false).fetchShelf(userId);
-      Provider.of<JournalViewModel>(context, listen: false).fetchJournal(userId);
+      Provider.of<JournalViewModel>(
+        context,
+        listen: false,
+      ).fetchJournal(userId);
     });
   }
 
@@ -45,11 +48,11 @@ class _MainLayoutState extends State<MainLayout> {
       backgroundColor: scaffoldBg,
       body: SafeArea(
         child: IndexedStack(
-          index: _currentIndex == 2 ? 0 : _currentIndex, // Default fallback if 2 selected directly
+          index: _currentIndex == 2 ? 0 : _currentIndex,
           children: [
             const HomeScreen(),
             const BudgetScreen(),
-            const SizedBox.shrink(), // Placeholder for Scanner FAB
+            const SizedBox.shrink(),
             const JournalScreen(),
             ShelfScreen(
               initialIngredientsToPreFill: _preFilledIngredients,
@@ -64,9 +67,7 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: borderColor, width: 1),
-          ),
+          border: Border(top: BorderSide(color: borderColor, width: 1)),
         ),
         child: BottomAppBar(
           color: navBarBg,
@@ -93,11 +94,12 @@ class _MainLayoutState extends State<MainLayout> {
     final inactiveColor = isDark ? Colors.grey.shade600 : Colors.grey.shade400;
     final badgeBorder = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
-    // Check if we need to show low stock badge on the Shelf tab (index 4)
     bool showLowStockBadge = false;
     if (index == 4) {
       final shelfVm = Provider.of<ShelfViewModel>(context);
-      showLowStockBadge = shelfVm.shelfItems.any((item) => item.remainingUses < 5);
+      showLowStockBadge = shelfVm.shelfItems.any(
+        (item) => item.remainingUses < 5,
+      );
     }
 
     return GestureDetector(
@@ -110,7 +112,10 @@ class _MainLayoutState extends State<MainLayout> {
         if (index == 0) {
           Provider.of<RoutineViewModel>(context, listen: false).init(userId);
         } else if (index == 3) {
-          Provider.of<JournalViewModel>(context, listen: false).fetchJournal(userId);
+          Provider.of<JournalViewModel>(
+            context,
+            listen: false,
+          ).fetchJournal(userId);
         }
       },
       child: Column(
@@ -176,16 +181,14 @@ class _MainLayoutState extends State<MainLayout> {
 
     return GestureDetector(
       onTap: () async {
-        // Direct modal/navigation to OCR scanning camera screen
-        final List<String>? ingredients = await Navigator.of(context).push<List<String>>(
-          MaterialPageRoute(
-            builder: (context) => const ScannerScreen(),
-          ),
-        );
+        final List<String>? ingredients = await Navigator.of(context)
+            .push<List<String>>(
+              MaterialPageRoute(builder: (context) => const ScannerScreen()),
+            );
         if (ingredients != null) {
           setState(() {
             _preFilledIngredients = ingredients;
-            _currentIndex = 4; // Shelf Screen tab
+            _currentIndex = 4;
           });
         }
       },
@@ -195,13 +198,12 @@ class _MainLayoutState extends State<MainLayout> {
         decoration: BoxDecoration(
           color: btnBg,
           shape: BoxShape.circle,
-          border: Border.all(color: isDark ? Colors.white54 : Colors.transparent, width: 1),
+          border: Border.all(
+            color: isDark ? Colors.white54 : Colors.transparent,
+            width: 1,
+          ),
         ),
-        child: Icon(
-          Icons.filter_center_focus_outlined, // Viewfinder scan icon
-          color: btnFg,
-          size: 28,
-        ),
+        child: Icon(Icons.filter_center_focus_outlined, color: btnFg, size: 28),
       ),
     );
   }

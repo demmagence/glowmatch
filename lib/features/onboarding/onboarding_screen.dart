@@ -16,17 +16,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, String>> _onboardingData = [
     {
       'title': 'Track Your Glow',
-      'description': 'Log your AM & PM skincare routines and maintain a visual skin progress journal.',
+      'description':
+          'Log your AM & PM skincare routines and maintain a visual skin progress journal.',
       'icon': 'event_note',
     },
     {
       'title': 'Scan Ingredients',
-      'description': 'Use AI to scan product ingredients via OCR and check their safety and compatibility.',
+      'description':
+          'Use AI to scan product ingredients via OCR and check their safety and compatibility.',
       'icon': 'center_focus_strong',
     },
     {
       'title': 'Smart Budget',
-      'description': 'Keep track of your skincare spending and analyze cost-per-apply efficiency.',
+      'description':
+          'Keep track of your skincare spending and analyze cost-per-apply efficiency.',
       'icon': 'account_balance_wallet',
     },
   ];
@@ -77,8 +80,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
-    final illusBg = isDark ? Colors.pink.shade900.withValues(alpha: 0.4) : Colors.pinkAccent.shade100;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
+    final illusBg = isDark
+        ? Colors.pink.shade900.withValues(alpha: 0.4)
+        : Colors.pinkAccent.shade100;
     final dotInactive = isDark ? Colors.grey.shade700 : Colors.grey.shade300;
 
     return Scaffold(
@@ -115,7 +122,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Neo-brutalist Illustration Placeholder
                         Container(
                           width: 200,
                           height: 200,
@@ -164,7 +170,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 40.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -177,7 +186,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 12,
                         width: _currentPage == index ? 32 : 12,
                         decoration: BoxDecoration(
-                          color: _currentPage == index ? Colors.pinkAccent : dotInactive,
+                          color: _currentPage == index
+                              ? Colors.pinkAccent
+                              : dotInactive,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: borderColor, width: 2),
                         ),
@@ -187,7 +198,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   GestureDetector(
                     onTap: _nextPage,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.pinkAccent,
                         borderRadius: BorderRadius.circular(12),
@@ -201,7 +215,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ],
                       ),
                       child: Text(
-                        _currentPage == _onboardingData.length - 1 ? 'Get Started' : 'Next',
+                        _currentPage == _onboardingData.length - 1
+                            ? 'Get Started'
+                            : 'Next',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,

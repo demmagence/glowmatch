@@ -39,15 +39,25 @@ class SpendingHistoryCard extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: (budgetVm.spendingHistory.reduce(max) * 1.25).clamp(100.0, 999999.0),
+                maxY: (budgetVm.spendingHistory.reduce(max) * 1.25).clamp(
+                  100.0,
+                  999999.0,
+                ),
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
-                    tooltipBgColor: isDark ? Colors.grey.shade900 : Colors.black,
+                    tooltipBgColor: isDark
+                        ? Colors.grey.shade900
+                        : Colors.black,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final label = budgetVm.spendingHistoryLabels[group.x.toInt()];
+                      final label =
+                          budgetVm.spendingHistoryLabels[group.x.toInt()];
                       return BarTooltipItem(
                         '$label\n\$${rod.toY.toStringAsFixed(0)}',
-                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       );
                     },
                   ),
@@ -75,8 +85,12 @@ class SpendingHistoryCard extends StatelessWidget {
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -99,7 +113,8 @@ class SpendingHistoryCard extends StatelessWidget {
                       reservedSize: 24,
                       getTitlesWidget: (value, meta) {
                         final idx = value.toInt();
-                        if (idx >= 0 && idx < budgetVm.spendingHistoryLabels.length) {
+                        if (idx >= 0 &&
+                            idx < budgetVm.spendingHistoryLabels.length) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Text(
@@ -117,13 +132,17 @@ class SpendingHistoryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: List.generate(budgetVm.spendingHistory.length, (index) {
+                barGroups: List.generate(budgetVm.spendingHistory.length, (
+                  index,
+                ) {
                   return BarChartGroupData(
                     x: index,
                     barRods: [
                       BarChartRodData(
                         toY: budgetVm.spendingHistory[index],
-                        color: isDark ? Colors.pink.shade300 : Colors.pinkAccent,
+                        color: isDark
+                            ? Colors.pink.shade300
+                            : Colors.pinkAccent,
                         width: 16,
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(color: borderColor, width: 1.2),

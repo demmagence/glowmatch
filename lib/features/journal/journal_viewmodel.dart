@@ -48,15 +48,12 @@ class JournalViewModel extends ChangeNotifier {
     _currentScore = (baseScore + (_currentStreak * 2)).clamp(1, 100);
   }
 
-  /// Pick photo from camera or gallery, upload to Supabase Storage, add journal entry.
-  /// Returns true on success, false on cancel/failure.
   Future<bool> pickAndUploadPhoto({
     required String userId,
     required ImageSource source,
     String notes = '',
   }) async {
     try {
-      // Step 1: Pick image
       final XFile? picked = await _picker.pickImage(
         source: source,
         imageQuality: 85,
@@ -64,18 +61,16 @@ class JournalViewModel extends ChangeNotifier {
         maxHeight: 1920,
       );
 
-      if (picked == null) return false; // User cancelled
+      if (picked == null) return false;
 
       _isUploading = true;
       notifyListeners();
 
-      // Step 2: Upload to Supabase Storage (or local path in offline mode)
       final String photoUrl = await _supabaseService.uploadJournalPhoto(
         userId: userId,
         localFilePath: picked.path,
       );
 
-      // Step 3: Build entry with current date
       final now = DateTime.now();
       final dateLabel = _formatDate(now);
       final entry = JournalEntry(
@@ -86,7 +81,6 @@ class JournalViewModel extends ChangeNotifier {
         notes: notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
       );
 
-      // Step 4: Persist entry to Supabase / mock store
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
       _entries.insert(0, addedEntry);
       _calculateCurrentScore();
@@ -110,13 +104,11 @@ class JournalViewModel extends ChangeNotifier {
       _isUploading = true;
       notifyListeners();
 
-      // Step 1: Upload to Supabase Storage (or local path in offline mode)
       final String photoUrl = await _supabaseService.uploadJournalPhoto(
         userId: userId,
         localFilePath: localFilePath,
       );
 
-      // Step 2: Build entry with current date
       final now = DateTime.now();
       final dateLabel = _formatDate(now);
       final entry = JournalEntry(
@@ -127,7 +119,6 @@ class JournalViewModel extends ChangeNotifier {
         notes: notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
       );
 
-      // Step 3: Persist entry to Supabase / mock store
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
       _entries.insert(0, addedEntry);
       _calculateCurrentScore();
@@ -158,7 +149,6 @@ class JournalViewModel extends ChangeNotifier {
     }
   }
 
-  /// Legacy method kept for backward compat (e.g. mocked entries)
   Future<void> addEntry({
     required String userId,
     required String photoPath,
@@ -186,15 +176,24 @@ class JournalViewModel extends ChangeNotifier {
 
   String _formatDate(DateTime dt) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}';
   }
 
   int _estimateScore() {
-    // Slight variance around current score for organic feel
-    final delta = (_entries.length % 3) - 1; // -1, 0, or +1
+    final delta = (_entries.length % 3) - 1;
     return (_currentScore + delta).clamp(1, 100);
   }
 }

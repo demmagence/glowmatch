@@ -37,7 +37,11 @@ class AllocationCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 32.0),
                 child: Column(
                   children: [
-                    Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade400),
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 48,
+                      color: Colors.grey.shade400,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       'No active products on your shelf to calculate allocations.',
@@ -49,7 +53,6 @@ class AllocationCard extends StatelessWidget {
               ),
             )
           else ...[
-            // Concentric Ring Canvas Chart
             Center(
               child: SizedBox(
                 width: 180,
@@ -86,7 +89,7 @@ class AllocationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            // Category Legend
+
             Wrap(
               spacing: 16,
               runSpacing: 10,

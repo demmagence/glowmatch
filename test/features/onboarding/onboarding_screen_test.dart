@@ -22,7 +22,8 @@ Widget _buildOnboarding() {
       ChangeNotifierProvider(create: (_) => ShelfViewModel()),
       ChangeNotifierProxyProvider<ShelfViewModel, BudgetViewModel>(
         create: (_) => BudgetViewModel(),
-        update: (_, shelf, budget) => budget!..updateFromShelf(shelf.shelfItems),
+        update: (_, shelf, budget) =>
+            budget!..updateFromShelf(shelf.shelfItems),
       ),
       ChangeNotifierProvider(create: (_) => ScannerViewModel()),
       ChangeNotifierProvider(create: (_) => JournalViewModel()),
@@ -68,15 +69,12 @@ void main() {
       await tester.pumpWidget(_buildOnboarding());
       await tester.pumpAndSettle();
 
-      // Page 1
       expect(find.text('Track Your Glow'), findsOneWidget);
 
-      // Swipe to page 2
       await tester.fling(find.byType(PageView), const Offset(-800, 0), 1000);
       await tester.pumpAndSettle();
       expect(find.text('Scan Ingredients'), findsOneWidget);
 
-      // Swipe to page 3
       await tester.fling(find.byType(PageView), const Offset(-800, 0), 1000);
       await tester.pumpAndSettle();
       expect(find.text('Smart Budget'), findsOneWidget);
@@ -129,14 +127,16 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Skip'));
-      // Use pump with duration instead of pumpAndSettle to avoid animation timeouts
+
       await tester.pump(const Duration(seconds: 1));
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(MainLayout), findsOneWidget);
     });
 
-    testWidgets('Get Started on last page navigates to MainLayout', (tester) async {
+    testWidgets('Get Started on last page navigates to MainLayout', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);

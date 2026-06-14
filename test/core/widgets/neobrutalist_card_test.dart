@@ -7,18 +7,16 @@ void main() {
     testWidgets('renders child content correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: NeobrutalistCard(
-              child: Text('Card Content'),
-            ),
-          ),
+          home: Scaffold(body: NeobrutalistCard(child: Text('Card Content'))),
         ),
       );
 
       expect(find.text('Card Content'), findsOneWidget);
     });
 
-    testWidgets('custom styling parameters are reflected', (WidgetTester tester) async {
+    testWidgets('custom styling parameters are reflected', (
+      WidgetTester tester,
+    ) async {
       const customBg = Colors.yellow;
       const customShadow = Colors.red;
       const customBorderRadius = 10.0;
@@ -45,12 +43,17 @@ void main() {
       final decoration = container.decoration as BoxDecoration;
 
       expect(decoration.color, equals(customBg));
-      expect(decoration.borderRadius, equals(BorderRadius.circular(customBorderRadius)));
+      expect(
+        decoration.borderRadius,
+        equals(BorderRadius.circular(customBorderRadius)),
+      );
       expect(decoration.border!.top.width, equals(customBorderWidth));
       expect(decoration.boxShadow!.first.color, equals(customShadow));
     });
 
-    testWidgets('triggers onTap callback when pressed', (WidgetTester tester) async {
+    testWidgets('triggers onTap callback when pressed', (
+      WidgetTester tester,
+    ) async {
       bool tapped = false;
 
       await tester.pumpWidget(

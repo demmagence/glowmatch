@@ -14,14 +14,17 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'YOUR_SUPABASE_URL');
-  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'YOUR_SUPABASE_ANON_KEY');
+  const supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'YOUR_SUPABASE_URL',
+  );
+  const supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'YOUR_SUPABASE_ANON_KEY',
+  );
 
   final supabaseService = SupabaseService();
-  await supabaseService.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
+  await supabaseService.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
   runApp(const GlowMatchApp());
 }
@@ -71,13 +74,19 @@ class GlowMatchApp extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: Colors.white,
                 iconTheme: const IconThemeData(color: Colors.black),
-                titleTextStyle: GoogleFonts.outfit(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                titleTextStyle: GoogleFonts.outfit(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 centerTitle: true,
               ),
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
-              textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+              textTheme: GoogleFonts.outfitTextTheme(
+                ThemeData.dark().textTheme,
+              ),
               brightness: Brightness.dark,
               colorScheme: ColorScheme.fromSeed(
                 brightness: Brightness.dark,
@@ -92,7 +101,11 @@ class GlowMatchApp extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: const Color(0xFF121212),
                 iconTheme: const IconThemeData(color: Colors.white),
-                titleTextStyle: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                titleTextStyle: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 centerTitle: true,
               ),
             ),

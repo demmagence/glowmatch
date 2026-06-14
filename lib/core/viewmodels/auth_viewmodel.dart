@@ -13,7 +13,10 @@ class AuthViewModel extends ChangeNotifier {
 
   String get userId => _currentUser?.id ?? 'offline-guest-user';
   bool get isGuest => _currentUser == null;
-  bool get isAnonymous => _currentUser == null || _currentUser?.email == null || _currentUser!.email!.isEmpty;
+  bool get isAnonymous =>
+      _currentUser == null ||
+      _currentUser?.email == null ||
+      _currentUser!.email!.isEmpty;
 
   AuthViewModel() {
     initSession();
@@ -70,7 +73,6 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       if (_supabaseService.isOfflineMode) {
-        // Mock linking email in offline mode
         _currentUser = User(
           id: userId,
           appMetadata: const {},
@@ -81,10 +83,7 @@ class AuthViewModel extends ChangeNotifier {
         );
       } else {
         final response = await Supabase.instance.client.auth.updateUser(
-          UserAttributes(
-            email: email,
-            password: password,
-          ),
+          UserAttributes(email: email, password: password),
         );
         _currentUser = response.user;
       }

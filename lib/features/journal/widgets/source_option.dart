@@ -25,7 +25,9 @@ class SourceOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade200),
+          border: Border.all(
+            color: isDark ? Colors.white12 : Colors.grey.shade200,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -37,7 +39,11 @@ class SourceOption extends StatelessWidget {
                 color: isDark ? Colors.white : Colors.black,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: isDark ? Colors.black : Colors.white, size: 22),
+              child: Icon(
+                icon,
+                color: isDark ? Colors.black : Colors.white,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 16),
             Column(
@@ -54,10 +60,7 @@ class SourceOption extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: subtextColor,
-                  ),
+                  style: TextStyle(fontSize: 12, color: subtextColor),
                 ),
               ],
             ),

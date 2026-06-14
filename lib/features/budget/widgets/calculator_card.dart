@@ -52,15 +52,28 @@ class CalculatorCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Product Selection Dropdown
-          Text('Select Product from Shelf', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtextColor)),
+          Text(
+            'Select Product from Shelf',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: subtextColor,
+            ),
+          ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             value: selectedProductId,
             dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontFamily: 'Outfit'),
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Outfit',
+            ),
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
               border: OutlineInputBorder(
                 borderSide: BorderSide(color: borderColor, width: 1.2),
                 borderRadius: BorderRadius.circular(4),
@@ -77,7 +90,13 @@ class CalculatorCard extends StatelessWidget {
             items: [
               DropdownMenuItem<String>(
                 value: 'custom',
-                child: Text('Custom values (no product)', style: TextStyle(fontStyle: FontStyle.italic, color: textColor)),
+                child: Text(
+                  'Custom values (no product)',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: textColor,
+                  ),
+                ),
               ),
               ...budgetVm.shelfItems.map((item) {
                 return DropdownMenuItem<String>(
@@ -93,8 +112,14 @@ class CalculatorCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Price Input
-          Text('Product Price', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtextColor)),
+          Text(
+            'Product Price',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: subtextColor,
+            ),
+          ),
           const SizedBox(height: 6),
           TextField(
             controller: priceController,
@@ -102,7 +127,10 @@ class CalculatorCard extends StatelessWidget {
             decoration: InputDecoration(
               prefixText: '\$ ',
               prefixStyle: TextStyle(color: textColor),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderSide: BorderSide(color: borderColor, width: 1.2),
                 borderRadius: BorderRadius.circular(4),
@@ -121,14 +149,23 @@ class CalculatorCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Estimated Uses Input
-          Text('Estimated Uses', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtextColor)),
+          Text(
+            'Estimated Uses',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: subtextColor,
+            ),
+          ),
           const SizedBox(height: 6),
           TextField(
             controller: usesController,
             style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderSide: BorderSide(color: borderColor, width: 1.2),
                 borderRadius: BorderRadius.circular(4),
@@ -150,7 +187,6 @@ class CalculatorCard extends StatelessWidget {
           Divider(color: isDark ? Colors.white24 : Colors.grey.shade300),
           const SizedBox(height: 16),
 
-          // Efficiency Metric output
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -190,7 +226,6 @@ class CalculatorCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Efficiency Bar
           Container(
             width: double.infinity,
             height: 6,
@@ -200,7 +235,10 @@ class CalculatorCard extends StatelessWidget {
             ),
             alignment: Alignment.centerLeft,
             child: FractionallySizedBox(
-              widthFactor: (1.5 / (budgetVm.efficiencyMetric + 0.1)).clamp(0.1, 1.0),
+              widthFactor: (1.5 / (budgetVm.efficiencyMetric + 0.1)).clamp(
+                0.1,
+                1.0,
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.pink.shade500,

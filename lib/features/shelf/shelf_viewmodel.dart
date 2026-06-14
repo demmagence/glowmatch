@@ -17,7 +17,6 @@ class ShelfViewModel extends ChangeNotifier {
   String get selectedCategoryFilter => _selectedCategoryFilter;
   String get searchQuery => _searchQuery;
 
-  // Filtered shelf items based on selection and search query
   List<ShelfItem> get filteredItems {
     Iterable<ShelfItem> items = _shelfItems;
     if (_selectedCategoryFilter != 'All') {
@@ -25,9 +24,11 @@ class ShelfViewModel extends ChangeNotifier {
     }
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
-      items = items.where((item) =>
-          item.name.toLowerCase().contains(query) ||
-          item.brand.toLowerCase().contains(query));
+      items = items.where(
+        (item) =>
+            item.name.toLowerCase().contains(query) ||
+            item.brand.toLowerCase().contains(query),
+      );
     }
     return items.toList();
   }
@@ -183,4 +184,3 @@ class ShelfViewModel extends ChangeNotifier {
     }
   }
 }
-

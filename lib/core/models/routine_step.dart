@@ -1,6 +1,6 @@
 class RoutineStep {
   final String id;
-  final String routineType; // 'AM' or 'PM'
+  final String routineType;
   final int stepNumber;
   final String name;
   final String? description;

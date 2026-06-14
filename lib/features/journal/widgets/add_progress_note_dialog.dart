@@ -31,7 +31,6 @@ void showAddProgressNoteDialog({
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Image preview
               Container(
                 width: double.infinity,
                 height: 160,
@@ -41,10 +40,7 @@ void showAddProgressNoteDialog({
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(2.5),
-                  child: Image.file(
-                    File(pickedPath),
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.file(File(pickedPath), fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(height: 16),
@@ -87,7 +83,7 @@ void showAddProgressNoteDialog({
               ),
             ),
             onPressed: () async {
-              Navigator.pop(dialogContext); // dismiss dialog
+              Navigator.pop(dialogContext);
 
               final notesText = notesController.text.trim();
               final success = await vm.addJournalEntryWithPhoto(
@@ -102,7 +98,9 @@ void showAddProgressNoteDialog({
                     SnackBar(
                       content: Text(
                         '📸 Skin log uploaded! Score updated.',
-                        style: TextStyle(color: isDark ? Colors.black : Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.black : Colors.white,
+                        ),
                       ),
                       backgroundColor: isDark ? Colors.white : Colors.black,
                     ),
@@ -112,7 +110,9 @@ void showAddProgressNoteDialog({
                     SnackBar(
                       content: Text(
                         'Upload failed. Try again.',
-                        style: TextStyle(color: isDark ? Colors.black : Colors.white),
+                        style: TextStyle(
+                          color: isDark ? Colors.black : Colors.white,
+                        ),
                       ),
                       backgroundColor: isDark ? Colors.white : Colors.black,
                     ),
@@ -120,7 +120,10 @@ void showAddProgressNoteDialog({
                 }
               }
             },
-            child: const Text('Log Progress', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Log Progress',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       );

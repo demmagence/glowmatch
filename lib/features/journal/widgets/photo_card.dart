@@ -21,13 +21,19 @@ class PhotoCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      child: Icon(Icons.face, color: isDark ? Colors.grey.shade600 : Colors.grey, size: 40),
+      child: Icon(
+        Icons.face,
+        color: isDark ? Colors.grey.shade600 : Colors.grey,
+        size: 40,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isLocalFile = (entry.photoPath?.startsWith('/') ?? false) || (entry.photoPath?.startsWith('C:') ?? false);
+    final bool isLocalFile =
+        (entry.photoPath?.startsWith('/') ?? false) ||
+        (entry.photoPath?.startsWith('C:') ?? false);
     final bool isNetwork = entry.photoPath?.startsWith('http') ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -48,7 +54,9 @@ class PhotoCard extends StatelessWidget {
         height: 190,
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? Colors.pinkAccent : (isDark ? Colors.white30 : Colors.black),
+            color: isSelected
+                ? Colors.pinkAccent
+                : (isDark ? Colors.white30 : Colors.black),
             width: isSelected ? 2.5 : 1.2,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -56,25 +64,25 @@ class PhotoCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Photo
             ClipRRect(
               borderRadius: BorderRadius.circular(2.5),
               child: isLocalFile
                   ? Image.file(
                       File(entry.photoPath!),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) => _photoPlaceholder(context),
+                      errorBuilder: (context, error, stack) =>
+                          _photoPlaceholder(context),
                     )
                   : isNetwork
-                      ? Image.network(
-                          entry.photoPath!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) => _photoPlaceholder(context),
-                        )
-                      : _photoPlaceholder(context),
+                  ? Image.network(
+                      entry.photoPath!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) =>
+                          _photoPlaceholder(context),
+                    )
+                  : _photoPlaceholder(context),
             ),
 
-            // Notes Overlay snippet if notes exist
             if (entry.notes != null && entry.notes!.isNotEmpty)
               Positioned(
                 top: 8,
@@ -85,7 +93,10 @@ class PhotoCard extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   child: Text(
                     entry.notes!,
                     style: const TextStyle(
@@ -99,14 +110,16 @@ class PhotoCard extends StatelessWidget {
                 ),
               ),
 
-            // Date overlay bottom-left
             Positioned(
               bottom: 10,
               left: 10,
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  border: Border.all(color: isDark ? Colors.white30 : Colors.black, width: 1),
+                  border: Border.all(
+                    color: isDark ? Colors.white30 : Colors.black,
+                    width: 1,
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 child: Text(
@@ -120,14 +133,18 @@ class PhotoCard extends StatelessWidget {
               ),
             ),
 
-            // Score overlay bottom-right
             Positioned(
               bottom: 10,
               right: 10,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.pink.shade900.withValues(alpha: 0.4) : Colors.pink.shade50,
-                  border: Border.all(color: isDark ? Colors.white30 : Colors.black, width: 1),
+                  color: isDark
+                      ? Colors.pink.shade900.withValues(alpha: 0.4)
+                      : Colors.pink.shade50,
+                  border: Border.all(
+                    color: isDark ? Colors.white30 : Colors.black,
+                    width: 1,
+                  ),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -142,7 +159,6 @@ class PhotoCard extends StatelessWidget {
               ),
             ),
 
-            // Selection Circle Indicator
             if (isCompareMode)
               Positioned(
                 top: 8,
@@ -152,8 +168,15 @@ class PhotoCard extends StatelessWidget {
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? Colors.pinkAccent : (isDark ? Colors.black.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8)),
-                    border: Border.all(color: isDark ? Colors.white : Colors.black, width: 1.5),
+                    color: isSelected
+                        ? Colors.pinkAccent
+                        : (isDark
+                              ? Colors.black.withValues(alpha: 0.8)
+                              : Colors.white.withValues(alpha: 0.8)),
+                    border: Border.all(
+                      color: isDark ? Colors.white : Colors.black,
+                      width: 1.5,
+                    ),
                   ),
                   child: isSelected
                       ? const Icon(Icons.check, color: Colors.white, size: 14)

@@ -13,7 +13,11 @@ import 'widgets/add_product_dialog.dart';
 class ShelfScreen extends StatefulWidget {
   final List<String>? initialIngredientsToPreFill;
   final VoidCallback? onClearPreFill;
-  const ShelfScreen({super.key, this.initialIngredientsToPreFill, this.onClearPreFill});
+  const ShelfScreen({
+    super.key,
+    this.initialIngredientsToPreFill,
+    this.onClearPreFill,
+  });
 
   @override
   State<ShelfScreen> createState() => _ShelfScreenState();
@@ -43,7 +47,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
   void didUpdateWidget(covariant ShelfScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialIngredientsToPreFill != null &&
-        widget.initialIngredientsToPreFill != oldWidget.initialIngredientsToPreFill) {
+        widget.initialIngredientsToPreFill !=
+            oldWidget.initialIngredientsToPreFill) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showAddProductDialog(
           context,
@@ -75,11 +80,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
         color: bg,
         border: Border.all(color: border, width: 2),
         boxShadow: [
-          BoxShadow(
-            color: shadow,
-            offset: const Offset(4, 4),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: shadow, offset: const Offset(4, 4), blurRadius: 0),
         ],
         borderRadius: BorderRadius.circular(8),
       ),
@@ -89,7 +90,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
         style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
         decoration: InputDecoration(
           hintText: 'Search products by name or brand...',
-          hintStyle: TextStyle(color: isDark ? Colors.grey.shade600 : Colors.grey.shade400, fontWeight: FontWeight.w500),
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            fontWeight: FontWeight.w500,
+          ),
           prefixIcon: Icon(Icons.search, color: iconColor),
           suffixIcon: shelfVm.searchQuery.isNotEmpty
               ? IconButton(
@@ -101,7 +105,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -124,15 +131,12 @@ class _ShelfScreenState extends State<ShelfScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: GlowMatch.
               const GlowMatchHeader(),
               const SizedBox(height: 24),
 
-              // Search Bar
               _buildSearchBar(context, shelfVm),
               const SizedBox(height: 24),
 
-              // Title and FILTER Action
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -151,7 +155,10 @@ class _ShelfScreenState extends State<ShelfScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                     onPressed: () => showFilterDialog(context, shelfVm),
                     child: const Text(
@@ -167,7 +174,6 @@ class _ShelfScreenState extends State<ShelfScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Products Grid or loading/error
               if (shelfVm.errorMessage != null)
                 ErrorStateWidget(
                   message: shelfVm.errorMessage!,
@@ -190,7 +196,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: shelfVm.filteredItems.length + 1, // +1 for the Add New Card
+                  itemCount: shelfVm.filteredItems.length + 1,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 0.72,
@@ -199,17 +205,24 @@ class _ShelfScreenState extends State<ShelfScreen> {
                   ),
                   itemBuilder: (context, index) {
                     if (index == shelfVm.filteredItems.length) {
-                      // Add Skincare Card
                       return NeobrutalistCard(
-                        shadowColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade300,
-                        onTap: () => showAddProductDialog(context, authVm.userId, shelfVm),
+                        shadowColor: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.grey.shade300,
+                        onTap: () => showAddProductDialog(
+                          context,
+                          authVm.userId,
+                          shelfVm,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.add, size: 48, color: textColor),
                             const SizedBox(height: 16),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                              ),
                               child: Text(
                                 'tekan untuk tambah skincare baru',
                                 textAlign: TextAlign.center,

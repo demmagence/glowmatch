@@ -23,7 +23,10 @@ class SkeletonCard extends StatelessWidget {
                 child: SizedBox(
                   width: 24,
                   height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.grey,
+                  ),
                 ),
               ),
             ),
@@ -33,17 +36,9 @@ class SkeletonCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 80,
-                  height: 14,
-                  color: block1,
-                ),
+                Container(width: 80, height: 14, color: block1),
                 const SizedBox(height: 6),
-                Container(
-                  width: 50,
-                  height: 10,
-                  color: block2,
-                ),
+                Container(width: 50, height: 10, color: block2),
               ],
             ),
           ),

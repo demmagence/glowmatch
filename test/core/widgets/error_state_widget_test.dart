@@ -4,13 +4,13 @@ import 'package:glowmatch/core/widgets/error_state_widget.dart';
 
 void main() {
   group('ErrorStateWidget Widget Tests', () {
-    testWidgets('renders message and default icon without retry button', (WidgetTester tester) async {
+    testWidgets('renders message and default icon without retry button', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: ErrorStateWidget(
-              message: 'Something went wrong',
-            ),
+            body: ErrorStateWidget(message: 'Something went wrong'),
           ),
         ),
       );
@@ -20,7 +20,9 @@ void main() {
       expect(find.byType(ElevatedButton), findsNothing);
     });
 
-    testWidgets('renders title and optional retry button', (WidgetTester tester) async {
+    testWidgets('renders title and optional retry button', (
+      WidgetTester tester,
+    ) async {
       bool retryClicked = false;
 
       await tester.pumpWidget(

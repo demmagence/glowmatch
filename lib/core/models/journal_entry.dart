@@ -1,6 +1,6 @@
 class JournalEntry {
   final String id;
-  final String loggedDate; // e.g., 'Today', 'Oct 24', etc.
+  final String loggedDate;
   final int skinScore;
   final String? photoPath;
   final String? notes;

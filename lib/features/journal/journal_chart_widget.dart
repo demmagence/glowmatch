@@ -18,7 +18,20 @@ class JournalChartWidget extends StatelessWidget {
       final dayStr = parts[1];
       final day = int.tryParse(dayStr) ?? 1;
       int month = now.month;
-      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const months = [
+        'jan',
+        'feb',
+        'mar',
+        'apr',
+        'may',
+        'jun',
+        'jul',
+        'aug',
+        'sep',
+        'oct',
+        'nov',
+        'dec',
+      ];
       final idx = months.indexOf(monthStr);
       if (idx != -1) {
         month = idx + 1;
@@ -35,9 +48,10 @@ class JournalChartWidget extends StatelessWidget {
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final borderCol = isDark ? Colors.white : Colors.black;
-    final shadowCol = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowCol = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
 
-    // 1. Filter last 30 days
     final now = DateTime.now();
     final thirtyDaysAgo = now.subtract(const Duration(days: 30));
     final filtered = entries.where((entry) {
@@ -45,8 +59,11 @@ class JournalChartWidget extends StatelessWidget {
       return date.isAfter(thirtyDaysAgo);
     }).toList();
 
-    // 2. Sort chronologically
-    filtered.sort((a, b) => _parseLoggedDate(a.loggedDate).compareTo(_parseLoggedDate(b.loggedDate)));
+    filtered.sort(
+      (a, b) => _parseLoggedDate(
+        a.loggedDate,
+      ).compareTo(_parseLoggedDate(b.loggedDate)),
+    );
 
     if (filtered.isEmpty) {
       return Container(
@@ -66,7 +83,11 @@ class JournalChartWidget extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(Icons.show_chart, size: 48, color: isDark ? Colors.grey.shade600 : Colors.grey),
+            Icon(
+              Icons.show_chart,
+              size: 48,
+              color: isDark ? Colors.grey.shade600 : Colors.grey,
+            ),
             const SizedBox(height: 12),
             Text(
               'No progress data for the last 30 days.',
@@ -79,23 +100,18 @@ class JournalChartWidget extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Upload progress photos to see your trend! 📈',
-              style: TextStyle(
-                fontSize: 12,
-                color: subtextColor,
-              ),
+              style: TextStyle(fontSize: 12, color: subtextColor),
             ),
           ],
         ),
       );
     }
 
-    // Convert entries to FlSpots
     final List<FlSpot> spots = [];
     for (int i = 0; i < filtered.length; i++) {
       spots.add(FlSpot(i.toDouble(), filtered[i].skinScore.toDouble()));
     }
 
-    // Determine Y-axis limits
     double minY = 0;
     double maxY = 100;
 
@@ -129,7 +145,11 @@ class JournalChartWidget extends StatelessWidget {
                   final entry = filtered[spot.spotIndex];
                   return LineTooltipItem(
                     '${entry.loggedDate}\nScore: ${entry.skinScore}',
-                    const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   );
                 }).toList();
               },
@@ -158,8 +178,12 @@ class JournalChartWidget extends StatelessWidget {
           ),
           titlesData: FlTitlesData(
             show: true,
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -185,11 +209,12 @@ class JournalChartWidget extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   final idx = value.toInt();
                   if (idx >= 0 && idx < filtered.length) {
-                    // Only show first, last, and middle dates to avoid clutter
-                    final showLabel = filtered.length <= 4 ||
+                    final showLabel =
+                        filtered.length <= 4 ||
                         idx == 0 ||
                         idx == filtered.length - 1 ||
-                        (filtered.length > 2 && idx == (filtered.length / 2).floor());
+                        (filtered.length > 2 &&
+                            idx == (filtered.length / 2).floor());
 
                     if (showLabel) {
                       return Padding(

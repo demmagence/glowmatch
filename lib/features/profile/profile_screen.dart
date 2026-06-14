@@ -34,7 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context, profileVm, child) {
           final isDark = themeVm.isDarkMode;
           final borderColor = isDark ? Colors.white : Colors.black;
-          final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+          final shadowColor = isDark
+              ? Colors.white.withValues(alpha: 0.15)
+              : Colors.black;
           final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
           return Scaffold(
@@ -49,10 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1.0),
-                child: Container(
-                  color: borderColor,
-                  height: 1.2,
-                ),
+                child: Container(color: borderColor, height: 1.2),
               ),
             ),
             body: SingleChildScrollView(
@@ -60,7 +59,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- User Profile Header Card ---
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -107,23 +105,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               : (authVm.currentUser?.email ?? ''),
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                            color: isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         if (authVm.isAnonymous) ...[
                           const SizedBox(height: 16),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.amber.shade100,
-                              border: Border.all(color: borderColor, width: 1.5),
+                              border: Border.all(
+                                color: borderColor,
+                                width: 1.5,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 18),
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.amber,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Guest Account (Data is temporary)',
@@ -142,7 +152,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // --- Account Security Section ---
                   if (authVm.isAnonymous) ...[
                     Text(
                       'Secure Your Account',
@@ -175,7 +184,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               'Link an email and password to avoid losing your skincare shelf and routines.',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isDark ? Colors.grey.shade300 : Colors.grey.shade600,
+                                color: isDark
+                                    ? Colors.grey.shade300
+                                    : Colors.grey.shade600,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -185,18 +196,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Email Address',
                                 filled: true,
-                                fillColor: isDark ? Colors.black38 : Colors.grey.shade50,
+                                fillColor: isDark
+                                    ? Colors.black38
+                                    : Colors.grey.shade50,
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: borderColor, width: 1.5),
+                                  borderSide: BorderSide(
+                                    color: borderColor,
+                                    width: 1.5,
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: isDark ? Colors.pinkAccent : Colors.pink, width: 2.0),
+                                  borderSide: BorderSide(
+                                    color: isDark
+                                        ? Colors.pinkAccent
+                                        : Colors.pink,
+                                    width: 2.0,
+                                  ),
                                 ),
-                                labelStyle: TextStyle(color: isDark ? Colors.grey.shade300 : Colors.black54),
+                                labelStyle: TextStyle(
+                                  color: isDark
+                                      ? Colors.grey.shade300
+                                      : Colors.black54,
+                                ),
                               ),
-                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
                               validator: (value) {
-                                if (value == null || value.isEmpty || !value.contains('@')) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    !value.contains('@')) {
                                   return 'Enter a valid email address';
                                 }
                                 return null;
@@ -209,16 +238,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Password',
                                 filled: true,
-                                fillColor: isDark ? Colors.black38 : Colors.grey.shade50,
+                                fillColor: isDark
+                                    ? Colors.black38
+                                    : Colors.grey.shade50,
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: borderColor, width: 1.5),
+                                  borderSide: BorderSide(
+                                    color: borderColor,
+                                    width: 1.5,
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: isDark ? Colors.pinkAccent : Colors.pink, width: 2.0),
+                                  borderSide: BorderSide(
+                                    color: isDark
+                                        ? Colors.pinkAccent
+                                        : Colors.pink,
+                                    width: 2.0,
+                                  ),
                                 ),
-                                labelStyle: TextStyle(color: isDark ? Colors.grey.shade300 : Colors.black54),
+                                labelStyle: TextStyle(
+                                  color: isDark
+                                      ? Colors.grey.shade300
+                                      : Colors.black54,
+                                ),
                               ),
-                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
                               validator: (value) {
                                 if (value == null || value.length < 6) {
                                   return 'Password must be at least 6 characters';
@@ -230,7 +275,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const SizedBox(height: 12),
                               Text(
                                 profileVm.errorMessage!,
-                                style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                             const SizedBox(height: 20),
@@ -239,11 +288,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               height: 48,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: isDark ? Colors.pinkAccent : Colors.black,
+                                  backgroundColor: isDark
+                                      ? Colors.pinkAccent
+                                      : Colors.black,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(color: borderColor, width: 1.5),
+                                    side: BorderSide(
+                                      color: borderColor,
+                                      width: 1.5,
+                                    ),
                                   ),
                                   elevation: 0,
                                 ),
@@ -251,14 +305,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ? null
                                     : () async {
                                         if (_formKey.currentState!.validate()) {
-                                          final success = await profileVm.linkEmail(
-                                            _emailController.text.trim(),
-                                            _passwordController.text,
-                                          );
+                                          final success = await profileVm
+                                              .linkEmail(
+                                                _emailController.text.trim(),
+                                                _passwordController.text,
+                                              );
                                           if (success && context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
                                               const SnackBar(
-                                                content: Text('Account successfully secured!'),
+                                                content: Text(
+                                                  'Account successfully secured!',
+                                                ),
                                                 backgroundColor: Colors.green,
                                               ),
                                             );
@@ -269,11 +328,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ? const SizedBox(
                                         height: 20,
                                         width: 20,
-                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.0,
+                                        ),
                                       )
                                     : const Text(
                                         'Link Email Account',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                               ),
                             ),
@@ -284,7 +348,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 32),
                   ],
 
-                  // --- App Settings Section ---
                   Text(
                     'App Settings',
                     style: TextStyle(
@@ -306,10 +369,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
                     child: Column(
                       children: [
-                        // Dark Mode Setting
                         SwitchListTile(
                           title: Text(
                             'Dark Mode',
@@ -320,17 +385,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           subtitle: Text(
                             'Toggle app-wide dark theme',
-                            style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                            ),
                           ),
                           value: isDark,
-                          activeThumbColor: isDark ? Colors.pinkAccent : Colors.pink,
-                          activeTrackColor: isDark ? Colors.pinkAccent.withValues(alpha: 0.5) : Colors.pink.withValues(alpha: 0.5),
+                          activeThumbColor: isDark
+                              ? Colors.pinkAccent
+                              : Colors.pink,
+                          activeTrackColor: isDark
+                              ? Colors.pinkAccent.withValues(alpha: 0.5)
+                              : Colors.pink.withValues(alpha: 0.5),
                           onChanged: (value) {
                             themeVm.toggleThemeMode(value);
                           },
                         ),
                         Divider(color: borderColor, thickness: 1.0),
-                        // Notifications Setting
+
                         SwitchListTile(
                           title: Text(
                             'Push Notifications',
@@ -341,11 +414,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           subtitle: Text(
                             'AM/PM routine reminders',
-                            style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                            ),
                           ),
                           value: profileVm.isNotificationsEnabled,
-                          activeThumbColor: isDark ? Colors.pinkAccent : Colors.pink,
-                          activeTrackColor: isDark ? Colors.pinkAccent.withValues(alpha: 0.5) : Colors.pink.withValues(alpha: 0.5),
+                          activeThumbColor: isDark
+                              ? Colors.pinkAccent
+                              : Colors.pink,
+                          activeTrackColor: isDark
+                              ? Colors.pinkAccent.withValues(alpha: 0.5)
+                              : Colors.pink.withValues(alpha: 0.5),
                           onChanged: (value) {
                             profileVm.toggleNotifications(value);
                           },
@@ -355,7 +436,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // --- Sign Out Button ---
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -365,7 +445,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        backgroundColor: isDark ? const Color(0xFF331010) : Colors.red.shade50,
+                        backgroundColor: isDark
+                            ? const Color(0xFF331010)
+                            : Colors.red.shade50,
                         foregroundColor: Colors.red,
                       ),
                       onPressed: () => _showSignOutDialog(context, authVm),
@@ -376,7 +458,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           SizedBox(width: 8),
                           Text(
                             'Sign Out',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ],
                       ),
@@ -384,13 +469,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 48),
 
-                  // --- App Version Info ---
                   Center(
                     child: Text(
                       'GlowMatch v0.1.0+1',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                        color: isDark
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade400,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -418,7 +504,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(color: borderColor, width: 2.0),
           ),
-          backgroundColor: themeVm.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+          backgroundColor: themeVm.isDarkMode
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           title: Text(
             'Confirm Sign Out',
             style: TextStyle(
@@ -430,7 +518,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             isAnonymous
                 ? 'Warning: You are currently using a Guest account. Signing out will permanently delete your skincare shelf and routines. Are you sure you want to sign out?'
                 : 'Are you sure you want to sign out of your account?',
-            style: TextStyle(color: themeVm.isDarkMode ? Colors.grey.shade300 : Colors.black87),
+            style: TextStyle(
+              color: themeVm.isDarkMode ? Colors.grey.shade300 : Colors.black87,
+            ),
           ),
           actions: [
             TextButton(
@@ -453,10 +543,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               onPressed: () async {
-                Navigator.pop(dialogContext); // Close dialog
+                Navigator.pop(dialogContext);
                 await authVm.signOut();
                 if (mounted) {
-                  // After sign out, login anonymously again to keep app running
                   await authVm.loginAnonymously();
                   if (mounted) {
                     ScaffoldMessenger.of(this.context).showSnackBar(
@@ -468,7 +557,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 }
               },
-              child: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Sign Out',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
