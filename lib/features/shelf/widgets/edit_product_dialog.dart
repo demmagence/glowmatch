@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
-import '../../../core/constants.dart';
 import '../../../core/viewmodels/auth_viewmodel.dart';
 import '../shelf_viewmodel.dart';
 import 'product_image.dart';
@@ -250,18 +249,24 @@ void showEditProductDialog(
                         ),
                       ),
                     ),
-                    items: SkincareCategory.values
-                        .map((e) => e.displayName)
-                        .map((cat) {
-                          return DropdownMenuItem(
-                            value: cat,
-                            child: Text(
-                              cat,
-                              style: TextStyle(color: textColor),
-                            ),
-                          );
-                        })
-                        .toList(),
+                    items: () {
+                      final list = vm.categories.map((c) => c.name).toList();
+                      if (!list.contains(selectedCategory)) {
+                        list.add(selectedCategory);
+                      }
+                      if (list.isEmpty) {
+                        list.add('Serum');
+                      }
+                      return list.map((cat) {
+                        return DropdownMenuItem(
+                          value: cat,
+                          child: Text(
+                            cat,
+                            style: TextStyle(color: textColor),
+                          ),
+                        );
+                      }).toList();
+                    }(),
                     onChanged: (val) {
                       if (val != null) {
                         setDialogState(() => selectedCategory = val);
@@ -408,12 +413,11 @@ void showEditProductDialog(
                 ),
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
-                    String hexColor = item.indicatorColor;
-                    if (selectedCategory != item.category) {
-                      hexColor =
-                          AppConstants.categoryColors[selectedCategory] ??
-                          '0xFFE040FB';
-                    }
+                    final matchingCategory = vm.categories.firstWhere(
+                      (c) => c.name.toLowerCase() == selectedCategory.toLowerCase(),
+                      orElse: () => SkincareCategory(id: '', name: selectedCategory, color: item.indicatorColor),
+                    );
+                    String hexColor = matchingCategory.color;
 
                     final ingList = ingredientsController.text
                         .split(',')

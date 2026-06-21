@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../core/constants.dart';
+import '../../../core/models/models.dart';
 import '../shelf_viewmodel.dart';
 
 void showAddProductDialog(
@@ -18,7 +18,7 @@ void showAddProductDialog(
   final ingredientsController = TextEditingController(
     text: preFilledIngredients != null ? preFilledIngredients.join(', ') : '',
   );
-  String selectedCategory = 'Serum';
+  String selectedCategory = vm.categories.isNotEmpty ? vm.categories.first.name : 'Serum';
   String? localImagePath;
 
   final ImagePicker picker = ImagePicker();
@@ -238,18 +238,25 @@ void showAddProductDialog(
                         ),
                       ),
                     ),
-                    items: SkincareCategory.values
-                        .map((e) => e.displayName)
-                        .map((cat) {
-                          return DropdownMenuItem(
-                            value: cat,
-                            child: Text(
-                              cat,
-                              style: TextStyle(color: textColor),
-                            ),
-                          );
-                        })
-                        .toList(),
+                    items: vm.categories.isEmpty
+                        ? [
+                            DropdownMenuItem(
+                              value: 'Serum',
+                              child: Text(
+                                'Serum',
+                                style: TextStyle(color: textColor),
+                              ),
+                            )
+                          ]
+                        : vm.categories.map((cat) {
+                            return DropdownMenuItem(
+                              value: cat.name,
+                              child: Text(
+                                cat.name,
+                                style: TextStyle(color: textColor),
+                              ),
+                            );
+                          }).toList(),
                     onChanged: (val) {
                       if (val != null) {
                         setDialogState(() => selectedCategory = val);
@@ -373,9 +380,11 @@ void showAddProductDialog(
                 ),
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
-                    String hexColor =
-                        AppConstants.categoryColors[selectedCategory] ??
-                        '0xFFE040FB';
+                    final matchingCategory = vm.categories.firstWhere(
+                      (c) => c.name.toLowerCase() == selectedCategory.toLowerCase(),
+                      orElse: () => SkincareCategory(id: '', name: selectedCategory, color: '0xFFE040FB'),
+                    );
+                    String hexColor = matchingCategory.color;
 
                     final ingList = ingredientsController.text
                         .split(',')
