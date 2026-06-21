@@ -7,9 +7,7 @@ class NotificationService {
   @visibleForTesting
   NotificationService.internal();
 
-  static NotificationService _instance = NotificationService.internal();
-  static NotificationService get instance => _instance;
-  static set instance(NotificationService value) => _instance = value;
+  static NotificationService instance = NotificationService.internal();
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
