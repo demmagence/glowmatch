@@ -305,9 +305,16 @@ class HomeScreen extends StatelessWidget {
                         key: ValueKey('inner_${step.id}'),
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          border: Border.all(color: textColor, width: 1.2),
+                          border: Border.all(
+                            color: isCompleted
+                                ? (isDark ? Colors.grey.shade800 : Colors.grey.shade300)
+                                : textColor,
+                            width: 1.2,
+                          ),
                           borderRadius: BorderRadius.circular(8),
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                          color: isCompleted
+                              ? (isDark ? Colors.grey.shade900 : Colors.grey.shade100)
+                              : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
                         ),
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -318,7 +325,9 @@ class HomeScreen extends StatelessWidget {
                                 padding: const EdgeInsets.only(right: 12.0),
                                 child: Icon(
                                   Icons.drag_handle,
-                                  color: subtextColor,
+                                  color: isCompleted
+                                      ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                                      : subtextColor,
                                   size: 20,
                                 ),
                               ),
@@ -356,11 +365,13 @@ class HomeScreen extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: textColor,
+                                    color: isCompleted
+                                        ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                                        : textColor,
                                     width: 1.5,
                                   ),
                                   color: isCompleted
-                                      ? textColor
+                                      ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
                                       : Colors.transparent,
                                 ),
                                 child: isCompleted
@@ -413,7 +424,9 @@ class HomeScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: textColor,
+                                        color: isCompleted
+                                            ? (isDark ? Colors.grey.shade600 : Colors.grey.shade500)
+                                            : textColor,
                                         decoration: isCompleted
                                             ? TextDecoration.lineThrough
                                             : null,
@@ -426,7 +439,9 @@ class HomeScreen extends StatelessWidget {
                                         step.description!,
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: subtextColor,
+                                          color: isCompleted
+                                              ? (isDark ? Colors.grey.shade700 : Colors.grey.shade500)
+                                              : subtextColor,
                                         ),
                                       ),
                                     ],
@@ -437,7 +452,9 @@ class HomeScreen extends StatelessWidget {
                                           Icon(
                                             Icons.link,
                                             size: 12,
-                                            color: stepBadgeText,
+                                            color: isCompleted
+                                                ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                                                : stepBadgeText,
                                           ),
                                           const SizedBox(width: 4),
                                           Expanded(
@@ -445,7 +462,9 @@ class HomeScreen extends StatelessWidget {
                                               '${linkedProduct.brand} - ${linkedProduct.name} (${linkedProduct.remainingUses} left)',
                                               style: TextStyle(
                                                 fontSize: 11,
-                                                color: stepBadgeText,
+                                                color: isCompleted
+                                                    ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                                                    : stepBadgeText,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                               overflow: TextOverflow.ellipsis,
@@ -467,9 +486,11 @@ class HomeScreen extends StatelessWidget {
                                   'Step ${index + 1}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark
-                                        ? Colors.grey.shade500
-                                        : Colors.grey.shade400,
+                                    color: isCompleted
+                                        ? (isDark ? Colors.grey.shade700 : Colors.grey.shade500)
+                                        : (isDark
+                                            ? Colors.grey.shade500
+                                            : Colors.grey.shade400),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -477,7 +498,9 @@ class HomeScreen extends StatelessWidget {
                                 IconButton(
                                   icon: Icon(
                                     Icons.edit_outlined,
-                                    color: subtextColor,
+                                    color: isCompleted
+                                        ? (isDark ? Colors.grey.shade700 : Colors.grey.shade400)
+                                        : subtextColor,
                                     size: 18,
                                   ),
                                   padding: EdgeInsets.zero,

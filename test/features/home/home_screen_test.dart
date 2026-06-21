@@ -115,5 +115,31 @@ void main() {
         expect(morningRoutineText.style?.color, equals(Colors.white));
       },
     );
+
+    testWidgets('completed step card displays checkmark and grey state styling', (tester) async {
+      final vm = RoutineViewModel();
+      await vm.loadRoutines('test-user');
+      final stepId = vm.currentSteps.first.id;
+
+      await tester.pumpWidget(_buildHome(vm));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final containerFinder = find.byKey(ValueKey('inner_$stepId'));
+      expect(containerFinder, findsOneWidget);
+
+      Container container = tester.widget<Container>(containerFinder);
+      BoxDecoration decoration = container.decoration as BoxDecoration;
+      expect(decoration.color, equals(Colors.white));
+
+      // Tap on the step text to toggle/complete it
+      await tester.tap(find.text('Gentle Cleanser'));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      container = tester.widget<Container>(containerFinder);
+      decoration = container.decoration as BoxDecoration;
+      expect(decoration.color, equals(Colors.grey.shade100));
+      expect((decoration.border as Border).top.color, equals(Colors.grey.shade300));
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
   });
 }
