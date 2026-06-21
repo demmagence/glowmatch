@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/features/profile/profile_viewmodel.dart';
 import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
+import 'package:glowmatch/core/services/notification_service.dart';
 
 class _FakeAuthViewModel extends AuthViewModel {
   bool shouldThrow = false;
@@ -18,6 +20,28 @@ class _FakeAuthViewModel extends AuthViewModel {
   }
 }
 
+class MockNotificationService extends NotificationService {
+  MockNotificationService() : super.internal();
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<void> scheduleAmReminder(TimeOfDay time) async {}
+
+  @override
+  Future<void> schedulePmReminder(TimeOfDay time) async {}
+
+  @override
+  Future<void> cancelAmReminder() async {}
+
+  @override
+  Future<void> cancelPmReminder() async {}
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -25,6 +49,7 @@ void main() {
   late _FakeAuthViewModel fakeAuth;
 
   setUp(() {
+    NotificationService.instance = MockNotificationService();
     SharedPreferences.setMockInitialValues({});
     fakeAuth = _FakeAuthViewModel();
     vm = ProfileViewModel(authViewModel: fakeAuth);
