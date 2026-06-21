@@ -24,23 +24,11 @@ class JournalCompareScreen extends StatelessWidget {
       final day = int.tryParse(dayStr) ?? 1;
       int month = now.month;
       const months = [
-        'jan',
-        'feb',
-        'mar',
-        'apr',
-        'may',
-        'jun',
-        'jul',
-        'aug',
-        'sep',
-        'oct',
-        'nov',
-        'dec',
+        'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+        'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
       ];
       final idx = months.indexOf(monthStr);
-      if (idx != -1) {
-        month = idx + 1;
-      }
+      if (idx != -1) month = idx + 1;
       return DateTime(now.year, month, day);
     }
     return now;
@@ -52,29 +40,14 @@ class JournalCompareScreen extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark
-        ? Colors.white.withValues(alpha: 0.15)
-        : Colors.black;
+    final shadowColor =
+        isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
 
     final dateA = _parseLoggedDate(entryA.loggedDate);
     final dateB = _parseLoggedDate(entryB.loggedDate);
     final isAFirst = dateA.isBefore(dateB);
     final earlier = isAFirst ? entryA : entryB;
     final later = isAFirst ? entryB : entryA;
-
-    final diff = later.skinScore - earlier.skinScore;
-    final String diffSign = diff >= 0 ? '+' : '';
-    final String diffText = '$diffSign$diff';
-
-    Color diffColor = const Color(0xFFFFD54F);
-    String diffMsg = 'No change. Consistency is key! ⚖️';
-    if (diff > 0) {
-      diffColor = const Color(0xFF64DD17);
-      diffMsg = '+$diff improvement! Great progress! 📈';
-    } else if (diff < 0) {
-      diffColor = const Color(0xFFFF8A80);
-      diffMsg = '$diff difference. Keep consistent! 📉';
-    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -100,6 +73,7 @@ class JournalCompareScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
+            // ── Side-by-side photos ────────────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -116,11 +90,7 @@ class JournalCompareScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       _buildCompareImageCard(
-                        earlier,
-                        isDark,
-                        borderColor,
-                        shadowColor,
-                      ),
+                          earlier, isDark, borderColor, shadowColor),
                     ],
                   ),
                 ),
@@ -139,11 +109,7 @@ class JournalCompareScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       _buildCompareImageCard(
-                        later,
-                        isDark,
-                        borderColor,
-                        shadowColor,
-                      ),
+                          later, isDark, borderColor, shadowColor),
                     ],
                   ),
                 ),
@@ -151,6 +117,7 @@ class JournalCompareScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
+            // ── Progress details (dates + notes only) ─────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -170,7 +137,7 @@ class JournalCompareScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'PROGRESS ANALYSIS',
+                    'PROGRESS DETAILS',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
@@ -180,72 +147,35 @@ class JournalCompareScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildScoreDetailColumn(
-                        'Before Score',
-                        earlier.skinScore,
-                        earlier.loggedDate,
-                        textColor,
-                        subtextColor,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: diffColor,
-                          border: Border.all(color: borderColor, width: 1.5),
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: shadowColor,
-                              offset: const Offset(2, 2),
-                              blurRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          diffText,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                          ),
+                      Expanded(
+                        child: _buildDateNoteColumn(
+                          'Before',
+                          earlier.loggedDate,
+                          earlier.notes,
+                          textColor,
+                          subtextColor,
                         ),
                       ),
-                      _buildScoreDetailColumn(
-                        'After Score',
-                        later.skinScore,
-                        later.loggedDate,
-                        textColor,
-                        subtextColor,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildDateNoteColumn(
+                          'After',
+                          later.loggedDate,
+                          later.notes,
+                          textColor,
+                          subtextColor,
+                        ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  Divider(
-                    color: isDark ? Colors.white24 : Colors.grey.shade300,
-                    height: 1,
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Text(
-                      diffMsg,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
 
+            // ── Close button ───────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -276,10 +206,10 @@ class JournalCompareScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreDetailColumn(
+  Widget _buildDateNoteColumn(
     String label,
-    int score,
     String date,
+    String? notes,
     Color textColor,
     Color subtextColor,
   ) {
@@ -287,31 +217,34 @@ class JournalCompareScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          label.toUpperCase(),
           style: TextStyle(
             fontSize: 11,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1,
             color: subtextColor,
-            fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          score.toString(),
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1,
-            color: textColor,
-          ),
-        ),
-        Text(
           date,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: textColor,
           ),
         ),
+        if (notes != null && notes.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            notes,
+            style: TextStyle(
+              fontSize: 13,
+              color: subtextColor,
+              height: 1.4,
+            ),
+          ),
+        ],
       ],
     );
   }
