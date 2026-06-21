@@ -186,12 +186,16 @@ class RoutineViewModel extends ChangeNotifier {
   }
 
   Future<void> reorderSteps(String userId, int oldIndex, int newIndex) async {
-    final steps = _activeRoutine == 'AM'
-        ? List<RoutineStep>.from(_amSteps)
-        : List<RoutineStep>.from(_pmSteps);
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
+    await reorderStepsDirect(userId, oldIndex, newIndex);
+  }
+
+  Future<void> reorderStepsDirect(String userId, int oldIndex, int newIndex) async {
+    final steps = _activeRoutine == 'AM'
+        ? List<RoutineStep>.from(_amSteps)
+        : List<RoutineStep>.from(_pmSteps);
     if (oldIndex == newIndex) return;
 
     final item = steps.removeAt(oldIndex);

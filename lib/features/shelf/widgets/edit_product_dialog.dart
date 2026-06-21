@@ -225,7 +225,7 @@ void showEditProductDialog(
                     ),
                   ),
                   DropdownButtonFormField<String>(
-                    value: selectedCategory,
+                    initialValue: selectedCategory,
                     dropdownColor: dialogBg,
                     style: TextStyle(
                       color: textColor,
@@ -262,8 +262,9 @@ void showEditProductDialog(
                         })
                         .toList(),
                     onChanged: (val) {
-                      if (val != null)
+                      if (val != null) {
                         setDialogState(() => selectedCategory = val);
+                      }
                     },
                   ),
                   TextField(

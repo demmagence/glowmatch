@@ -35,7 +35,7 @@ class SupabaseService {
     }
 
     try {
-      await Supabase.initialize(url: url, anonKey: anonKey);
+      await Supabase.initialize(url: url, publishableKey: anonKey);
       _isOfflineMode = false;
       debugPrint('Supabase: Successfully initialized in online cloud mode.');
     } catch (e) {
