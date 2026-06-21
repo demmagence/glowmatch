@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'routine_viewmodel.dart';
@@ -34,7 +35,9 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const GlowMatchHeader(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            const _LiveClock(),
+            const SizedBox(height: 16),
 
             if (routineVm.isLoading)
               const Center(
@@ -1212,6 +1215,88 @@ class HomeScreen extends StatelessWidget {
           color: messageColor,
         ),
       ),
+    );
+  }
+}
+
+// ── Real-time clock ───────────────────────────────────────────────────────────
+
+class _LiveClock extends StatefulWidget {
+  const _LiveClock();
+
+  @override
+  State<_LiveClock> createState() => _LiveClockState();
+}
+
+class _LiveClockState extends State<_LiveClock> {
+  late DateTime _now;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _now = DateTime.now();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String _formatted(bool use24Hour) {
+    if (use24Hour) {
+      final h = _now.hour.toString().padLeft(2, '0');
+      final m = _now.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    } else {
+      final raw = _now.hour % 12 == 0 ? 12 : _now.hour % 12;
+      final h = raw.toString().padLeft(2, '0');
+      final m = _now.minute.toString().padLeft(2, '0');
+      final period = _now.hour < 12 ? 'AM' : 'PM';
+      return '$h:$m $period';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final use24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+    final subtextColor =
+        isDark ? Colors.grey.shade500 : Colors.grey.shade400;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          _formatted(use24Hour),
+          style: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            color: isDark ? Colors.white : Colors.black,
+            letterSpacing: -2,
+            height: 1,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _now.hour < 12 ? 'AM' : 'PM',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: subtextColor,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
     );
   }
 }
