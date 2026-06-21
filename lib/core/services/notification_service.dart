@@ -4,8 +4,12 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  NotificationService._();
-  static final NotificationService instance = NotificationService._();
+  @visibleForTesting
+  NotificationService.internal();
+
+  static NotificationService _instance = NotificationService.internal();
+  static NotificationService get instance => _instance;
+  static set instance(NotificationService value) => _instance = value;
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -112,6 +116,8 @@ class NotificationService {
       _nextInstanceOfTime(time),
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
