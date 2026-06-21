@@ -34,6 +34,25 @@ Widget buildDetailMetric(BuildContext context, String label, String value) {
   );
 }
 
+String _formatDate(DateTime? date) {
+  if (date == null) return 'N/A';
+  final months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+}
+
 void showProductDetailsBottomSheet(
   BuildContext context,
   ShelfItem item,
@@ -165,6 +184,33 @@ void showProductDetailsBottomSheet(
                   context,
                   'COST PER USE',
                   '\$${costPerApply.toStringAsFixed(2)}',
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                buildDetailMetric(
+                  context,
+                  'PRODUCT SIZE',
+                  item.productSize ?? 'N/A',
+                ),
+                buildDetailMetric(
+                  context,
+                  'DATE ADDED',
+                  _formatDate(item.createdAt),
+                ),
+                Visibility(
+                  visible: false,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: buildDetailMetric(
+                    context,
+                    'COST PER USE',
+                    '\$0.00',
+                  ),
                 ),
               ],
             ),

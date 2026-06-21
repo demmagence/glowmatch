@@ -9,6 +9,8 @@ class ShelfItem {
   final String indicatorColor;
   final String? imageUrl;
   final List<String> ingredients;
+  final String? productSize;
+  final DateTime? createdAt;
 
   ShelfItem({
     required this.id,
@@ -21,6 +23,8 @@ class ShelfItem {
     required this.indicatorColor,
     this.imageUrl,
     required this.ingredients,
+    this.productSize,
+    this.createdAt,
   });
 
   factory ShelfItem.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,10 @@ class ShelfItem {
       ingredients: json['ingredients'] != null
           ? List<String>.from(json['ingredients'] as Iterable)
           : <String>[],
+      productSize: json['product_size'] as String?,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'] as String)
+          : null,
     );
   }
 
@@ -54,6 +62,8 @@ class ShelfItem {
       'indicator_color': indicatorColor,
       'image_url': imageUrl,
       'ingredients': ingredients,
+      'product_size': productSize,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 
@@ -68,6 +78,8 @@ class ShelfItem {
     String? indicatorColor,
     String? imageUrl,
     List<String>? ingredients,
+    String? productSize,
+    DateTime? createdAt,
   }) {
     return ShelfItem(
       id: id ?? this.id,
@@ -80,6 +92,8 @@ class ShelfItem {
       indicatorColor: indicatorColor ?? this.indicatorColor,
       imageUrl: imageUrl ?? this.imageUrl,
       ingredients: ingredients ?? this.ingredients,
+      productSize: productSize ?? this.productSize,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

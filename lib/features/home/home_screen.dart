@@ -185,7 +185,7 @@ class HomeScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: false,
                   itemCount: routineVm.currentSteps.length,
-                  onReorderItem: (oldIndex, newIndex) {
+                  onReorder: (oldIndex, newIndex) {
                     routineVm.reorderStepsDirect(authVm.userId, oldIndex, newIndex);
                   },
                   itemBuilder: (context, index) {
@@ -534,83 +534,91 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 28),
 
               if (routineVm.currentSteps.isNotEmpty)
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: routineVm.completedToday
-                          ? (isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade300)
-                          : (isDark ? Colors.white : Colors.black),
-                      foregroundColor: routineVm.completedToday
-                          ? (isDark
-                                ? Colors.grey.shade500
-                                : Colors.grey.shade600)
-                          : (isDark ? Colors.black : Colors.white),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(
-                          color: routineVm.completedToday
+                Builder(
+                  builder: (context) {
+                    final isButtonDisabled = routineVm.completedToday ||
+                        routineVm.completedCount < routineVm.totalCount ||
+                        routineVm.totalCount == 0;
+
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isButtonDisabled
                               ? (isDark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade400)
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade300)
                               : (isDark ? Colors.white : Colors.black),
-                          width: 1.5,
+                          foregroundColor: isButtonDisabled
+                              ? (isDark
+                                    ? Colors.grey.shade500
+                                    : Colors.grey.shade600)
+                              : (isDark ? Colors.black : Colors.white),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: isButtonDisabled
+                                  ? (isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade400)
+                                  : (isDark ? Colors.white : Colors.black),
+                              width: 1.5,
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                                await routineVm.completeRoutine(authVm.userId);
+                                final newStreak =
+                                    routineVm.streakData?.currentStreak ?? 0;
+                                String msg =
+                                    'Routine Completed! Consistency score updated.';
+                                if (newStreak == 7) {
+                                  msg = '🎉 7 Day Milestone! Awesome dedication!';
+                                } else if (newStreak == 14) {
+                                  msg = '🎉 14 Day Milestone! You are unstoppable!';
+                                } else if (newStreak == 30) {
+                                  msg =
+                                      '🎉 30 Day Milestone! You are a skincare master!';
+                                }
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(msg),
+                                      backgroundColor: isDark
+                                          ? Colors.grey.shade900
+                                          : Colors.black,
+                                    ),
+                                  );
+                                }
+                              },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              routineVm.completedToday
+                                  ? 'Completed for Today'
+                                  : 'Complete Routine',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              routineVm.completedToday
+                                  ? Icons.check
+                                  : Icons.check_circle_outline,
+                              size: 20,
+                            ),
+                          ],
                         ),
                       ),
-                      elevation: 0,
-                    ),
-                    onPressed: routineVm.completedToday
-                        ? null
-                        : () async {
-                            await routineVm.completeRoutine(authVm.userId);
-                            final newStreak =
-                                routineVm.streakData?.currentStreak ?? 0;
-                            String msg =
-                                'Routine Completed! Consistency score updated.';
-                            if (newStreak == 7) {
-                              msg = '🎉 7 Day Milestone! Awesome dedication!';
-                            } else if (newStreak == 14) {
-                              msg = '🎉 14 Day Milestone! You are unstoppable!';
-                            } else if (newStreak == 30) {
-                              msg =
-                                  '🎉 30 Day Milestone! You are a skincare master!';
-                            }
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(msg),
-                                  backgroundColor: isDark
-                                      ? Colors.grey.shade900
-                                      : Colors.black,
-                                ),
-                              );
-                            }
-                          },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          routineVm.completedToday
-                              ? 'Completed for Today'
-                              : 'Complete Routine',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          routineVm.completedToday
-                              ? Icons.check
-                              : Icons.check_circle_outline,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
+                    );
+                  }
                 ),
             ],
           ],

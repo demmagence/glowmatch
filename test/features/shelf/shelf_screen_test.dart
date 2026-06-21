@@ -152,5 +152,46 @@ void main() {
 
       expect(vm.filteredItems.isEmpty, true);
     });
+
+    test('ShelfViewModel addProduct and editProduct handles productSize and createdAt', () async {
+      final vm = ShelfViewModel();
+      await vm.fetchShelf('test-user');
+      final initialCount = vm.shelfItems.length;
+
+      await vm.addProduct(
+        userId: 'test-user',
+        name: 'New Product',
+        brand: 'New Brand',
+        category: 'Serum',
+        price: 15.0,
+        estimatedUses: 50,
+        colorHex: '0xFFE040FB',
+        productSize: '30 ml',
+      );
+
+      expect(vm.shelfItems.length, initialCount + 1);
+      final addedItem = vm.shelfItems.last;
+      expect(addedItem.name, 'New Product');
+      expect(addedItem.productSize, '30 ml');
+      expect(addedItem.createdAt, isNotNull);
+
+      final originalCreatedAt = addedItem.createdAt;
+      await vm.editProduct(
+        itemId: addedItem.id,
+        name: 'Updated Product',
+        brand: 'New Brand',
+        category: 'Serum',
+        price: 18.0,
+        estimatedUses: 50,
+        remainingUses: 48,
+        colorHex: '0xFFE040FB',
+        productSize: '35 ml',
+      );
+
+      final editedItem = vm.shelfItems.firstWhere((x) => x.id == addedItem.id);
+      expect(editedItem.name, 'Updated Product');
+      expect(editedItem.productSize, '35 ml');
+      expect(editedItem.createdAt, equals(originalCreatedAt));
+    });
   });
 }

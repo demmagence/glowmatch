@@ -69,6 +69,7 @@ class ShelfViewModel extends ChangeNotifier {
     required String colorHex,
     String? localImagePath,
     List<String>? ingredients,
+    String? productSize,
   }) async {
     String? imageUrl;
     if (localImagePath != null && localImagePath.isNotEmpty) {
@@ -93,6 +94,7 @@ class ShelfViewModel extends ChangeNotifier {
       indicatorColor: colorHex,
       imageUrl: imageUrl,
       ingredients: ingredients ?? <String>[],
+      productSize: productSize,
     );
 
     try {
@@ -117,6 +119,7 @@ class ShelfViewModel extends ChangeNotifier {
     String? localImagePath,
     String? userId,
     List<String>? ingredients,
+    String? productSize,
   }) async {
     String? imageUrl = currentImageUrl;
     if (localImagePath != null && localImagePath.isNotEmpty && userId != null) {
@@ -130,6 +133,9 @@ class ShelfViewModel extends ChangeNotifier {
       }
     }
 
+    final idx = _shelfItems.indexWhere((x) => x.id == itemId);
+    final DateTime? createdAt = idx != -1 ? _shelfItems[idx].createdAt : null;
+
     final ShelfItem item = ShelfItem(
       id: itemId,
       name: name,
@@ -141,6 +147,8 @@ class ShelfViewModel extends ChangeNotifier {
       indicatorColor: colorHex,
       imageUrl: imageUrl,
       ingredients: ingredients ?? <String>[],
+      productSize: productSize,
+      createdAt: createdAt,
     );
 
     try {

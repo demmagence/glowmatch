@@ -22,6 +22,7 @@ void showEditProductDialog(
   final remainingUsesController = TextEditingController(
     text: item.remainingUses.toString(),
   );
+  final sizeController = TextEditingController(text: item.productSize);
   final ingredientsController = TextEditingController(
     text: item.ingredients.join(', '),
   );
@@ -339,6 +340,28 @@ void showEditProductDialog(
                     keyboardType: TextInputType.number,
                   ),
                   TextField(
+                    controller: sizeController,
+                    style: TextStyle(color: textColor),
+                    decoration: InputDecoration(
+                      labelText: 'Product Size (e.g. 50 ml)',
+                      labelStyle: TextStyle(
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade700,
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white30 : Colors.black26,
+                        ),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  TextField(
                     controller: ingredientsController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
@@ -416,6 +439,9 @@ void showEditProductDialog(
                       localImagePath: localImagePath,
                       userId: userId,
                       ingredients: ingList,
+                      productSize: sizeController.text.trim().isEmpty
+                          ? null
+                          : sizeController.text.trim(),
                     );
                     Navigator.pop(context);
                   }

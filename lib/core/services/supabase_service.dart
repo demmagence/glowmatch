@@ -85,6 +85,8 @@ class SupabaseService {
             'Niacinamide',
             'Watermelon Extract',
           ],
+          productSize: '50 ml',
+          createdAt: DateTime.now().subtract(const Duration(days: 14)),
         ),
         ShelfItem(
           id: 'item-2',
@@ -101,6 +103,8 @@ class SupabaseService {
             'Zinc Oxide',
             'Titanium Dioxide',
           ],
+          productSize: '50 ml',
+          createdAt: DateTime.now().subtract(const Duration(days: 30)),
         ),
         ShelfItem(
           id: 'item-3',
@@ -113,6 +117,8 @@ class SupabaseService {
           indicatorColor: '0xFFD50000',
           imageUrl: 'https://placehold.co/150/purple/white?text=Panthenol',
           ingredients: const ['Panthenol', 'Squalane', 'Ceramide NP'],
+          productSize: '80 ml',
+          createdAt: DateTime.now().subtract(const Duration(days: 5)),
         ),
       ]);
     }
@@ -245,11 +251,15 @@ class SupabaseService {
     final String id = item.id.isEmpty
         ? DateTime.now().millisecondsSinceEpoch.toString()
         : item.id;
-    final newItem = item.copyWith(id: id);
+    final now = DateTime.now();
+    final newItem = item.copyWith(
+      id: id,
+      createdAt: item.createdAt ?? now,
+    );
     final newItemMap = {
       ...newItem.toJson(),
       'user_id': userId,
-      'created_at': DateTime.now().toIso8601String(),
+      'created_at': newItem.createdAt!.toIso8601String(),
     };
 
     if (_isOfflineMode) {
@@ -600,8 +610,9 @@ class SupabaseService {
 
   Future<StreakData> getStreakData(String userId) async {
     if (_isOfflineMode || userId.isEmpty) {
-      return _mockStreaks[userId] ??
+      final raw = _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
+      return _checkAndResetBrokenStreak(userId, raw);
     }
 
     try {
@@ -618,15 +629,46 @@ class SupabaseService {
           totalCompletions: 0,
         );
       }
-      return StreakData.fromJson(response);
+      final raw = StreakData.fromJson(response);
+      return _checkAndResetBrokenStreak(userId, raw);
     } on PostgrestException catch (e) {
       _handlePostgrestException('getStreakData', e);
-      return _mockStreaks[userId] ??
+      final raw = _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
+      return _checkAndResetBrokenStreak(userId, raw);
     } catch (e) {
       _handleGenericException('getStreakData', e);
-      return _mockStreaks[userId] ??
+      final raw = _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
+      return _checkAndResetBrokenStreak(userId, raw);
+    }
+  }
+
+  StreakData _checkAndResetBrokenStreak(String userId, StreakData data) {
+    if (data.lastCompletedDate == null) return data;
+
+    final now = DateTime.now();
+    final last = data.lastCompletedDate!;
+
+    if (!_isSameDay(last, now) && !_isYesterday(last, now)) {
+      final resetData = data.copyWith(currentStreak: 0);
+      _mockStreaks[userId] = resetData;
+      if (!_isOfflineMode && userId.isNotEmpty) {
+        _asyncResetStreakInDb(userId);
+      }
+      return resetData;
+    }
+    return data;
+  }
+
+  Future<void> _asyncResetStreakInDb(String userId) async {
+    try {
+      await Supabase.instance.client
+          .from(AppConstants.tableUserStreaks)
+          .update({'current_streak': 0})
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error resetting broken streak in DB: $e');
     }
   }
 
@@ -800,5 +842,10 @@ class SupabaseService {
     _mockJournalEntries.clear();
     _mockStreaks.clear();
     _isOfflineMode = true;
+  }
+
+  @visibleForTesting
+  void setMockStreak(String userId, StreakData streak) {
+    _mockStreaks[userId] = streak;
   }
 }
