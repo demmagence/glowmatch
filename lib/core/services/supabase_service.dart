@@ -199,6 +199,7 @@ class SupabaseService {
           photoPath: 'assets/skin_today.png',
           notes:
               'Skin barrier feels extremely strong today. Redness has completely gone.',
+          createdAt: DateTime.now(),
         ),
         JournalEntry(
           id: 'j-2',
@@ -206,6 +207,7 @@ class SupabaseService {
           skinScore: 80,
           photoPath: 'assets/skin_oct24.png',
           notes: 'Slight irritation around the cheeks. Increased moisturizer.',
+          createdAt: DateTime.now().subtract(const Duration(days: 4)),
         ),
         JournalEntry(
           id: 'j-3',
@@ -213,6 +215,7 @@ class SupabaseService {
           skinScore: 76,
           photoPath: 'assets/skin_oct17.png',
           notes: 'Started new routine steps.',
+          createdAt: DateTime.now().subtract(const Duration(days: 9)),
         ),
       ]);
     }
@@ -700,8 +703,16 @@ class SupabaseService {
     final String id = entry.id.isEmpty
         ? DateTime.now().millisecondsSinceEpoch.toString()
         : entry.id;
-    final newEntry = entry.copyWith(id: id);
-    final newEntryMap = {...newEntry.toJson(), 'user_id': userId};
+    final now = DateTime.now();
+    final newEntry = entry.copyWith(
+      id: id,
+      createdAt: entry.createdAt ?? now,
+    );
+    final newEntryMap = {
+      ...newEntry.toJson(),
+      'user_id': userId,
+      'created_at': newEntry.createdAt!.toIso8601String(),
+    };
     if (_isOfflineMode) {
       _mockJournalEntries.insert(0, newEntry);
       return newEntry;

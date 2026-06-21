@@ -11,6 +11,7 @@ import 'journal_compare_screen.dart';
 import 'widgets/photo_grid_widget.dart';
 import 'widgets/photo_source_sheet.dart';
 import 'widgets/add_progress_note_dialog.dart';
+import 'widgets/journal_contribution_grid.dart';
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
@@ -80,6 +81,7 @@ class _JournalScreenState extends State<JournalScreen> {
               photoPath: mockImageUrls[0],
               skinScore: 84,
               notes: 'Skin feels deeply hydrated and bright today.',
+              createdAt: DateTime.now(),
             ),
             JournalEntry(
               id: 'j-mock-2',
@@ -87,6 +89,7 @@ class _JournalScreenState extends State<JournalScreen> {
               photoPath: mockImageUrls[1],
               skinScore: 80,
               notes: 'Slight redness on cheeks. Sticking to cleanser.',
+              createdAt: DateTime.now().subtract(const Duration(days: 4)),
             ),
             JournalEntry(
               id: 'j-mock-3',
@@ -94,6 +97,7 @@ class _JournalScreenState extends State<JournalScreen> {
               photoPath: mockImageUrls[2],
               skinScore: 76,
               notes: 'Starting my regular morning and evening routines.',
+              createdAt: DateTime.now().subtract(const Duration(days: 9)),
             ),
           ];
 
@@ -164,6 +168,9 @@ class _JournalScreenState extends State<JournalScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  JournalContributionGrid(entries: displayEntries),
+                  const SizedBox(height: 24),
 
                   PhotoGridWidget(
                     entries: displayEntries,
