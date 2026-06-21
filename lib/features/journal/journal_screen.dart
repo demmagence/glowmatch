@@ -7,7 +7,6 @@ import '../../core/models/models.dart';
 import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/loading_overlay.dart';
 import '../../core/widgets/error_state_widget.dart';
-import 'journal_chart_widget.dart';
 import 'journal_compare_screen.dart';
 import 'widgets/photo_grid_widget.dart';
 import 'widgets/photo_source_sheet.dart';
@@ -146,82 +145,25 @@ class _JournalScreenState extends State<JournalScreen> {
                     onRetry: () => journalVm.fetchJournal(authVm.userId),
                   )
                 else ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Journal',
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w900,
-                              color: textColor,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Track your glow progress.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: subtextColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                '${journalVm.currentScore}',
-                                style: TextStyle(
-                                  fontSize: 56,
-                                  fontWeight: FontWeight.w900,
-                                  color: textColor,
-                                  letterSpacing: -2,
-                                ),
-                              ),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                margin: const EdgeInsets.only(left: 2),
-                                decoration: const BoxDecoration(
-                                  color: Colors.pinkAccent,
-                                  shape: BoxShape.rectangle,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            'CURRENT SCORE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                              color: subtextColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  Text(
+                    'Journal',
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    color: isDark ? Colors.white24 : Colors.grey.shade300,
+                  const SizedBox(height: 6),
+                  Text(
+                    'Track your glow progress.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: subtextColor,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const SizedBox(height: 20),
-
-                  JournalChartWidget(entries: displayEntries),
-                  const SizedBox(height: 32),
 
                   PhotoGridWidget(
                     entries: displayEntries,
