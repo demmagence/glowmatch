@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'budget_viewmodel.dart';
 import '../../core/models/models.dart';
-import '../profile/profile_screen.dart';
+import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/loading_overlay.dart';
 import 'widgets/allocation_card.dart';
 import 'widgets/calculator_card.dart';
@@ -66,48 +66,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: RichText(
-          text: TextSpan(
-            text: 'GlowMatch',
-            style: TextStyle(
-              fontFamily: 'Outfit',
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-              color: textColor,
-              letterSpacing: -0.5,
-            ),
-            children: const [
-              TextSpan(
-                text: '.',
-                style: TextStyle(color: Colors.red, fontSize: 26),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.account_circle_outlined, color: textColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-            },
-          ),
-        ],
-      ),
       body: LoadingOverlay(
         isLoading: budgetVm.isLoading,
         message: 'Calculating budget...',
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const GlowMatchHeader(),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
-import '../profile/profile_screen.dart';
+import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/loading_overlay.dart';
 import '../../core/widgets/error_state_widget.dart';
 import 'journal_chart_widget.dart';
@@ -100,53 +100,6 @@ class _JournalScreenState extends State<JournalScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: RichText(
-          text: TextSpan(
-            text: 'GlowMatch',
-            style: TextStyle(
-              fontFamily: 'Outfit',
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-              color: textColor,
-              letterSpacing: -0.5,
-            ),
-            children: const [
-              TextSpan(
-                text: '.',
-                style: TextStyle(color: Colors.red, fontSize: 26),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isCompareMode ? Icons.close : Icons.compare_arrows,
-              color: textColor,
-            ),
-            tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
-            onPressed: () {
-              setState(() {
-                _isCompareMode = !_isCompareMode;
-                _selectedEntryIds.clear();
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.account_circle_outlined, color: textColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-            },
-          ),
-        ],
-      ),
       body: LoadingOverlay(
         isLoading: journalVm.isUploading,
         message: 'Uploading your glow...',
@@ -161,6 +114,25 @@ class _JournalScreenState extends State<JournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    const Expanded(child: GlowMatchHeader()),
+                    IconButton(
+                      icon: Icon(
+                        _isCompareMode ? Icons.close : Icons.compare_arrows,
+                        color: textColor,
+                      ),
+                      tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
+                      onPressed: () {
+                        setState(() {
+                          _isCompareMode = !_isCompareMode;
+                          _selectedEntryIds.clear();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 if (journalVm.isLoading)
                   const Center(
                     child: Padding(
