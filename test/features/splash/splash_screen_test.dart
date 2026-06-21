@@ -55,7 +55,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('GlowMatch'), findsOneWidget);
-      expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
