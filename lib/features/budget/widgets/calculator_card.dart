@@ -62,7 +62,7 @@ class CalculatorCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: selectedProductId,
+            initialValue: selectedProductId,
             dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             style: TextStyle(
               color: textColor,

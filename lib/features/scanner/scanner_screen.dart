@@ -226,7 +226,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: scoreColor.withOpacity(0.1),
+                              color: scoreColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                               border: Border.all(color: scoreColor, width: 1.5),
                             ),
@@ -353,7 +353,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
@@ -390,8 +390,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 4),
-                        color: Colors.white.withOpacity(
-                          scannerVm.isProcessing ? 0.5 : 1.0,
+                        color: Colors.white.withValues(
+                          alpha: scannerVm.isProcessing ? 0.5 : 1.0,
                         ),
                       ),
                     ),
@@ -497,7 +497,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: scoreColor.withOpacity(0.1),
+                            color: scoreColor.withValues(alpha: 0.1),
                             border: Border.all(color: scoreColor, width: 2),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -531,8 +531,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50.withOpacity(
-                            isDark ? 0.1 : 0.85,
+                          color: Colors.red.shade50.withValues(
+                            alpha: isDark ? 0.1 : 0.85,
                           ),
                           border: Border.all(color: Colors.red, width: 2),
                           borderRadius: BorderRadius.circular(8),
@@ -599,24 +599,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         Color textChipColor;
                         String emojiPrefix = '🟢 ';
                         if (level == 'Avoid') {
-                          chipColor = Colors.red.shade100.withOpacity(
-                            isDark ? 0.2 : 0.9,
+                          chipColor = Colors.red.shade100.withValues(
+                            alpha: isDark ? 0.2 : 0.9,
                           );
                           textChipColor = isDark
                               ? Colors.red.shade300
                               : Colors.red.shade800;
                           emojiPrefix = '🔴 ';
                         } else if (level == 'Caution') {
-                          chipColor = Colors.amber.shade100.withOpacity(
-                            isDark ? 0.2 : 0.9,
+                          chipColor = Colors.amber.shade100.withValues(
+                            alpha: isDark ? 0.2 : 0.9,
                           );
                           textChipColor = isDark
                               ? Colors.amber.shade300
                               : Colors.amber.shade800;
                           emojiPrefix = '🟡 ';
                         } else {
-                          chipColor = Colors.green.shade100.withOpacity(
-                            isDark ? 0.2 : 0.9,
+                          chipColor = Colors.green.shade100.withValues(
+                            alpha: isDark ? 0.2 : 0.9,
                           );
                           textChipColor = isDark
                               ? Colors.green.shade300
@@ -710,7 +710,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                     const SizedBox(height: 16),
 
                     const Text(
