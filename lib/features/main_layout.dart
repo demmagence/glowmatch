@@ -20,6 +20,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
   List<String>? _preFilledIngredients;
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -103,19 +104,28 @@ class _MainLayoutState extends State<MainLayout> {
     }
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        if (_isNavigating || _currentIndex == index) return;
+        
         setState(() {
           _currentIndex = index;
+          _isNavigating = true;
         });
-        final auth = Provider.of<AuthViewModel>(context, listen: false);
-        final userId = auth.userId;
-        if (index == 0) {
-          Provider.of<RoutineViewModel>(context, listen: false).init(userId);
-        } else if (index == 3) {
-          Provider.of<JournalViewModel>(
-            context,
-            listen: false,
-          ).fetchJournal(userId);
+        
+        try {
+          final auth = Provider.of<AuthViewModel>(context, listen: false);
+          final userId = auth.userId;
+          if (index == 0) {
+            await Provider.of<RoutineViewModel>(context, listen: false).init(userId);
+          } else if (index == 3) {
+            await Provider.of<JournalViewModel>(context, listen: false).fetchJournal(userId);
+          }
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isNavigating = false;
+            });
+          }
         }
       },
       child: Column(
@@ -181,15 +191,27 @@ class _MainLayoutState extends State<MainLayout> {
 
     return GestureDetector(
       onTap: () async {
-        final List<String>? ingredients = await Navigator.of(context)
-            .push<List<String>>(
-              MaterialPageRoute(builder: (context) => const ScannerScreen()),
-            );
-        if (ingredients != null) {
-          setState(() {
-            _preFilledIngredients = ingredients;
-            _currentIndex = 4;
-          });
+        if (_isNavigating) return;
+        setState(() {
+          _isNavigating = true;
+        });
+        try {
+          final List<String>? ingredients = await Navigator.of(context)
+              .push<List<String>>(
+                MaterialPageRoute(builder: (context) => const ScannerScreen()),
+              );
+          if (ingredients != null && mounted) {
+            setState(() {
+              _preFilledIngredients = ingredients;
+              _currentIndex = 4;
+            });
+          }
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isNavigating = false;
+            });
+          }
         }
       },
       child: Container(
