@@ -5,7 +5,7 @@ import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_screen.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
-import 'package:glowmatch/core/constants.dart';
+import 'package:glowmatch/core/models/models.dart';
 
 Widget _buildShelf(ShelfViewModel shelfVm) {
   return MultiProvider(
@@ -108,22 +108,61 @@ void main() {
   });
 
   group('ShelfViewModel and SkincareCategory tests', () {
-    test('SkincareCategory mapping and values', () {
-      expect(SkincareCategory.toner.displayName, 'Toner');
-      expect(SkincareCategory.exfoliant.displayName, 'Exfoliant');
-      expect(SkincareCategory.mask.displayName, 'Mask');
-      expect(SkincareCategory.eyeCream.displayName, 'Eye Cream');
+    test('SkincareCategory model parsing and copyWith', () {
+      final json = {
+        'id': 'cat-123',
+        'user_id': 'user-123',
+        'name': 'Essence',
+        'color': '0xFFE040FB',
+        'is_default': false,
+        'created_at': '2026-06-21T12:00:00.000Z',
+      };
+      final cat = SkincareCategory.fromJson(json);
+      expect(cat.id, 'cat-123');
+      expect(cat.userId, 'user-123');
+      expect(cat.name, 'Essence');
+      expect(cat.color, '0xFFE040FB');
+      expect(cat.isDefault, isFalse);
+      expect(cat.createdAt, isNotNull);
 
-      expect(SkincareCategory.fromString('Toner'), SkincareCategory.toner);
-      expect(
-        SkincareCategory.fromString('exfoliant'),
-        SkincareCategory.exfoliant,
+      final cloned = cat.copyWith(name: 'Updated Essence');
+      expect(cloned.name, 'Updated Essence');
+      expect(cloned.id, 'cat-123');
+
+      final serialized = cat.toJson();
+      expect(serialized['id'], 'cat-123');
+      expect(serialized['name'], 'Essence');
+    });
+
+    test('ShelfViewModel custom categories CRUD operations', () async {
+      final vm = ShelfViewModel();
+      await vm.fetchShelf('test-user');
+
+      expect(vm.categories, isNotEmpty);
+      final initialCount = vm.categories.length;
+
+      await vm.addCustomCategory(
+        userId: 'test-user',
+        name: 'Ample',
+        colorHex: '0xFF3F51B5',
       );
-      expect(SkincareCategory.fromString('MASK'), SkincareCategory.mask);
-      expect(
-        SkincareCategory.fromString('eye cream'),
-        SkincareCategory.eyeCream,
+      expect(vm.categories.length, initialCount + 1);
+      expect(vm.categories.last.name, 'Ample');
+      expect(vm.categories.last.color, '0xFF3F51B5');
+
+      final addedId = vm.categories.last.id;
+
+      await vm.renameCustomCategory(
+        categoryId: addedId,
+        newName: 'Ampoule',
+        colorHex: '0xFF9C27B0',
       );
+      expect(vm.categories.last.name, 'Ampoule');
+      expect(vm.categories.last.color, '0xFF9C27B0');
+
+      await vm.deleteCustomCategory(addedId);
+      expect(vm.categories.length, initialCount);
+      expect(vm.categories.any((c) => c.id == addedId), isFalse);
     });
 
     test('ShelfViewModel filters by search query and category', () async {

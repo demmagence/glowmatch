@@ -9,6 +9,7 @@ import 'widgets/skeleton_card.dart';
 import 'widgets/product_card.dart';
 import 'widgets/filter_dialog.dart';
 import 'widgets/add_product_dialog.dart';
+import 'widgets/manage_categories_screen.dart';
 
 class ShelfScreen extends StatefulWidget {
   final List<String>? initialIngredientsToPreFill;
@@ -148,27 +149,59 @@ class _ShelfScreenState extends State<ShelfScreen> {
                       color: textColor,
                     ),
                   ),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: textColor,
-                      side: BorderSide(color: textColor, width: 1.2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                  Row(
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: textColor,
+                          side: BorderSide(color: textColor, width: 1.2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ManageCategoriesScreen(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.category, size: 16),
+                        label: const Text(
+                          'CATEGORIES',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: textColor,
+                          side: BorderSide(color: textColor, width: 1.2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                        ),
+                        onPressed: () => showFilterDialog(context, shelfVm),
+                        child: const Text(
+                          'FILTER',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
                       ),
-                    ),
-                    onPressed: () => showFilterDialog(context, shelfVm),
-                    child: const Text(
-                      'FILTER',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),

@@ -17,6 +17,7 @@ class SupabaseService {
   final List<RoutineStep> _mockRoutines = [];
   final List<JournalEntry> _mockJournalEntries = [];
   final Map<String, StreakData> _mockStreaks = {};
+  final List<SkincareCategory> _mockCategories = [];
 
   Future<void> initialize({
     required String url,
@@ -68,6 +69,19 @@ class SupabaseService {
   }
 
   void _seedMockData() {
+    if (_mockCategories.isEmpty) {
+      _mockCategories.addAll([
+        SkincareCategory(id: 'cat-1', name: 'Serum', color: '0xFFE040FB', isDefault: true),
+        SkincareCategory(id: 'cat-2', name: 'Sunscreen', color: '0xFF64DD17', isDefault: true),
+        SkincareCategory(id: 'cat-3', name: 'Moisturizer', color: '0xFFD50000', isDefault: true),
+        SkincareCategory(id: 'cat-4', name: 'Cleanser', color: '0xFF29B6F6', isDefault: true),
+        SkincareCategory(id: 'cat-5', name: 'Toner', color: '0xFFFFD600', isDefault: true),
+        SkincareCategory(id: 'cat-6', name: 'Exfoliant', color: '0xFFFF6D00', isDefault: true),
+        SkincareCategory(id: 'cat-7', name: 'Mask', color: '0xFF00BFA5', isDefault: true),
+        SkincareCategory(id: 'cat-8', name: 'Eye Cream', color: '0xFFFF4081', isDefault: true),
+      ]);
+    }
+
     if (_mockShelf.isEmpty) {
       _mockShelf.addAll([
         ShelfItem(
@@ -394,6 +408,131 @@ class SupabaseService {
     } catch (e) {
       _handleGenericException('deleteShelfItem', e);
       _mockShelf.removeWhere((x) => x.id == itemId);
+      return true;
+    }
+  }
+
+  Future<List<SkincareCategory>> getCategories(String userId) async {
+    if (_isOfflineMode) {
+      return List.from(_mockCategories);
+    }
+    try {
+      final response = await Supabase.instance.client
+          .from('skincare_categories')
+          .select();
+      return (response as List)
+          .map((x) => SkincareCategory.fromJson(x as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('getCategories', e);
+      return List.from(_mockCategories);
+    } catch (e) {
+      _handleGenericException('getCategories', e);
+      return List.from(_mockCategories);
+    }
+  }
+
+  Future<SkincareCategory> addCategory(
+    String userId,
+    SkincareCategory category,
+  ) async {
+    final String id = category.id.isEmpty
+        ? DateTime.now().millisecondsSinceEpoch.toString()
+        : category.id;
+    final newCategory = category.copyWith(
+      id: id,
+      userId: userId,
+      isDefault: false,
+    );
+    final newCategoryMap = {
+      ...newCategory.toJson(),
+      'user_id': userId,
+    };
+
+    if (_isOfflineMode) {
+      _mockCategories.add(newCategory);
+      return newCategory;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('skincare_categories')
+          .insert(newCategoryMap)
+          .select()
+          .single();
+      return SkincareCategory.fromJson(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('addCategory', e);
+      _mockCategories.add(newCategory);
+      return newCategory;
+    } catch (e) {
+      _handleGenericException('addCategory', e);
+      _mockCategories.add(newCategory);
+      return newCategory;
+    }
+  }
+
+  Future<SkincareCategory?> updateCategory(
+    String categoryId,
+    SkincareCategory updates,
+  ) async {
+    final newCategoryMap = {...updates.toJson(), 'id': categoryId};
+
+    if (_isOfflineMode) {
+      final idx = _mockCategories.indexWhere((x) => x.id == categoryId);
+      if (idx != -1) {
+        _mockCategories[idx] = updates.copyWith(id: categoryId);
+        return _mockCategories[idx];
+      }
+      return null;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('skincare_categories')
+          .update(newCategoryMap)
+          .eq('id', categoryId)
+          .select()
+          .single();
+      return SkincareCategory.fromJson(response);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('updateCategory', e);
+      final idx = _mockCategories.indexWhere((x) => x.id == categoryId);
+      if (idx != -1) {
+        _mockCategories[idx] = updates.copyWith(id: categoryId);
+        return _mockCategories[idx];
+      }
+      return null;
+    } catch (e) {
+      _handleGenericException('updateCategory', e);
+      final idx = _mockCategories.indexWhere((x) => x.id == categoryId);
+      if (idx != -1) {
+        _mockCategories[idx] = updates.copyWith(id: categoryId);
+        return _mockCategories[idx];
+      }
+      return null;
+    }
+  }
+
+  Future<bool> deleteCategory(String categoryId) async {
+    if (_isOfflineMode) {
+      _mockCategories.removeWhere((x) => x.id == categoryId);
+      return true;
+    }
+
+    try {
+      await Supabase.instance.client
+          .from('skincare_categories')
+          .delete()
+          .eq('id', categoryId);
+      return true;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('deleteCategory', e);
+      _mockCategories.removeWhere((x) => x.id == categoryId);
+      return true;
+    } catch (e) {
+      _handleGenericException('deleteCategory', e);
+      _mockCategories.removeWhere((x) => x.id == categoryId);
       return true;
     }
   }
@@ -841,6 +980,7 @@ class SupabaseService {
     _mockRoutines.clear();
     _mockJournalEntries.clear();
     _mockStreaks.clear();
+    _mockCategories.clear();
     _isOfflineMode = true;
   }
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants.dart';
 import '../shelf_viewmodel.dart';
 
 void showFilterDialog(BuildContext context, ShelfViewModel vm) {
@@ -13,7 +12,7 @@ void showFilterDialog(BuildContext context, ShelfViewModel vm) {
     builder: (context) {
       final categories = [
         'All',
-        ...SkincareCategory.values.map((e) => e.displayName),
+        ...vm.categories.map((e) => e.name),
       ];
       return SimpleDialog(
         backgroundColor: dialogBg,
