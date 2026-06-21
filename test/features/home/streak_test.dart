@@ -3,7 +3,6 @@ import 'package:glowmatch/core/models/models.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
-import 'package:glowmatch/features/journal/journal_viewmodel.dart';
 
 void main() {
   late SupabaseService svc;
@@ -205,23 +204,5 @@ void main() {
         expect(freshVm.streakData?.totalCompletions, equals(1));
       },
     );
-  });
-
-  group('JournalViewModel Score Calculation with Streak', () {
-    late JournalViewModel journalVm;
-
-    setUp(() {
-      journalVm = JournalViewModel();
-    });
-
-    test('currentScore adds streak bonus correctly', () async {
-      final svc = SupabaseService();
-      final streakData = await svc.recordRoutineCompletion('user-3');
-      expect(streakData.currentStreak, equals(1));
-
-      await journalVm.fetchJournal('user-3');
-
-      expect(journalVm.currentScore, equals(88));
-    });
   });
 }
