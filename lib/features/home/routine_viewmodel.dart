@@ -8,6 +8,9 @@ class RoutineViewModel extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
   final WeatherService _weatherService = WeatherService();
 
+  String? _userId;
+  String? get userId => _userId;
+
   List<RoutineStep> _amSteps = [];
   List<RoutineStep> _pmSteps = [];
   final Set<String> _completedStepIds = {};
@@ -50,6 +53,7 @@ class RoutineViewModel extends ChangeNotifier {
   int get totalCount => currentSteps.length;
 
   Future<void> init(String userId) async {
+    _userId = userId;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -85,6 +89,7 @@ class RoutineViewModel extends ChangeNotifier {
   }
 
   Future<void> loadRoutines(String userId) async {
+    _userId = userId;
     try {
       _amSteps = await _supabaseService.getRoutines(userId, 'AM');
       _pmSteps = await _supabaseService.getRoutines(userId, 'PM');
@@ -121,6 +126,10 @@ class RoutineViewModel extends ChangeNotifier {
       }
     }
     notifyListeners();
+
+    if (completedCount == totalCount && totalCount > 0 && _userId != null) {
+      await completeRoutine(_userId!);
+    }
   }
 
   Future<void> addCustomStep(
@@ -232,6 +241,10 @@ class RoutineViewModel extends ChangeNotifier {
       await loadStreakData(userId);
 
       if (completedToday) {
+        return;
+      }
+
+      if (completedCount < totalCount || totalCount == 0) {
         return;
       }
 

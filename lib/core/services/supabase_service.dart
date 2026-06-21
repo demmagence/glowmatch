@@ -600,8 +600,9 @@ class SupabaseService {
 
   Future<StreakData> getStreakData(String userId) async {
     if (_isOfflineMode || userId.isEmpty) {
-      return _mockStreaks[userId] ??
+      final raw = _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
+      return _checkAndResetBrokenStreak(userId, raw);
     }
 
     try {
@@ -618,15 +619,46 @@ class SupabaseService {
           totalCompletions: 0,
         );
       }
-      return StreakData.fromJson(response);
+      final raw = StreakData.fromJson(response);
+      return _checkAndResetBrokenStreak(userId, raw);
     } on PostgrestException catch (e) {
       _handlePostgrestException('getStreakData', e);
-      return _mockStreaks[userId] ??
+      final raw = _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
+      return _checkAndResetBrokenStreak(userId, raw);
     } catch (e) {
       _handleGenericException('getStreakData', e);
-      return _mockStreaks[userId] ??
+      final raw = _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
+      return _checkAndResetBrokenStreak(userId, raw);
+    }
+  }
+
+  StreakData _checkAndResetBrokenStreak(String userId, StreakData data) {
+    if (data.lastCompletedDate == null) return data;
+
+    final now = DateTime.now();
+    final last = data.lastCompletedDate!;
+
+    if (!_isSameDay(last, now) && !_isYesterday(last, now)) {
+      final resetData = data.copyWith(currentStreak: 0);
+      _mockStreaks[userId] = resetData;
+      if (!_isOfflineMode && userId.isNotEmpty) {
+        _asyncResetStreakInDb(userId);
+      }
+      return resetData;
+    }
+    return data;
+  }
+
+  Future<void> _asyncResetStreakInDb(String userId) async {
+    try {
+      await Supabase.instance.client
+          .from(AppConstants.tableUserStreaks)
+          .update({'current_streak': 0})
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error resetting broken streak in DB: $e');
     }
   }
 
@@ -800,5 +832,10 @@ class SupabaseService {
     _mockJournalEntries.clear();
     _mockStreaks.clear();
     _isOfflineMode = true;
+  }
+
+  @visibleForTesting
+  void setMockStreak(String userId, StreakData streak) {
+    _mockStreaks[userId] = streak;
   }
 }
