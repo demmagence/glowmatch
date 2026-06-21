@@ -11,15 +11,11 @@ class JournalViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool _isUploading = false;
   String? _errorMessage;
-  int _currentScore = 84;
-  int _currentStreak = 0;
 
   List<JournalEntry> get entries => _entries;
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
   String? get errorMessage => _errorMessage;
-  int get currentScore => _currentScore;
-  int get currentStreak => _currentStreak;
 
   Future<void> fetchJournal(String userId) async {
     _isLoading = true;
@@ -28,9 +24,6 @@ class JournalViewModel extends ChangeNotifier {
 
     try {
       _entries = await _supabaseService.getJournalEntries(userId);
-      final streak = await _supabaseService.getStreakData(userId);
-      _currentStreak = streak.currentStreak;
-      _calculateCurrentScore();
     } catch (e) {
       debugPrint('Error fetching journal: $e');
       _errorMessage = e.toString();
@@ -38,14 +31,6 @@ class JournalViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  void _calculateCurrentScore() {
-    int baseScore = 80;
-    if (_entries.isNotEmpty) {
-      baseScore = 80 + (_entries.length * 2);
-    }
-    _currentScore = (baseScore + (_currentStreak * 2)).clamp(1, 100);
   }
 
   Future<bool> pickAndUploadPhoto({
@@ -76,14 +61,13 @@ class JournalViewModel extends ChangeNotifier {
       final entry = JournalEntry(
         id: '',
         loggedDate: dateLabel,
-        skinScore: _estimateScore(),
+        skinScore: 0,
         photoPath: photoUrl,
         notes: notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
       );
 
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
       _entries.insert(0, addedEntry);
-      _calculateCurrentScore();
 
       return true;
     } catch (e) {
@@ -114,14 +98,13 @@ class JournalViewModel extends ChangeNotifier {
       final entry = JournalEntry(
         id: '',
         loggedDate: dateLabel,
-        skinScore: _estimateScore(),
+        skinScore: 0,
         photoPath: photoUrl,
         notes: notes.isEmpty ? 'Progress photo logged on $dateLabel.' : notes,
       );
 
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
       _entries.insert(0, addedEntry);
-      _calculateCurrentScore();
 
       return true;
     } catch (e) {
@@ -152,14 +135,13 @@ class JournalViewModel extends ChangeNotifier {
   Future<void> addEntry({
     required String userId,
     required String photoPath,
-    required int score,
     required String notes,
   }) async {
     final now = DateTime.now();
     final entry = JournalEntry(
       id: '',
       loggedDate: _formatDate(now),
-      skinScore: score,
+      skinScore: 0,
       photoPath: photoPath,
       notes: notes,
     );
@@ -167,7 +149,6 @@ class JournalViewModel extends ChangeNotifier {
     try {
       final addedEntry = await _supabaseService.addJournalEntry(userId, entry);
       _entries.insert(0, addedEntry);
-      _calculateCurrentScore();
       notifyListeners();
     } catch (e) {
       debugPrint('Error adding journal entry: $e');
@@ -176,24 +157,9 @@ class JournalViewModel extends ChangeNotifier {
 
   String _formatDate(DateTime dt) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}';
-  }
-
-  int _estimateScore() {
-    final delta = (_entries.length % 3) - 1;
-    return (_currentScore + delta).clamp(1, 100);
   }
 }

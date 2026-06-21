@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'routine_viewmodel.dart';
@@ -34,7 +35,9 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const GlowMatchHeader(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            const _LiveClock(),
+            const SizedBox(height: 16),
 
             if (routineVm.isLoading)
               const Center(
@@ -203,83 +206,125 @@ class HomeScreen extends StatelessWidget {
                       }
                     }
 
-                    return Container(
+                    return Dismissible(
                       key: ValueKey(step.id),
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: textColor, width: 1.2),
-                        borderRadius: BorderRadius.circular(8),
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          ReorderableDragStartListener(
-                            index: index,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 12.0),
-                              child: Icon(
-                                Icons.drag_handle,
-                                color: subtextColor,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-
-                          GestureDetector(
-                            onTap: () {
-                              final bool isCompleting = !isCompleted;
-                              routineVm.toggleStep(step.id, shelfVm);
-
-                              if (isCompleting &&
-                                  step.shelfItemId != null &&
-                                  step.shelfItemId!.isNotEmpty) {
-                                final productName =
-                                    linkedProduct != null &&
-                                        linkedProduct.name.isNotEmpty
-                                    ? linkedProduct.name
-                                    : step.name;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Used 1 apply of $productName!',
-                                    ),
-                                    backgroundColor: isDark
-                                        ? Colors.grey.shade900
-                                        : Colors.black,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: textColor,
-                                  width: 1.5,
+                      direction: DismissDirection.endToStart,
+                      confirmDismiss: (_) async {
+                        return await showDialog<bool>(
+                          context: context,
+                          builder: (dialogCtx) {
+                            final isDarkDlg =
+                                Theme.of(dialogCtx).brightness ==
+                                    Brightness.dark;
+                            return AlertDialog(
+                              backgroundColor: isDarkDlg
+                                  ? const Color(0xFF1E1E1E)
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(
+                                  color: isDarkDlg
+                                      ? Colors.white
+                                      : Colors.black,
+                                  width: 2,
                                 ),
-                                color: isCompleted
-                                    ? textColor
-                                    : Colors.transparent,
                               ),
-                              child: isCompleted
-                                  ? Icon(
-                                      Icons.check,
-                                      color: isDark
-                                          ? Colors.black
-                                          : Colors.white,
-                                      size: 14,
-                                    )
-                                  : null,
+                              title: Text(
+                                'Delete Step?',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDarkDlg
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                              content: Text(
+                                'Remove "${step.name.isEmpty ? 'Custom Step' : step.name}" from your ${routineVm.activeRoutine} routine?',
+                                style: TextStyle(
+                                  color: isDarkDlg
+                                      ? Colors.grey.shade300
+                                      : Colors.black87,
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dialogCtx, false),
+                                  child: Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isDarkDlg
+                                          ? Colors.white70
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  onPressed: () =>
+                                      Navigator.pop(dialogCtx, true),
+                                  child: const Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ) ??
+                            false;
+                      },
+                      onDismissed: (_) {
+                        routineVm.deleteStep(authVm.userId, step.id);
+                      },
+                      background: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.white,
+                          size: 26,
+                        ),
+                      ),
+                      child: Container(
+                        key: ValueKey('inner_${step.id}'),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: textColor, width: 1.2),
+                          borderRadius: BorderRadius.circular(8),
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 12.0),
+                                child: Icon(
+                                  Icons.drag_handle,
+                                  color: subtextColor,
+                                  size: 20,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
 
-                          Expanded(
-                            child: GestureDetector(
+                            GestureDetector(
                               onTap: () {
                                 final bool isCompleting = !isCompleted;
                                 routineVm.toggleStep(step.id, shelfVm);
@@ -305,101 +350,156 @@ class HomeScreen extends StatelessWidget {
                                   );
                                 }
                               },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    step.name.isEmpty
-                                        ? 'Custom Step'
-                                        : step.name,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                      decoration: isCompleted
-                                          ? TextDecoration.lineThrough
-                                          : null,
-                                    ),
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: textColor,
+                                    width: 1.5,
                                   ),
-                                  if (step.description != null &&
-                                      step.description!.isNotEmpty) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      step.description!,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: subtextColor,
-                                      ),
-                                    ),
-                                  ],
-                                  if (linkedProduct != null) ...[
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.link,
-                                          size: 12,
-                                          color: stepBadgeText,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: Text(
-                                            '${linkedProduct.brand} - ${linkedProduct.name} (${linkedProduct.remainingUses} left)',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: stepBadgeText,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ],
+                                  color: isCompleted
+                                      ? textColor
+                                      : Colors.transparent,
+                                ),
+                                child: isCompleted
+                                    ? Icon(
+                                        Icons.check,
+                                        color: isDark
+                                            ? Colors.black
+                                            : Colors.white,
+                                        size: 14,
+                                      )
+                                    : null,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
+                            const SizedBox(width: 12),
 
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Step ${index + 1}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? Colors.grey.shade500
-                                      : Colors.grey.shade400,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  color: subtextColor,
-                                  size: 18,
-                                ),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: () {
-                                  _showEditStepDialog(
-                                    context,
-                                    authVm.userId,
-                                    routineVm,
-                                    step,
-                                    shelfVm,
-                                  );
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  final bool isCompleting = !isCompleted;
+                                  routineVm.toggleStep(step.id, shelfVm);
+
+                                  if (isCompleting &&
+                                      step.shelfItemId != null &&
+                                      step.shelfItemId!.isNotEmpty) {
+                                    final productName =
+                                        linkedProduct != null &&
+                                            linkedProduct.name.isNotEmpty
+                                        ? linkedProduct.name
+                                        : step.name;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Used 1 apply of $productName!',
+                                        ),
+                                        backgroundColor: isDark
+                                            ? Colors.grey.shade900
+                                            : Colors.black,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
                                 },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      step.name.isEmpty
+                                          ? 'Custom Step'
+                                          : step.name,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                        decoration: isCompleted
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                      ),
+                                    ),
+                                    if (step.description != null &&
+                                        step.description!.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        step.description!,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: subtextColor,
+                                        ),
+                                      ),
+                                    ],
+                                    if (linkedProduct != null) ...[
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.link,
+                                            size: 12,
+                                            color: stepBadgeText,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              '${linkedProduct.brand} - ${linkedProduct.name} (${linkedProduct.remainingUses} left)',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: stepBadgeText,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 8),
+
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Step ${index + 1}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.grey.shade500
+                                        : Colors.grey.shade400,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.edit_outlined,
+                                    color: subtextColor,
+                                    size: 18,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    _showEditStepDialog(
+                                      context,
+                                      authVm.userId,
+                                      routineVm,
+                                      step,
+                                      shelfVm,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
+
                 ),
 
               const SizedBox(height: 12),
@@ -1123,6 +1223,88 @@ class HomeScreen extends StatelessWidget {
           color: messageColor,
         ),
       ),
+    );
+  }
+}
+
+// ── Real-time clock ───────────────────────────────────────────────────────────
+
+class _LiveClock extends StatefulWidget {
+  const _LiveClock();
+
+  @override
+  State<_LiveClock> createState() => _LiveClockState();
+}
+
+class _LiveClockState extends State<_LiveClock> {
+  late DateTime _now;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _now = DateTime.now();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String _formatted(bool use24Hour) {
+    if (use24Hour) {
+      final h = _now.hour.toString().padLeft(2, '0');
+      final m = _now.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    } else {
+      final raw = _now.hour % 12 == 0 ? 12 : _now.hour % 12;
+      final h = raw.toString().padLeft(2, '0');
+      final m = _now.minute.toString().padLeft(2, '0');
+      final period = _now.hour < 12 ? 'AM' : 'PM';
+      return '$h:$m $period';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final use24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+    final subtextColor =
+        isDark ? Colors.grey.shade500 : Colors.grey.shade400;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          _formatted(use24Hour),
+          style: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            color: isDark ? Colors.white : Colors.black,
+            letterSpacing: -2,
+            height: 1,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _now.hour < 12 ? 'AM' : 'PM',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: subtextColor,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
     );
   }
 }

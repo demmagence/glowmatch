@@ -4,8 +4,10 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  NotificationService._();
-  static final NotificationService instance = NotificationService._();
+  @visibleForTesting
+  NotificationService.internal();
+
+  static NotificationService instance = NotificationService.internal();
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
