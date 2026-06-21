@@ -18,6 +18,14 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 }
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.test.espresso:espresso-core:3.5.1")
+            force("androidx.test.espresso:espresso-idling-resource:3.5.1")
+        }
+    }
+}
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
