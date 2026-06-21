@@ -54,7 +54,8 @@ void main() {
       await tester.pumpWidget(_buildSplash(hasSeenOnboarding: false));
       await tester.pump();
 
-      expect(find.text('GlowMatch.'), findsOneWidget);
+      expect(find.text('GlowMatch'), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
