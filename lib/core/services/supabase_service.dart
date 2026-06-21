@@ -85,6 +85,8 @@ class SupabaseService {
             'Niacinamide',
             'Watermelon Extract',
           ],
+          productSize: '50 ml',
+          createdAt: DateTime.now().subtract(const Duration(days: 14)),
         ),
         ShelfItem(
           id: 'item-2',
@@ -101,6 +103,8 @@ class SupabaseService {
             'Zinc Oxide',
             'Titanium Dioxide',
           ],
+          productSize: '50 ml',
+          createdAt: DateTime.now().subtract(const Duration(days: 30)),
         ),
         ShelfItem(
           id: 'item-3',
@@ -113,6 +117,8 @@ class SupabaseService {
           indicatorColor: '0xFFD50000',
           imageUrl: 'https://placehold.co/150/purple/white?text=Panthenol',
           ingredients: const ['Panthenol', 'Squalane', 'Ceramide NP'],
+          productSize: '80 ml',
+          createdAt: DateTime.now().subtract(const Duration(days: 5)),
         ),
       ]);
     }
@@ -245,11 +251,15 @@ class SupabaseService {
     final String id = item.id.isEmpty
         ? DateTime.now().millisecondsSinceEpoch.toString()
         : item.id;
-    final newItem = item.copyWith(id: id);
+    final now = DateTime.now();
+    final newItem = item.copyWith(
+      id: id,
+      createdAt: item.createdAt ?? now,
+    );
     final newItemMap = {
       ...newItem.toJson(),
       'user_id': userId,
-      'created_at': DateTime.now().toIso8601String(),
+      'created_at': newItem.createdAt!.toIso8601String(),
     };
 
     if (_isOfflineMode) {

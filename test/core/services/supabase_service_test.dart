@@ -40,6 +40,26 @@ void main() {
       expect(after.length, equals(before.length + 1));
     });
 
+    test('addShelfItem sets productSize and auto-populates createdAt if null', () async {
+      final result = await service.addShelfItem(
+        'test-user',
+        ShelfItem(
+          id: 'new-size-test',
+          name: 'Test Size Serum',
+          brand: 'TestBrand',
+          category: 'Serum',
+          price: 25.0,
+          estimatedUses: 30,
+          remainingUses: 30,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+          productSize: '100 ml',
+        ),
+      );
+      expect(result.productSize, equals('100 ml'));
+      expect(result.createdAt, isNotNull);
+    });
+
     test('decrementShelfItemUses reduces remaining_uses by 1', () async {
       final updated = await service.decrementShelfItemUses('item-1');
       expect(updated, isNotNull);

@@ -14,6 +14,7 @@ void showAddProductDialog(
   final brandController = TextEditingController();
   final priceController = TextEditingController();
   final usesController = TextEditingController();
+  final sizeController = TextEditingController();
   final ingredientsController = TextEditingController(
     text: preFilledIngredients != null ? preFilledIngredients.join(', ') : '',
   );
@@ -304,6 +305,28 @@ void showAddProductDialog(
                     keyboardType: TextInputType.number,
                   ),
                   TextField(
+                    controller: sizeController,
+                    style: TextStyle(color: textColor),
+                    decoration: InputDecoration(
+                      labelText: 'Product Size (e.g. 50 ml)',
+                      labelStyle: TextStyle(
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade700,
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white30 : Colors.black26,
+                        ),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  TextField(
                     controller: ingredientsController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
@@ -370,6 +393,9 @@ void showAddProductDialog(
                       colorHex: hexColor,
                       localImagePath: localImagePath,
                       ingredients: ingList,
+                      productSize: sizeController.text.trim().isEmpty
+                          ? null
+                          : sizeController.text.trim(),
                     );
                     Navigator.pop(context);
                   }
