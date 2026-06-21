@@ -695,14 +695,18 @@ class SupabaseService {
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year && localA.month == localB.month && localA.day == localB.day;
   }
 
   bool _isYesterday(DateTime lastDate, DateTime currentDate) {
-    final yesterday = currentDate.subtract(const Duration(days: 1));
-    return lastDate.year == yesterday.year &&
-        lastDate.month == yesterday.month &&
-        lastDate.day == yesterday.day;
+    final localLast = lastDate.toLocal();
+    final localCurrent = currentDate.toLocal();
+    final yesterday = localCurrent.subtract(const Duration(days: 1));
+    return localLast.year == yesterday.year &&
+        localLast.month == yesterday.month &&
+        localLast.day == yesterday.day;
   }
 
   Future<String> uploadJournalPhoto({

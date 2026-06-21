@@ -223,13 +223,18 @@ class RoutineViewModel extends ChangeNotifier {
   }
 
   Future<void> completeRoutine(String userId) async {
-    if (completedToday) {
-      return;
-    }
     _isLoading = true;
     notifyListeners();
 
     try {
+      // Re-fetch streak data from service to ensure we have the latest
+      // persisted state (handles re-login / app restart scenarios).
+      await loadStreakData(userId);
+
+      if (completedToday) {
+        return;
+      }
+
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
       _completedStepIds.clear();
     } catch (e) {
