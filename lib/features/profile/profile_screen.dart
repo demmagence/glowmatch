@@ -14,12 +14,17 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -234,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _passwordController,
-                              obscureText: true,
+                              obscureText: _obscurePassword,
                               decoration: InputDecoration(
                                 labelText: 'Password',
                                 filled: true,
@@ -260,6 +265,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ? Colors.grey.shade300
                                       : Colors.black54,
                                 ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
                               ),
                               style: TextStyle(
                                 color: isDark ? Colors.white : Colors.black,
@@ -267,6 +287,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               validator: (value) {
                                 if (value == null || value.length < 6) {
                                   return 'Password must be at least 6 characters';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _confirmPasswordController,
+                              obscureText: _obscureConfirmPassword,
+                              decoration: InputDecoration(
+                                labelText: 'Confirm Password',
+                                filled: true,
+                                fillColor: isDark
+                                    ? Colors.black38
+                                    : Colors.grey.shade50,
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: borderColor,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: isDark
+                                        ? Colors.pinkAccent
+                                        : Colors.pink,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                labelStyle: TextStyle(
+                                  color: isDark
+                                      ? Colors.grey.shade300
+                                      : Colors.black54,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                                    });
+                                  },
+                                ),
+                              ),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please confirm your password';
+                                }
+                                if (value != _passwordController.text) {
+                                  return 'Passwords do not match';
                                 }
                                 return null;
                               },
