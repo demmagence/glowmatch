@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/services/supabase_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/viewmodels/auth_viewmodel.dart';
 import 'core/viewmodels/theme_viewmodel.dart';
 import 'features/home/routine_viewmodel.dart';
@@ -25,6 +26,8 @@ void main() async {
 
   final supabaseService = SupabaseService();
   await supabaseService.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+
+  await NotificationService.instance.init();
 
   runApp(const GlowMatchApp());
 }

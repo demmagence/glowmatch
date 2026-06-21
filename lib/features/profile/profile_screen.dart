@@ -402,18 +402,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             themeVm.toggleThemeMode(value);
                           },
                         ),
-                        Divider(color: borderColor, thickness: 1.0),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
 
+                  // ── Notifications section ──────────────────────────────
+                  Text(
+                    'Notifications',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      border: Border.all(color: borderColor, width: 2.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: shadowColor,
+                          offset: const Offset(4, 4),
+                        ),
+                      ],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    child: Column(
+                      children: [
+                        // Master toggle
                         SwitchListTile(
                           title: Text(
-                            'Push Notifications',
+                            'Routine Reminders',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                           subtitle: Text(
-                            'AM/PM routine reminders',
+                            'Enable AM & PM routine notifications',
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey.shade400
@@ -421,9 +453,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           value: profileVm.isNotificationsEnabled,
-                          activeThumbColor: isDark
-                              ? Colors.pinkAccent
-                              : Colors.pink,
+                          activeThumbColor:
+                              isDark ? Colors.pinkAccent : Colors.pink,
                           activeTrackColor: isDark
                               ? Colors.pinkAccent.withValues(alpha: 0.5)
                               : Colors.pink.withValues(alpha: 0.5),
@@ -431,6 +462,206 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             profileVm.toggleNotifications(value);
                           },
                         ),
+
+                        if (profileVm.isNotificationsEnabled) ...[
+                          Divider(
+                            color: borderColor,
+                            thickness: 1.0,
+                            height: 1,
+                          ),
+
+                          // AM reminder row
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4.0,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: SwitchListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(
+                                      '🌅  AM Reminder',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      'Morning routine alert',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    value: profileVm.amEnabled,
+                                    activeThumbColor: isDark
+                                        ? Colors.pinkAccent
+                                        : Colors.pink,
+                                    activeTrackColor: isDark
+                                        ? Colors.pinkAccent
+                                              .withValues(alpha: 0.5)
+                                        : Colors.pink.withValues(alpha: 0.5),
+                                    onChanged: (v) =>
+                                        profileVm.toggleAmReminder(v),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: profileVm.amEnabled
+                                      ? () async {
+                                          final picked =
+                                              await showTimePicker(
+                                            context: context,
+                                            initialTime: profileVm.amTime,
+                                          );
+                                          if (picked != null) {
+                                            profileVm.setAmTime(picked);
+                                          }
+                                        }
+                                      : null,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: profileVm.amEnabled
+                                          ? (isDark
+                                                ? Colors.white12
+                                                : Colors.grey.shade100)
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: profileVm.amEnabled
+                                            ? borderColor
+                                            : Colors.transparent,
+                                        width: 1.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      profileVm.amTime.format(context),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: profileVm.amEnabled
+                                            ? (isDark
+                                                  ? Colors.white
+                                                  : Colors.black)
+                                            : (isDark
+                                                  ? Colors.grey.shade700
+                                                  : Colors.grey.shade400),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                              ],
+                            ),
+                          ),
+
+                          Divider(
+                            color: borderColor,
+                            thickness: 1.0,
+                            height: 1,
+                          ),
+
+                          // PM reminder row
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4.0,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: SwitchListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(
+                                      '🌙  PM Reminder',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      'Evening routine alert',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    value: profileVm.pmEnabled,
+                                    activeThumbColor: isDark
+                                        ? Colors.pinkAccent
+                                        : Colors.pink,
+                                    activeTrackColor: isDark
+                                        ? Colors.pinkAccent
+                                              .withValues(alpha: 0.5)
+                                        : Colors.pink.withValues(alpha: 0.5),
+                                    onChanged: (v) =>
+                                        profileVm.togglePmReminder(v),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: profileVm.pmEnabled
+                                      ? () async {
+                                          final picked =
+                                              await showTimePicker(
+                                            context: context,
+                                            initialTime: profileVm.pmTime,
+                                          );
+                                          if (picked != null) {
+                                            profileVm.setPmTime(picked);
+                                          }
+                                        }
+                                      : null,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: profileVm.pmEnabled
+                                          ? (isDark
+                                                ? Colors.white12
+                                                : Colors.grey.shade100)
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: profileVm.pmEnabled
+                                            ? borderColor
+                                            : Colors.transparent,
+                                        width: 1.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      profileVm.pmTime.format(context),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: profileVm.pmEnabled
+                                            ? (isDark
+                                                  ? Colors.white
+                                                  : Colors.black)
+                                            : (isDark
+                                                  ? Colors.grey.shade700
+                                                  : Colors.grey.shade400),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
