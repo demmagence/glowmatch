@@ -4,6 +4,7 @@ class JournalEntry {
   final int skinScore;
   final String? photoPath;
   final String? notes;
+  final DateTime? createdAt;
 
   JournalEntry({
     required this.id,
@@ -11,6 +12,7 @@ class JournalEntry {
     required this.skinScore,
     this.photoPath,
     this.notes,
+    this.createdAt,
   });
 
   factory JournalEntry.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class JournalEntry {
       skinScore: json['skin_score'] as int? ?? 80,
       photoPath: json['photo_path'] as String?,
       notes: json['notes'] as String?,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
     );
   }
 
@@ -30,6 +33,7 @@ class JournalEntry {
       'skin_score': skinScore,
       'photo_path': photoPath,
       'notes': notes,
+      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
     };
   }
 
@@ -39,6 +43,7 @@ class JournalEntry {
     int? skinScore,
     String? photoPath,
     String? notes,
+    DateTime? createdAt,
   }) {
     return JournalEntry(
       id: id ?? this.id,
@@ -46,6 +51,7 @@ class JournalEntry {
       skinScore: skinScore ?? this.skinScore,
       photoPath: photoPath ?? this.photoPath,
       notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
