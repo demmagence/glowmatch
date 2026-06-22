@@ -62,6 +62,29 @@ class ScanAnalysisResult {
 }
 
 class ScannerViewModel extends ChangeNotifier {
+  static const List<String> _curatedIngredients = [
+    'niacinamide',
+    'hyaluronic',
+    'salicylic',
+    'glycolic',
+    'retinol',
+    'centella',
+    'glycerin',
+    'panthenol',
+    'paraben',
+    'alcohol denat',
+    'ceramide',
+    'tocopherol',
+    'vitamin c',
+    'zinc oxide',
+    'titanium dioxide',
+    'aloe vera',
+    'tea tree',
+    'squalane',
+    'peptides',
+    'collagen',
+  ];
+
   final TextRecognizer _textRecognizer = TextRecognizer(
     script: TextRecognitionScript.latin,
   );
@@ -147,7 +170,11 @@ class ScannerViewModel extends ChangeNotifier {
     for (var part in rawParts) {
       final trimmed = part.trim();
       if (trimmed.isNotEmpty && trimmed.length > 1) {
-        result.add(trimmed);
+        final lowerPart = trimmed.toLowerCase();
+        final matchesCurated = _curatedIngredients.any((kw) => lowerPart.contains(kw));
+        if (matchesCurated) {
+          result.add(trimmed);
+        }
       }
     }
     return result;
@@ -206,6 +233,22 @@ class ScannerViewModel extends ChangeNotifier {
   }
 
   Future<void> _analyzeIngredientsWithAIList(List<String> ingredients) async {
+    if (ingredients.isEmpty) {
+      _analysisResult = ScanAnalysisResult(
+        detectedIngredients: [],
+        safetyRating: 'No ingredients detected',
+        skinTypeSuitability: 'N/A',
+        recommendations: 'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
+        isSafe: true,
+        ingredientSafetyLevels: {},
+        ingredientDetails: {},
+        overallSafetyScore: 0,
+        interactionWarnings: [],
+      );
+      notifyListeners();
+      return;
+    }
+
     final supabaseUrl = const String.fromEnvironment(
       'SUPABASE_URL',
       defaultValue: '',
@@ -317,16 +360,20 @@ class ScannerViewModel extends ChangeNotifier {
     }
 
     if (found.isEmpty) {
-      found.addAll(['Glycerin', 'Panthenol', 'Niacinamide']);
-      safetyLevels['Glycerin'] = 'Safe';
-      details['Glycerin'] =
-          'Classic humectant that keeps the skin barrier hydrated and soft.';
-      safetyLevels['Panthenol'] = 'Safe';
-      details['Panthenol'] =
-          'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
-      safetyLevels['Niacinamide'] = 'Safe';
-      details['Niacinamide'] =
-          'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
+      _analysisResult = ScanAnalysisResult(
+        detectedIngredients: [],
+        safetyRating: 'No ingredients detected',
+        skinTypeSuitability: 'N/A',
+        recommendations:
+            'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
+        isSafe: true,
+        ingredientSafetyLevels: {},
+        ingredientDetails: {},
+        overallSafetyScore: 0,
+        interactionWarnings: [],
+      );
+      await _saveScanToHistory(_analysisResult!);
+      return;
     }
 
     bool containsHarsh =
