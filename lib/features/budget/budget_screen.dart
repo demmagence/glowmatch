@@ -7,9 +7,7 @@ import '../../core/widgets/loading_overlay.dart';
 import '../../core/viewmodels/currency_viewmodel.dart';
 import 'widgets/allocation_card.dart';
 import 'widgets/calculator_card.dart';
-import 'widgets/edit_limit_dialog.dart';
 import 'widgets/spending_history_card.dart';
-import 'widgets/smart_alerts_card.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -85,113 +83,65 @@ class _BudgetScreenState extends State<BudgetScreen> {
             children: [
               const GlowMatchHeader(),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'MONTHLY SPEND vs LIMIT',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                      color: subtextColor,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: subtextColor,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => showEditLimitDialog(context, budgetVm),
-                  ),
-                ],
+              Text(
+                'TOTAL SPEND IN PERIOD',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  color: subtextColor,
+                ),
               ),
               const SizedBox(height: 8),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    currencyVm.formatPrice(budgetVm.totalMonthlySpend),
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      color: textColor,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  if (budgetVm.selectedPeriod != 'all')
-                    Text(
-                      ' / ${currencyVm.formatPrice(budgetVm.selectedPeriod == '90' ? budgetVm.budgetLimit * 3 : budgetVm.budgetLimit)}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: subtextColor,
-                      ),
-                    ),
-                ],
+              Text(
+                currencyVm.formatPrice(budgetVm.totalMonthlySpend),
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  color: textColor,
+                  letterSpacing: -1,
+                ),
               ),
               const SizedBox(height: 16),
 
-              // Period Selector Tabs
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildPeriodTab(context, budgetVm, '30', '30 Days'),
-                  const SizedBox(width: 8),
-                  _buildPeriodTab(context, budgetVm, '90', '90 Days'),
-                  const SizedBox(width: 8),
-                  _buildPeriodTab(context, budgetVm, 'all', 'All-Time'),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              if (budgetVm.selectedPeriod != 'all') ...[
-                Builder(
-                  builder: (context) {
-                    final spend = budgetVm.totalMonthlySpend;
-                    final limit = budgetVm.selectedPeriod == '90'
-                        ? budgetVm.budgetLimit * 3
-                        : budgetVm.budgetLimit;
-                    final percent = limit > 0
-                        ? (spend / limit).clamp(0.0, 1.0)
-                        : 1.0;
-                    final isOverBudget = spend > limit;
-                    final progressColor = isOverBudget
-                        ? const Color(0xFFD50000)
-                        : const Color(0xFF64DD17);
-
-                    return Container(
-                      width: double.infinity,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.grey.shade900
-                            : Colors.grey.shade100,
-                        border: Border.all(color: borderColor, width: 1.2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
-                        widthFactor: percent,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: progressColor,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: borderColor, width: 2),
                 ),
-                const SizedBox(height: 28),
-              ],
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildPeriodToggleItem(
+                        context,
+                        label: '30 Days',
+                        isActive: budgetVm.selectedPeriodDays == 30,
+                        onTap: () => budgetVm.setPeriodDays(30),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildPeriodToggleItem(
+                        context,
+                        label: '90 Days',
+                        isActive: budgetVm.selectedPeriodDays == 90,
+                        onTap: () => budgetVm.setPeriodDays(90),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildPeriodToggleItem(
+                        context,
+                        label: 'All Time',
+                        isActive: budgetVm.selectedPeriodDays == 0,
+                        onTap: () => budgetVm.setPeriodDays(0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
 
               AllocationCard(isDark: isDark),
               const SizedBox(height: 24),
@@ -199,8 +149,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
               SpendingHistoryCard(isDark: isDark, budgetVm: budgetVm),
               const SizedBox(height: 24),
 
-              SmartAlertsCard(isDark: isDark, budgetVm: budgetVm),
-              const SizedBox(height: 24),
 
               CalculatorCard(
                 isDark: isDark,
@@ -246,48 +194,37 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 
-  Widget _buildPeriodTab(
-    BuildContext context,
-    BudgetViewModel budgetVm,
-    String period,
-    String label,
-  ) {
-    final isSelected = budgetVm.selectedPeriod == period;
+  Widget _buildPeriodToggleItem(
+    BuildContext context, {
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final borderColor = isDark ? Colors.white : Colors.black;
-    final activeBg = isDark ? Colors.pinkAccent : Colors.yellowAccent;
-    final inactiveBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final activeText = isDark ? Colors.white : Colors.black;
-    final inactiveText = isDark ? Colors.grey.shade400 : Colors.black;
+    final activeColor = isDark ? Colors.white : Colors.black;
+    final activeTextColor = isDark ? Colors.black : Colors.white;
+    final inactiveTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
 
     return GestureDetector(
-      onTap: () => budgetVm.setSelectedPeriod(period),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? activeBg : inactiveBg,
-          border: Border.all(color: borderColor, width: 1.5),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? []
-              : [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black,
-                    offset: const Offset(2, 2),
-                  ),
-                ],
+          color: isActive ? activeColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(26),
         ),
+        alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            color: isActive ? activeTextColor : inactiveTextColor,
             fontWeight: FontWeight.bold,
-            color: isSelected ? activeText : inactiveText,
+            fontSize: 14,
           ),
         ),
       ),
     );
   }
 }
+
