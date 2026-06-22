@@ -16,18 +16,6 @@ class CategoryAllocation {
   });
 }
 
-class SmartAlert {
-  final String title;
-  final String description;
-  final String type;
-
-  SmartAlert({
-    required this.title,
-    required this.description,
-    required this.type,
-  });
-}
-
 class BudgetViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -69,6 +57,17 @@ class BudgetViewModel extends ChangeNotifier {
     }
   }
 
+  int _selectedPeriodDays = 30;
+  int get selectedPeriodDays => _selectedPeriodDays;
+
+  void setPeriodDays(int days) {
+    if (_selectedPeriodDays != days) {
+      _selectedPeriodDays = days;
+      _recalculateAllocations();
+      notifyListeners();
+    }
+  }
+
   double _productPrice = 1968000.0; // Default $120.0 in IDR
   int _estimatedUses = 60;
 
@@ -97,7 +96,15 @@ class BudgetViewModel extends ChangeNotifier {
 
   void _recalculateAllocations() {
     final Map<String, double> totals = {};
+    final now = DateTime.now();
+    final limitDate = _selectedPeriodDays > 0
+        ? now.subtract(Duration(days: _selectedPeriodDays))
+        : null;
+
     for (final item in _shelfItems) {
+      if (limitDate != null && item.createdAt != null && item.createdAt!.isBefore(limitDate)) {
+        continue;
+      }
       final category = item.category;
       final price = item.price;
       totals[category] = (totals[category] ?? 0.0) + price;
@@ -160,67 +167,5 @@ class BudgetViewModel extends ChangeNotifier {
     }
     return labels;
   }
-
-  List<SmartAlert> get smartAlerts {
-    final dummyVm = CurrencyViewModel();
-    return getSmartAlerts(dummyVm);
-  }
-
-  List<SmartAlert> getSmartAlerts(CurrencyViewModel currencyVm) {
-    final alerts = <SmartAlert>[];
-
-    if (totalMonthlySpend > _budgetLimit) {
-      final diff = totalMonthlySpend - _budgetLimit;
-      alerts.add(
-        SmartAlert(
-          title: 'Skincare Budget Exceeded',
-          description:
-              'Your current spending of ${currencyVm.formatPrice(totalMonthlySpend)} exceeds your monthly limit of ${currencyVm.formatPrice(_budgetLimit)} by ${currencyVm.formatPrice(diff)}.',
-          type: 'danger',
-        ),
-      );
-    } else if (totalMonthlySpend > _budgetLimit * 0.8) {
-      final pct = (totalMonthlySpend / _budgetLimit * 100).toStringAsFixed(0);
-      alerts.add(
-        SmartAlert(
-          title: 'Approaching Budget Limit',
-          description:
-              'You have used $pct% of your monthly skincare budget limit (${currencyVm.formatPrice(totalMonthlySpend)} of ${currencyVm.formatPrice(_budgetLimit)}).',
-          type: 'warning',
-        ),
-      );
-    }
-
-    for (final item in _shelfItems) {
-      if (item.remainingUses <= 5 && item.remainingUses > 0) {
-        alerts.add(
-          SmartAlert(
-            title: 'Low Uses Remaining: ${item.name}',
-            description:
-                'Only ${item.remainingUses} applications left for ${item.brand.isEmpty ? 'this product' : item.brand}. Repurchasing this item will cost ${currencyVm.formatPrice(item.price)}.',
-            type: 'info',
-          ),
-        );
-      }
-    }
-
-    for (final item in _shelfItems) {
-      if (item.estimatedUses > 0) {
-        final costPerApply = item.price / item.estimatedUses;
-        final threshold = currencyVm.convertUSDToIDR(1.50);
-        if (costPerApply > threshold) {
-          alerts.add(
-            SmartAlert(
-              title: 'High Cost-Per-Apply: ${item.name}',
-              description:
-                  '${item.name} (${item.brand}) costs ${currencyVm.formatPrice(costPerApply)} per application, which is above the recommended efficiency threshold.',
-              type: 'info',
-            ),
-          );
-        }
-      }
-    }
-
-    return alerts;
-  }
 }
+

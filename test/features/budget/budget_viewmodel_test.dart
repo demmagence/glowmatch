@@ -243,117 +243,52 @@ void main() {
       expect(vm.spendingHistoryLabels.length, equals(6));
     });
 
-    test(
-      'smartAlerts is empty when totalMonthlySpend is 0 and products are healthy',
-      () {
-        vm.updateFromShelf([]);
-        expect(vm.smartAlerts, isEmpty);
-      },
-    );
+    test('selectedPeriodDays default is 30, and updating it recalculates allocations based on item createdAt', () {
+      expect(vm.selectedPeriodDays, equals(30));
 
-    test(
-      'smartAlerts generates danger alert when budget is exceeded',
-      () async {
-        await vm.setBudgetLimit(100.0 * 16400.0);
-        vm.updateFromShelf([
-          ShelfItem(
-            id: '1',
-            category: 'Serum',
-            price: 120.0 * 16400.0,
-            name: 'S1',
-            brand: 'B1',
-            estimatedUses: 100,
-            remainingUses: 100,
-            indicatorColor: '0xFFE040FB',
-            ingredients: const [],
-          ),
-        ]);
-
-        final dangerAlerts = vm.smartAlerts
-            .where((a) => a.type == 'danger')
-            .toList();
-        expect(dangerAlerts.length, equals(1));
-        expect(dangerAlerts.first.title, contains('Budget Exceeded'));
-      },
-    );
-
-    test(
-      'smartAlerts generates warning alert when spend is > 80% of budget limit',
-      () async {
-        await vm.setBudgetLimit(100.0 * 16400.0);
-        vm.updateFromShelf([
-          ShelfItem(
-            id: '1',
-            category: 'Serum',
-            price: 85.0 * 16400.0,
-            name: 'S1',
-            brand: 'B1',
-            estimatedUses: 100,
-            remainingUses: 100,
-            indicatorColor: '0xFFE040FB',
-            ingredients: const [],
-          ),
-        ]);
-
-        final warningAlerts = vm.smartAlerts
-            .where((a) => a.type == 'warning')
-            .toList();
-        expect(warningAlerts.length, equals(1));
-        expect(warningAlerts.first.title, contains('Approaching Budget Limit'));
-      },
-    );
-
-    test('smartAlerts generates low stock warning when remainingUses <= 5', () {
+      final now = DateTime.now();
       vm.updateFromShelf([
         ShelfItem(
-          id: '1',
+          id: 'recent',
           category: 'Serum',
-          price: 30.0 * 16400.0,
-          name: 'Low Stock Product',
-          brand: 'B1',
+          price: 50.0,
+          name: 'S1',
+          brand: '',
           estimatedUses: 50,
-          remainingUses: 4,
+          remainingUses: 50,
           indicatorColor: '0xFFE040FB',
           ingredients: const [],
+          createdAt: now.subtract(const Duration(days: 5)),
+        ),
+        ShelfItem(
+          id: 'old',
+          category: 'Serum',
+          price: 100.0,
+          name: 'S2',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+          createdAt: now.subtract(const Duration(days: 45)),
         ),
       ]);
 
-      final stockAlerts = vm.smartAlerts
-          .where((a) => a.title.contains('Low Uses Remaining'))
-          .toList();
-      expect(stockAlerts.length, equals(1));
-      expect(
-        stockAlerts.first.description,
-        contains('Only 4 applications left'),
-      );
+      // With default 30 days, only 'recent' (5 days ago) is counted
+      expect(vm.totalMonthlySpend, equals(50.0));
+
+      // Change to 90 days, both should be counted
+      vm.setPeriodDays(90);
+      expect(vm.selectedPeriodDays, equals(90));
+      expect(vm.totalMonthlySpend, equals(150.0));
+
+      // Change to All Time (0 days), both should be counted
+      vm.setPeriodDays(0);
+      expect(vm.selectedPeriodDays, equals(0));
+      expect(vm.totalMonthlySpend, equals(150.0));
     });
-
-    test(
-      'smartAlerts generates high cost-per-apply warning when metric > 1.50',
-      () {
-        vm.updateFromShelf([
-          ShelfItem(
-            id: '1',
-            category: 'Serum',
-            price: 80.0 * 16400.0,
-            name: 'Expensive Serum',
-            brand: 'B1',
-            estimatedUses: 40,
-            remainingUses: 40,
-            indicatorColor: '0xFFE040FB',
-            ingredients: const [],
-          ),
-        ]);
-
-        final efficiencyAlerts = vm.smartAlerts
-            .where((a) => a.title.contains('High Cost-Per-Apply'))
-            .toList();
-        expect(efficiencyAlerts.length, equals(1));
-        expect(
-          efficiencyAlerts.first.description,
-          contains('costs \$2.00 per application'),
-        );
-      },
-    );
   });
 }
+
+
+
