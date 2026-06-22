@@ -995,6 +995,15 @@ class SupabaseService {
     _isOfflineMode = true;
   }
 
+  void resetMockData() {
+    _mockShelf.clear();
+    _mockRoutines.clear();
+    _mockJournalEntries.clear();
+    _mockStreaks.clear();
+    _mockCategories.clear();
+    _seedMockData();
+  }
+
   @visibleForTesting
   void setMockStreak(String userId, StreakData streak) {
     _mockStreaks[userId] = streak;
