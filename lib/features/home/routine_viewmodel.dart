@@ -20,6 +20,7 @@ class RoutineViewModel extends ChangeNotifier {
   String? _errorMessage;
   WeatherData? _weather;
   StreakData? _streakData;
+  List<DateTime> _dailyCompletionLogs = [];
 
   List<RoutineStep> get amSteps => _amSteps;
   List<RoutineStep> get pmSteps => _pmSteps;
@@ -29,6 +30,51 @@ class RoutineViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   WeatherData? get weather => _weather;
   StreakData? get streakData => _streakData;
+  List<DateTime> get dailyCompletionLogs => _dailyCompletionLogs;
+
+  List<StreakSegment> get streakSegments {
+    if (_dailyCompletionLogs.isEmpty) return [];
+
+    final uniqueSortedDates = _dailyCompletionLogs
+        .map((d) => DateTime(d.year, d.month, d.day))
+        .toSet()
+        .toList()
+      ..sort((a, b) => a.compareTo(b));
+
+    if (uniqueSortedDates.isEmpty) return [];
+
+    final List<StreakSegment> segments = [];
+    DateTime segmentStart = uniqueSortedDates[0];
+    DateTime segmentEnd = uniqueSortedDates[0];
+
+    for (int i = 1; i < uniqueSortedDates.length; i++) {
+      final currentDate = uniqueSortedDates[i];
+      final diff = currentDate.difference(segmentEnd).inDays;
+
+      if (diff == 1) {
+        segmentEnd = currentDate;
+      } else if (diff > 1) {
+        final length = segmentEnd.difference(segmentStart).inDays + 1;
+        segments.add(StreakSegment(
+          startDate: segmentStart,
+          endDate: segmentEnd,
+          length: length,
+        ));
+        segmentStart = currentDate;
+        segmentEnd = currentDate;
+      }
+    }
+
+    final lastLength = segmentEnd.difference(segmentStart).inDays + 1;
+    segments.add(StreakSegment(
+      startDate: segmentStart,
+      endDate: segmentEnd,
+      length: lastLength,
+    ));
+
+    segments.sort((a, b) => b.endDate.compareTo(a.endDate));
+    return segments;
+  }
 
   bool get completedToday {
     if (_streakData == null || _streakData!.lastCompletedDate == null) {
@@ -73,6 +119,7 @@ class RoutineViewModel extends ChangeNotifier {
   Future<void> loadStreakData(String userId) async {
     try {
       _streakData = await _supabaseService.getStreakData(userId);
+      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
     } catch (e) {
       debugPrint('Error loading streak data: $e');
     }
@@ -249,6 +296,7 @@ class RoutineViewModel extends ChangeNotifier {
       }
 
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
+      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
       _completedStepIds.clear();
     } catch (e) {
       debugPrint('Error completing routine: $e');
