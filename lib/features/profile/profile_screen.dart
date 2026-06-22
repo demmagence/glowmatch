@@ -974,44 +974,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               onPressed: () async {
                 Navigator.pop(dialogContext);
-                if (authVm.isAnonymous) {
-                  final navigator = Navigator.of(context);
-                  // 1. Reset Mock Database
-                  SupabaseService().resetMockData();
+                final navigator = Navigator.of(context);
 
-                  // 2. Reset ViewModels state
-                  if (context.mounted) {
-                    Provider.of<ShelfViewModel>(context, listen: false).clearState();
-                    Provider.of<JournalViewModel>(context, listen: false).clearState();
-                    Provider.of<RoutineViewModel>(context, listen: false).clearState();
-                  }
+                // 1. Reset Mock Database
+                SupabaseService().resetMockData();
 
-                  // 3. Clear SharedPreferences seen onboarding flag
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setBool('has_seen_onboarding', false);
-
-                  // 4. Perform actual sign out
-                  await authVm.signOut();
-
-                  // 5. Navigate to Onboarding Screen and remove all previous routes
-                  navigator.pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-                    (route) => false,
-                  );
-                } else {
-                  await authVm.signOut();
-                  if (mounted) {
-                    await authVm.loginAnonymously();
-                    if (mounted) {
-                      ScaffoldMessenger.of(this.context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Successfully signed out.'),
-                          backgroundColor: Colors.black,
-                        ),
-                      );
-                    }
-                  }
+                // 2. Reset ViewModels state
+                if (context.mounted) {
+                  Provider.of<ShelfViewModel>(context, listen: false).clearState();
+                  Provider.of<JournalViewModel>(context, listen: false).clearState();
+                  Provider.of<RoutineViewModel>(context, listen: false).clearState();
                 }
+
+                // 3. Clear SharedPreferences seen onboarding flag
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('has_seen_onboarding', false);
+
+                // 4. Perform actual sign out
+                await authVm.signOut();
+
+                // 5. Navigate to Onboarding Screen and remove all previous routes
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+                  (route) => false,
+                );
               },
               child: const Text(
                 'Sign Out',
