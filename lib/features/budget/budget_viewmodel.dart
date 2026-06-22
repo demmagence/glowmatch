@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/models.dart';
 import '../../core/constants.dart';
-import '../../core/viewmodels/currency_viewmodel.dart';
 
 class CategoryAllocation {
   final String category;
@@ -134,14 +133,18 @@ class BudgetViewModel extends ChangeNotifier {
   }
 
   List<double> get spendingHistory {
-    return [
-      45.0 * 16400.0,
-      78.0 * 16400.0,
-      62.0 * 16400.0,
-      110.0 * 16400.0,
-      95.0 * 16400.0,
-      totalMonthlySpend,
-    ];
+    final now = DateTime.now();
+    final history = <double>[];
+    for (int i = 5; i >= 0; i--) {
+      final targetDate = DateTime(now.year, now.month - i, 1);
+      final monthItems = _shelfItems.where((item) {
+        final date = item.createdAt ?? now;
+        return date.year == targetDate.year && date.month == targetDate.month;
+      });
+      final sum = monthItems.fold(0.0, (acc, item) => acc + item.price);
+      history.add(sum);
+    }
+    return history;
   }
 
   List<String> get spendingHistoryLabels {
@@ -168,4 +171,3 @@ class BudgetViewModel extends ChangeNotifier {
     return labels;
   }
 }
-

@@ -14,12 +14,14 @@ class RoutineViewModel extends ChangeNotifier {
   List<RoutineStep> _amSteps = [];
   List<RoutineStep> _pmSteps = [];
   final Set<String> _completedStepIds = {};
+  final Set<String> _todayCompletedStepIds = {};
 
   String _activeRoutine = 'AM';
   bool _isLoading = false;
   String? _errorMessage;
   WeatherData? _weather;
   StreakData? _streakData;
+  List<DateTime> _dailyCompletionLogs = [];
 
   List<RoutineStep> get amSteps => _amSteps;
   List<RoutineStep> get pmSteps => _pmSteps;
@@ -29,6 +31,51 @@ class RoutineViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   WeatherData? get weather => _weather;
   StreakData? get streakData => _streakData;
+  List<DateTime> get dailyCompletionLogs => _dailyCompletionLogs;
+
+  List<StreakSegment> get streakSegments {
+    if (_dailyCompletionLogs.isEmpty) return [];
+
+    final uniqueSortedDates = _dailyCompletionLogs
+        .map((d) => DateTime(d.year, d.month, d.day))
+        .toSet()
+        .toList()
+      ..sort((a, b) => a.compareTo(b));
+
+    if (uniqueSortedDates.isEmpty) return [];
+
+    final List<StreakSegment> segments = [];
+    DateTime segmentStart = uniqueSortedDates[0];
+    DateTime segmentEnd = uniqueSortedDates[0];
+
+    for (int i = 1; i < uniqueSortedDates.length; i++) {
+      final currentDate = uniqueSortedDates[i];
+      final diff = currentDate.difference(segmentEnd).inDays;
+
+      if (diff == 1) {
+        segmentEnd = currentDate;
+      } else if (diff > 1) {
+        final length = segmentEnd.difference(segmentStart).inDays + 1;
+        segments.add(StreakSegment(
+          startDate: segmentStart,
+          endDate: segmentEnd,
+          length: length,
+        ));
+        segmentStart = currentDate;
+        segmentEnd = currentDate;
+      }
+    }
+
+    final lastLength = segmentEnd.difference(segmentStart).inDays + 1;
+    segments.add(StreakSegment(
+      startDate: segmentStart,
+      endDate: segmentEnd,
+      length: lastLength,
+    ));
+
+    segments.sort((a, b) => b.endDate.compareTo(a.endDate));
+    return segments;
+  }
 
   bool get completedToday {
     if (_streakData == null || _streakData!.lastCompletedDate == null) {
@@ -73,6 +120,7 @@ class RoutineViewModel extends ChangeNotifier {
   Future<void> loadStreakData(String userId) async {
     try {
       _streakData = await _supabaseService.getStreakData(userId);
+      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
     } catch (e) {
       debugPrint('Error loading streak data: $e');
     }
@@ -95,6 +143,16 @@ class RoutineViewModel extends ChangeNotifier {
       _pmSteps = await _supabaseService.getRoutines(userId, 'PM');
 
       _completedStepIds.clear();
+      _todayCompletedStepIds.clear();
+      final todayCompletions = await _supabaseService.getRoutineStepCompletions(userId, DateTime.now());
+      _todayCompletedStepIds.addAll(todayCompletions);
+
+      final activeSteps = _activeRoutine == 'AM' ? _amSteps : _pmSteps;
+      for (final step in activeSteps) {
+        if (_todayCompletedStepIds.contains(step.id)) {
+          _completedStepIds.add(step.id);
+        }
+      }
     } catch (e) {
       debugPrint('Error loading routines: $e');
       _errorMessage = e.toString();
@@ -107,6 +165,12 @@ class RoutineViewModel extends ChangeNotifier {
     if (_activeRoutine != routine) {
       _activeRoutine = routine;
       _completedStepIds.clear();
+      final activeSteps = _activeRoutine == 'AM' ? _amSteps : _pmSteps;
+      for (final step in activeSteps) {
+        if (_todayCompletedStepIds.contains(step.id)) {
+          _completedStepIds.add(step.id);
+        }
+      }
       notifyListeners();
     }
   }
@@ -114,8 +178,16 @@ class RoutineViewModel extends ChangeNotifier {
   Future<void> toggleStep(String stepId, ShelfViewModel shelfVm) async {
     if (_completedStepIds.contains(stepId)) {
       _completedStepIds.remove(stepId);
+      _todayCompletedStepIds.remove(stepId);
+      if (_userId != null) {
+        await _supabaseService.deleteRoutineStepCompletion(_userId!, stepId, DateTime.now());
+      }
     } else {
       _completedStepIds.add(stepId);
+      _todayCompletedStepIds.add(stepId);
+      if (_userId != null) {
+        await _supabaseService.insertRoutineStepCompletion(_userId!, stepId, DateTime.now());
+      }
 
       final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
       if (stepIdx != -1) {
@@ -249,7 +321,7 @@ class RoutineViewModel extends ChangeNotifier {
       }
 
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
-      _completedStepIds.clear();
+      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
     } catch (e) {
       debugPrint('Error completing routine: $e');
       _errorMessage = e.toString();

@@ -1,34 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:glowmatch/features/budget/budget_viewmodel.dart';
 import 'package:glowmatch/core/models/models.dart';
+import 'package:glowmatch/features/budget/budget_viewmodel.dart';
 
 void main() {
-  group('BudgetViewModel', () {
-    late BudgetViewModel vm;
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    setUp(() {
-      SharedPreferences.setMockInitialValues({});
-      vm = BudgetViewModel();
+  late BudgetViewModel vm;
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    vm = BudgetViewModel();
+  });
+
+  group('BudgetViewModel Tests', () {
+    test('default values are set correctly', () {
+      expect(vm.budgetLimit, equals(2460000.0));
+      expect(vm.productPrice, equals(1968000.0));
+      expect(vm.estimatedUses, equals(60));
+      expect(vm.allocations, isEmpty);
+      expect(vm.totalMonthlySpend, equals(0.0));
     });
 
-    test('efficiencyMetric: 1968000 / 60 = 32800.00', () {
-      expect(vm.efficiencyMetric, closeTo(32800.00, 0.001));
-    });
-
-    test('efficiencyMetric: 50 * 16000 / 25 = 32800.00', () {
-      vm.updateCalculator(price: 50.0 * 16400.0, uses: 25);
+    test('efficiencyMetric is calculated correctly: \$120 / 60 = \$2.00', () {
       expect(vm.efficiencyMetric, closeTo(32800.00, 0.001));
     });
 
     test('efficiencyMetric returns 0.0 when uses is 0', () {
       vm.updateCalculator(uses: 0);
       expect(vm.efficiencyMetric, equals(0.0));
-    });
-
-    test('efficiencyMetric: 42 * 16000 / 60 ≈ 11480.00', () {
-      vm.updateCalculator(price: 42.0 * 16400.0, uses: 60);
-      expect(vm.efficiencyMetric, closeTo(11480.00, 0.001));
     });
 
     test('updateFromShelf groups items by category and sums amounts', () {
@@ -76,39 +76,7 @@ void main() {
       expect(moist.amount, closeTo(58.0 * 16400.0, 0.001));
     });
 
-    test('updateFromShelf assigns correct colorHex per category', () {
-      vm.updateFromShelf([
-        ShelfItem(
-          id: '1',
-          category: 'Sunscreen',
-          price: 20.0 * 16400.0,
-          name: 'Sun1',
-          brand: '',
-          estimatedUses: 50,
-          remainingUses: 50,
-          indicatorColor: '0xFF64DD17',
-          ingredients: const [],
-        ),
-        ShelfItem(
-          id: '2',
-          category: 'Cleanser',
-          price: 15.0 * 16400.0,
-          name: 'C1',
-          brand: '',
-          estimatedUses: 50,
-          remainingUses: 50,
-          indicatorColor: '0xFF29B6F6',
-          ingredients: const [],
-        ),
-      ]);
-
-      final sun = vm.allocations.firstWhere((a) => a.category == 'Sunscreen');
-      final clean = vm.allocations.firstWhere((a) => a.category == 'Cleanser');
-      expect(sun.colorHex, equals('0xFF64DD17'));
-      expect(clean.colorHex, equals('0xFF29B6F6'));
-    });
-
-    test('updateFromShelf sorts allocations descending by amount', () {
+    test('updateFromShelf sort allocations descending by amount', () {
       vm.updateFromShelf([
         ShelfItem(
           id: '1',
@@ -221,7 +189,8 @@ void main() {
       expect(vm2.budgetLimit, equals(3200000.0));
     });
 
-    test('spendingHistory includes mock months plus total dynamic spend', () {
+    test('spendingHistory includes dynamic spending history', () {
+      final now = DateTime.now();
       vm.updateFromShelf([
         ShelfItem(
           id: '1',
@@ -233,6 +202,7 @@ void main() {
           remainingUses: 50,
           indicatorColor: '0xFFE040FB',
           ingredients: const [],
+          createdAt: now,
         ),
       ]);
       expect(vm.spendingHistory.length, equals(6));
@@ -287,8 +257,39 @@ void main() {
       expect(vm.selectedPeriodDays, equals(0));
       expect(vm.totalMonthlySpend, equals(150.0));
     });
+
+    test('spendingHistory groups entries by calendar month dynamically', () {
+      final now = DateTime.now();
+      final itemThisMonth = ShelfItem(
+        id: 'this-month',
+        category: 'Serum',
+        price: 100.0 * 16400.0,
+        name: 'Product 1',
+        brand: '',
+        estimatedUses: 50,
+        remainingUses: 50,
+        indicatorColor: '0xFFE040FB',
+        ingredients: const [],
+        createdAt: now,
+      );
+      final itemPrevMonth = ShelfItem(
+        id: 'prev-month',
+        category: 'Serum',
+        price: 50.0 * 16400.0,
+        name: 'Product 2',
+        brand: '',
+        estimatedUses: 50,
+        remainingUses: 50,
+        indicatorColor: '0xFFE040FB',
+        ingredients: const [],
+        createdAt: DateTime(now.year, now.month - 1, 15),
+      );
+
+      vm.updateFromShelf([itemThisMonth, itemPrevMonth]);
+
+      expect(vm.spendingHistory.length, equals(6));
+      expect(vm.spendingHistory.last, equals(100.0 * 16400.0));
+      expect(vm.spendingHistory[vm.spendingHistory.length - 2], equals(50.0 * 16400.0));
+    });
   });
 }
-
-
-

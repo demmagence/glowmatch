@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'routine_viewmodel.dart';
+import 'widgets/streak_history_bottom_sheet.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../shelf/shelf_viewmodel.dart';
@@ -71,9 +72,12 @@ class HomeScreen extends StatelessWidget {
                   ),
                   if (routineVm.streakData != null &&
                       routineVm.streakData!.currentStreak > 0)
-                    _buildStreakBadge(
-                      context,
-                      routineVm.streakData!.currentStreak,
+                    GestureDetector(
+                      onTap: () => StreakHistoryBottomSheet.show(context),
+                      child: _buildStreakBadge(
+                        context,
+                        routineVm.streakData!.currentStreak,
+                      ),
                     ),
                 ],
               ),
@@ -99,9 +103,12 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               if (routineVm.streakData != null)
-                _buildMotivationalBanner(
-                  context,
-                  routineVm.streakData!.currentStreak,
+                GestureDetector(
+                  onTap: () => StreakHistoryBottomSheet.show(context),
+                  child: _buildMotivationalBanner(
+                    context,
+                    routineVm.streakData!.currentStreak,
+                  ),
                 ),
               const SizedBox(height: 24),
 

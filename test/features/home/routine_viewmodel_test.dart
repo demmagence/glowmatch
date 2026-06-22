@@ -7,16 +7,14 @@ void main() {
   late RoutineViewModel vm;
   late ShelfViewModel shelfVm;
 
-  setUpAll(() async {
+  setUp(() async {
     final svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
-  });
-
-  setUp(() {
     vm = RoutineViewModel();
     shelfVm = ShelfViewModel();
   });
+
 
   group('RoutineViewModel – toggleStep', () {
     test('toggleStep adds stepId to completedStepIds', () {
