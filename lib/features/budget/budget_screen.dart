@@ -7,7 +7,6 @@ import '../../core/widgets/loading_overlay.dart';
 import '../../core/viewmodels/currency_viewmodel.dart';
 import 'widgets/allocation_card.dart';
 import 'widgets/calculator_card.dart';
-import 'widgets/edit_limit_dialog.dart';
 import 'widgets/spending_history_card.dart';
 
 class BudgetScreen extends StatefulWidget {
@@ -84,93 +83,63 @@ class _BudgetScreenState extends State<BudgetScreen> {
             children: [
               const GlowMatchHeader(),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'MONTHLY SPEND vs LIMIT',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                      color: subtextColor,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: subtextColor,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => showEditLimitDialog(context, budgetVm),
-                  ),
-                ],
+              Text(
+                'TOTAL SPEND IN PERIOD',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  color: subtextColor,
+                ),
               ),
               const SizedBox(height: 8),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    currencyVm.formatPrice(budgetVm.totalMonthlySpend),
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      color: textColor,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Text(
-                    ' / ${currencyVm.formatPrice(budgetVm.budgetLimit)}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: subtextColor,
-                    ),
-                  ),
-                ],
+              Text(
+                currencyVm.formatPrice(budgetVm.totalMonthlySpend),
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  color: textColor,
+                  letterSpacing: -1,
+                ),
               ),
               const SizedBox(height: 16),
 
-              Builder(
-                builder: (context) {
-                  final spend = budgetVm.totalMonthlySpend;
-                  final limit = budgetVm.budgetLimit;
-                  final percent = limit > 0
-                      ? (spend / limit).clamp(0.0, 1.0)
-                      : 1.0;
-                  final isOverBudget = spend > limit;
-                  final progressColor = isOverBudget
-                      ? const Color(0xFFD50000)
-                      : const Color(0xFF64DD17);
-
-                  return Container(
-                    width: double.infinity,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.grey.shade900
-                          : Colors.grey.shade100,
-                      border: Border.all(color: borderColor, width: 1.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: percent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: progressColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: borderColor, width: 2),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildPeriodToggleItem(
+                        context,
+                        label: '30 Days',
+                        isActive: budgetVm.selectedPeriodDays == 30,
+                        onTap: () => budgetVm.setPeriodDays(30),
                       ),
                     ),
-                  );
-                },
+                    Expanded(
+                      child: _buildPeriodToggleItem(
+                        context,
+                        label: '90 Days',
+                        isActive: budgetVm.selectedPeriodDays == 90,
+                        onTap: () => budgetVm.setPeriodDays(90),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildPeriodToggleItem(
+                        context,
+                        label: 'All Time',
+                        isActive: budgetVm.selectedPeriodDays == 0,
+                        onTap: () => budgetVm.setPeriodDays(0),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 28),
 
@@ -224,4 +193,38 @@ class _BudgetScreenState extends State<BudgetScreen> {
       ),
     );
   }
+
+  Widget _buildPeriodToggleItem(
+    BuildContext context, {
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? Colors.white : Colors.black;
+    final activeTextColor = isDark ? Colors.black : Colors.white;
+    final inactiveTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(26),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? activeTextColor : inactiveTextColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
 }
+

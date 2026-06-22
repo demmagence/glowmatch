@@ -242,7 +242,53 @@ void main() {
     test('spendingHistoryLabels contains exactly 6 chronological months', () {
       expect(vm.spendingHistoryLabels.length, equals(6));
     });
+
+    test('selectedPeriodDays default is 30, and updating it recalculates allocations based on item createdAt', () {
+      expect(vm.selectedPeriodDays, equals(30));
+
+      final now = DateTime.now();
+      vm.updateFromShelf([
+        ShelfItem(
+          id: 'recent',
+          category: 'Serum',
+          price: 50.0,
+          name: 'S1',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+          createdAt: now.subtract(const Duration(days: 5)),
+        ),
+        ShelfItem(
+          id: 'old',
+          category: 'Serum',
+          price: 100.0,
+          name: 'S2',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+          createdAt: now.subtract(const Duration(days: 45)),
+        ),
+      ]);
+
+      // With default 30 days, only 'recent' (5 days ago) is counted
+      expect(vm.totalMonthlySpend, equals(50.0));
+
+      // Change to 90 days, both should be counted
+      vm.setPeriodDays(90);
+      expect(vm.selectedPeriodDays, equals(90));
+      expect(vm.totalMonthlySpend, equals(150.0));
+
+      // Change to All Time (0 days), both should be counted
+      vm.setPeriodDays(0);
+      expect(vm.selectedPeriodDays, equals(0));
+      expect(vm.totalMonthlySpend, equals(150.0));
+    });
   });
 }
+
 
 

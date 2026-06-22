@@ -57,6 +57,17 @@ class BudgetViewModel extends ChangeNotifier {
     }
   }
 
+  int _selectedPeriodDays = 30;
+  int get selectedPeriodDays => _selectedPeriodDays;
+
+  void setPeriodDays(int days) {
+    if (_selectedPeriodDays != days) {
+      _selectedPeriodDays = days;
+      _recalculateAllocations();
+      notifyListeners();
+    }
+  }
+
   double _productPrice = 1968000.0; // Default $120.0 in IDR
   int _estimatedUses = 60;
 
@@ -85,7 +96,15 @@ class BudgetViewModel extends ChangeNotifier {
 
   void _recalculateAllocations() {
     final Map<String, double> totals = {};
+    final now = DateTime.now();
+    final limitDate = _selectedPeriodDays > 0
+        ? now.subtract(Duration(days: _selectedPeriodDays))
+        : null;
+
     for (final item in _shelfItems) {
+      if (limitDate != null && item.createdAt != null && item.createdAt!.isBefore(limitDate)) {
+        continue;
+      }
       final category = item.category;
       final price = item.price;
       totals[category] = (totals[category] ?? 0.0) + price;
