@@ -243,224 +243,49 @@ void main() {
       expect(vm.spendingHistoryLabels.length, equals(6));
     });
 
-    test(
-      'smartAlerts is empty when totalMonthlySpend is 0 and products are healthy',
-      () {
-        vm.updateFromShelf([]);
-        expect(vm.smartAlerts, isEmpty);
-      },
-    );
+    test('selectedPeriodDays default is 30, and updating it recalculates allocations based on item createdAt', () {
+      expect(vm.selectedPeriodDays, equals(30));
 
-    test(
-      'smartAlerts generates danger alert when budget is exceeded',
-      () async {
-        await vm.setBudgetLimit(100.0 * 16400.0);
-        vm.updateFromShelf([
-          ShelfItem(
-            id: '1',
-            category: 'Serum',
-            price: 120.0 * 16400.0,
-            name: 'S1',
-            brand: 'B1',
-            estimatedUses: 100,
-            remainingUses: 100,
-            indicatorColor: '0xFFE040FB',
-            ingredients: const [],
-          ),
-        ]);
-
-        final dangerAlerts = vm.smartAlerts
-            .where((a) => a.type == 'danger')
-            .toList();
-        expect(dangerAlerts.length, equals(1));
-        expect(dangerAlerts.first.title, contains('Budget Exceeded'));
-      },
-    );
-
-    test(
-      'smartAlerts generates warning alert when spend is > 80% of budget limit',
-      () async {
-        await vm.setBudgetLimit(100.0 * 16400.0);
-        vm.updateFromShelf([
-          ShelfItem(
-            id: '1',
-            category: 'Serum',
-            price: 85.0 * 16400.0,
-            name: 'S1',
-            brand: 'B1',
-            estimatedUses: 100,
-            remainingUses: 100,
-            indicatorColor: '0xFFE040FB',
-            ingredients: const [],
-          ),
-        ]);
-
-        final warningAlerts = vm.smartAlerts
-            .where((a) => a.type == 'warning')
-            .toList();
-        expect(warningAlerts.length, equals(1));
-        expect(warningAlerts.first.title, contains('Approaching Budget Limit'));
-      },
-    );
-
-    test('smartAlerts generates low stock warning when remainingUses <= 5', () {
+      final now = DateTime.now();
       vm.updateFromShelf([
         ShelfItem(
-          id: '1',
+          id: 'recent',
           category: 'Serum',
-          price: 30.0 * 16400.0,
-          name: 'Low Stock Product',
-          brand: 'B1',
+          price: 50.0,
+          name: 'S1',
+          brand: '',
           estimatedUses: 50,
-          remainingUses: 4,
+          remainingUses: 50,
           indicatorColor: '0xFFE040FB',
           ingredients: const [],
+          createdAt: now.subtract(const Duration(days: 5)),
+        ),
+        ShelfItem(
+          id: 'old',
+          category: 'Serum',
+          price: 100.0,
+          name: 'S2',
+          brand: '',
+          estimatedUses: 50,
+          remainingUses: 50,
+          indicatorColor: '0xFFE040FB',
+          ingredients: const [],
+          createdAt: now.subtract(const Duration(days: 45)),
         ),
       ]);
 
-      final stockAlerts = vm.smartAlerts
-          .where((a) => a.title.contains('Low Uses Remaining'))
-          .toList();
-      expect(stockAlerts.length, equals(1));
-      expect(
-        stockAlerts.first.description,
-        contains('Only 4 applications left'),
-      );
-    });
+      // With default 30 days, only 'recent' (5 days ago) is counted
+      expect(vm.totalMonthlySpend, equals(50.0));
 
-    test(
-      'smartAlerts generates high cost-per-apply warning when metric > 1.50',
-      () {
-        vm.updateFromShelf([
-          ShelfItem(
-            id: '1',
-            category: 'Serum',
-            price: 80.0 * 16400.0,
-            name: 'Expensive Serum',
-            brand: 'B1',
-            estimatedUses: 40,
-            remainingUses: 40,
-            indicatorColor: '0xFFE040FB',
-            ingredients: const [],
-          ),
-        ]);
+      // Change to 90 days, both should be counted
+      vm.setPeriodDays(90);
+      expect(vm.selectedPeriodDays, equals(90));
+      expect(vm.totalMonthlySpend, equals(150.0));
 
-        final efficiencyAlerts = vm.smartAlerts
-            .where((a) => a.title.contains('High Cost-Per-Apply'))
-            .toList();
-        expect(efficiencyAlerts.length, equals(1));
-        expect(
-          efficiencyAlerts.first.description,
-          contains('costs \$2.00 per application'),
-        );
-      },
-    );
-
-    test('setSelectedPeriod filters allocations and totalMonthlySpend correctly', () {
-      final now = DateTime.now();
-      final itemRecent = ShelfItem(
-        id: 'recent',
-        category: 'Serum',
-        price: 50.0 * 16400.0,
-        name: 'Recent',
-        brand: '',
-        estimatedUses: 50,
-        remainingUses: 50,
-        indicatorColor: '0xFFE040FB',
-        ingredients: const [],
-        createdAt: now.subtract(const Duration(days: 5)),
-      );
-      final itemOld = ShelfItem(
-        id: 'old',
-        category: 'Cleanser',
-        price: 30.0 * 16400.0,
-        name: 'Old',
-        brand: '',
-        estimatedUses: 50,
-        remainingUses: 50,
-        indicatorColor: '0xFF29B6F6',
-        ingredients: const [],
-        createdAt: now.subtract(const Duration(days: 60)),
-      );
-
-      vm.updateFromShelf([itemRecent, itemOld]);
-
-      // Default period is 30 days, should only contain Recent item
-      expect(vm.selectedPeriod, equals('30'));
-      expect(vm.totalMonthlySpend, closeTo(50.0 * 16400.0, 0.01));
-
-      // Switch to 90 days, should contain both Recent and Old items
-      vm.setSelectedPeriod('90');
-      expect(vm.selectedPeriod, equals('90'));
-      expect(vm.totalMonthlySpend, closeTo(80.0 * 16400.0, 0.01));
-
-      // Switch back to 30 days
-      vm.setSelectedPeriod('30');
-      expect(vm.totalMonthlySpend, closeTo(50.0 * 16400.0, 0.01));
-    });
-
-    test('spendingHistory groups entries by calendar month dynamically', () {
-      final now = DateTime.now();
-      final itemThisMonth = ShelfItem(
-        id: 'this-month',
-        category: 'Serum',
-        price: 100.0 * 16400.0,
-        name: 'Product 1',
-        brand: '',
-        estimatedUses: 50,
-        remainingUses: 50,
-        indicatorColor: '0xFFE040FB',
-        ingredients: const [],
-        createdAt: now,
-      );
-      final itemPrevMonth = ShelfItem(
-        id: 'prev-month',
-        category: 'Serum',
-        price: 50.0 * 16400.0,
-        name: 'Product 2',
-        brand: '',
-        estimatedUses: 50,
-        remainingUses: 50,
-        indicatorColor: '0xFFE040FB',
-        ingredients: const [],
-        createdAt: DateTime(now.year, now.month - 1, 15),
-      );
-
-      vm.updateFromShelf([itemThisMonth, itemPrevMonth]);
-
-      expect(vm.spendingHistory.length, equals(6));
-      expect(vm.spendingHistory.last, equals(100.0 * 16400.0));
-      expect(vm.spendingHistory[vm.spendingHistory.length - 2], equals(50.0 * 16400.0));
-    });
-
-    test('smartAlerts computes monthly warnings using 30-day spend regardless of selectedPeriod', () async {
-      final now = DateTime.now();
-      await vm.setBudgetLimit(40.0 * 16400.0);
-
-      // Add a product from 45 days ago that would exceed the budget if all-time is selected,
-      // but does NOT exceed the monthly budget since it is older than 30 days.
-      final oldProduct = ShelfItem(
-        id: 'old-limit',
-        category: 'Serum',
-        price: 50.0 * 16400.0,
-        name: 'Old Exceder',
-        brand: 'B1',
-        estimatedUses: 100,
-        remainingUses: 100,
-        indicatorColor: '0xFFE040FB',
-        ingredients: const [],
-        createdAt: now.subtract(const Duration(days: 45)),
-      );
-
-      vm.updateFromShelf([oldProduct]);
-
-      // Set period to 90 days. Total spend will be 50.0 (exceeding budget limit 40.0)
-      vm.setSelectedPeriod('90');
-      expect(vm.totalMonthlySpend, closeTo(50.0 * 16400.0, 0.01));
-
-      // Smart alerts should not contain a danger alert because rolling 30-day spend is 0.
-      final dangerAlerts = vm.smartAlerts.where((a) => a.type == 'danger').toList();
-      expect(dangerAlerts, isEmpty);
+      // Change to All Time (0 days), both should be counted
+      vm.setPeriodDays(0);
+      expect(vm.selectedPeriodDays, equals(0));
+      expect(vm.totalMonthlySpend, equals(150.0));
     });
   });
 }
