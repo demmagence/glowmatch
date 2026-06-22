@@ -19,6 +19,8 @@ class SupabaseService {
   final Map<String, StreakData> _mockStreaks = {};
   final List<SkincareCategory> _mockCategories = [];
   final List<Map<String, dynamic>> _mockDailyCompletionLogs = [];
+  final List<Map<String, dynamic>> _mockRoutineStepCompletions = [];
+
 
 
   Future<void> initialize({
@@ -1100,6 +1102,132 @@ class SupabaseService {
     }
   }
 
+  Future<List<String>> getRoutineStepCompletions(String userId, DateTime date) async {
+    final dateStr = date.toIso8601String().split('T')[0];
+    if (_isOfflineMode || userId.isEmpty) {
+      return _mockRoutineStepCompletions
+          .where((row) => row['user_id'] == userId && row['completion_date'] == dateStr)
+          .map((row) => row['step_id'] as String)
+          .toList();
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from(AppConstants.tableRoutineStepCompletions)
+          .select('step_id')
+          .eq('user_id', userId)
+          .eq('completion_date', dateStr);
+
+      final List<String> stepIds = [];
+      for (final row in response as List) {
+        final stepId = row['step_id'] as String?;
+        if (stepId != null) {
+          stepIds.add(stepId);
+        }
+      }
+      return stepIds;
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('getRoutineStepCompletions', e);
+      return _mockRoutineStepCompletions
+          .where((row) => row['user_id'] == userId && row['completion_date'] == dateStr)
+          .map((row) => row['step_id'] as String)
+          .toList();
+    } catch (e) {
+      _handleGenericException('getRoutineStepCompletions', e);
+      return _mockRoutineStepCompletions
+          .where((row) => row['user_id'] == userId && row['completion_date'] == dateStr)
+          .map((row) => row['step_id'] as String)
+          .toList();
+    }
+  }
+
+  Future<void> insertRoutineStepCompletion(String userId, String stepId, DateTime date) async {
+    final dateStr = date.toIso8601String().split('T')[0];
+    if (_isOfflineMode || userId.isEmpty) {
+      final exists = _mockRoutineStepCompletions.any((row) =>
+          row['user_id'] == userId &&
+          row['step_id'] == stepId &&
+          row['completion_date'] == dateStr);
+      if (!exists) {
+        _mockRoutineStepCompletions.add({
+          'user_id': userId,
+          'step_id': stepId,
+          'completion_date': dateStr,
+        });
+      }
+      return;
+    }
+
+    try {
+      final data = {
+        'user_id': userId,
+        'step_id': stepId,
+        'completion_date': dateStr,
+      };
+      await Supabase.instance.client
+          .from(AppConstants.tableRoutineStepCompletions)
+          .upsert(data, onConflict: 'user_id,step_id,completion_date');
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('insertRoutineStepCompletion', e);
+      final exists = _mockRoutineStepCompletions.any((row) =>
+          row['user_id'] == userId &&
+          row['step_id'] == stepId &&
+          row['completion_date'] == dateStr);
+      if (!exists) {
+        _mockRoutineStepCompletions.add({
+          'user_id': userId,
+          'step_id': stepId,
+          'completion_date': dateStr,
+        });
+      }
+    } catch (e) {
+      _handleGenericException('insertRoutineStepCompletion', e);
+      final exists = _mockRoutineStepCompletions.any((row) =>
+          row['user_id'] == userId &&
+          row['step_id'] == stepId &&
+          row['completion_date'] == dateStr);
+      if (!exists) {
+        _mockRoutineStepCompletions.add({
+          'user_id': userId,
+          'step_id': stepId,
+          'completion_date': dateStr,
+        });
+      }
+    }
+  }
+
+  Future<void> deleteRoutineStepCompletion(String userId, String stepId, DateTime date) async {
+    final dateStr = date.toIso8601String().split('T')[0];
+    if (_isOfflineMode || userId.isEmpty) {
+      _mockRoutineStepCompletions.removeWhere((row) =>
+          row['user_id'] == userId &&
+          row['step_id'] == stepId &&
+          row['completion_date'] == dateStr);
+      return;
+    }
+
+    try {
+      await Supabase.instance.client
+          .from(AppConstants.tableRoutineStepCompletions)
+          .delete()
+          .eq('user_id', userId)
+          .eq('step_id', stepId)
+          .eq('completion_date', dateStr);
+    } on PostgrestException catch (e) {
+      _handlePostgrestException('deleteRoutineStepCompletion', e);
+      _mockRoutineStepCompletions.removeWhere((row) =>
+          row['user_id'] == userId &&
+          row['step_id'] == stepId &&
+          row['completion_date'] == dateStr);
+    } catch (e) {
+      _handleGenericException('deleteRoutineStepCompletion', e);
+      _mockRoutineStepCompletions.removeWhere((row) =>
+          row['user_id'] == userId &&
+          row['step_id'] == stepId &&
+          row['completion_date'] == dateStr);
+    }
+  }
+
   @visibleForTesting
   void resetForTesting() {
     _mockShelf.clear();
@@ -1108,8 +1236,10 @@ class SupabaseService {
     _mockStreaks.clear();
     _mockCategories.clear();
     _mockDailyCompletionLogs.clear();
+    _mockRoutineStepCompletions.clear();
     _isOfflineMode = true;
   }
+
 
 
   @visibleForTesting
@@ -1124,6 +1254,19 @@ class SupabaseService {
       _mockDailyCompletionLogs.add({
         'user_id': userId,
         'completion_date': date.toIso8601String().split('T')[0],
+      });
+    }
+  }
+
+  @visibleForTesting
+  void setMockRoutineStepCompletions(String userId, List<String> stepIds, DateTime date) {
+    final dateStr = date.toIso8601String().split('T')[0];
+    _mockRoutineStepCompletions.removeWhere((row) => row['user_id'] == userId && row['completion_date'] == dateStr);
+    for (final stepId in stepIds) {
+      _mockRoutineStepCompletions.add({
+        'user_id': userId,
+        'completion_date': dateStr,
+        'step_id': stepId,
       });
     }
   }

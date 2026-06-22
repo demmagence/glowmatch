@@ -4,6 +4,8 @@ class AppConstants {
   static const String tableJournalEntries = 'journal_entries';
   static const String tableUserStreaks = 'user_streaks';
   static const String tableDailyCompletionLog = 'daily_completion_log';
+  static const String tableRoutineStepCompletions = 'routine_step_completions';
+
 
   static const String bucketJournalPhotos = 'journal-photos';
   static const String bucketProductPhotos = 'product-photos';

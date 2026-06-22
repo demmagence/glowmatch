@@ -14,6 +14,7 @@ class RoutineViewModel extends ChangeNotifier {
   List<RoutineStep> _amSteps = [];
   List<RoutineStep> _pmSteps = [];
   final Set<String> _completedStepIds = {};
+  final Set<String> _todayCompletedStepIds = {};
 
   String _activeRoutine = 'AM';
   bool _isLoading = false;
@@ -142,6 +143,16 @@ class RoutineViewModel extends ChangeNotifier {
       _pmSteps = await _supabaseService.getRoutines(userId, 'PM');
 
       _completedStepIds.clear();
+      _todayCompletedStepIds.clear();
+      final todayCompletions = await _supabaseService.getRoutineStepCompletions(userId, DateTime.now());
+      _todayCompletedStepIds.addAll(todayCompletions);
+
+      final activeSteps = _activeRoutine == 'AM' ? _amSteps : _pmSteps;
+      for (final step in activeSteps) {
+        if (_todayCompletedStepIds.contains(step.id)) {
+          _completedStepIds.add(step.id);
+        }
+      }
     } catch (e) {
       debugPrint('Error loading routines: $e');
       _errorMessage = e.toString();
@@ -154,6 +165,12 @@ class RoutineViewModel extends ChangeNotifier {
     if (_activeRoutine != routine) {
       _activeRoutine = routine;
       _completedStepIds.clear();
+      final activeSteps = _activeRoutine == 'AM' ? _amSteps : _pmSteps;
+      for (final step in activeSteps) {
+        if (_todayCompletedStepIds.contains(step.id)) {
+          _completedStepIds.add(step.id);
+        }
+      }
       notifyListeners();
     }
   }
@@ -161,8 +178,16 @@ class RoutineViewModel extends ChangeNotifier {
   Future<void> toggleStep(String stepId, ShelfViewModel shelfVm) async {
     if (_completedStepIds.contains(stepId)) {
       _completedStepIds.remove(stepId);
+      _todayCompletedStepIds.remove(stepId);
+      if (_userId != null) {
+        await _supabaseService.deleteRoutineStepCompletion(_userId!, stepId, DateTime.now());
+      }
     } else {
       _completedStepIds.add(stepId);
+      _todayCompletedStepIds.add(stepId);
+      if (_userId != null) {
+        await _supabaseService.insertRoutineStepCompletion(_userId!, stepId, DateTime.now());
+      }
 
       final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
       if (stepIdx != -1) {
@@ -297,7 +322,6 @@ class RoutineViewModel extends ChangeNotifier {
 
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
       _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
-      _completedStepIds.clear();
     } catch (e) {
       debugPrint('Error completing routine: $e');
       _errorMessage = e.toString();
