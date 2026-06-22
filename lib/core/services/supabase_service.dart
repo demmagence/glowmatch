@@ -1247,6 +1247,7 @@ class SupabaseService {
     _mockStreaks.clear();
     _mockCategories.clear();
     _mockDailyCompletionLogs.clear();
+    _mockRoutineStepCompletions.clear();
     _seedMockData();
   }
 
