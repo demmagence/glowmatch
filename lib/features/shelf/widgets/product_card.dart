@@ -66,7 +66,6 @@ class ProductCard extends StatelessWidget {
                       border: Border.all(color: Colors.black, width: 1),
                       borderRadius: BorderRadius.circular(2),
                     ),
-                    child: Text(
                       currencyVm.formatPrice(price),
                       style: const TextStyle(
                         fontSize: 10,
