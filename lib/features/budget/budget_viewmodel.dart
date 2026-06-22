@@ -39,6 +39,17 @@ class BudgetViewModel extends ChangeNotifier {
     }
   }
 
+  String _selectedPeriod = '30'; // Default to 30 days
+  String get selectedPeriod => _selectedPeriod;
+
+  void setSelectedPeriod(String period) {
+    if (_selectedPeriod != period) {
+      _selectedPeriod = period;
+      _recalculateAllocations();
+      notifyListeners();
+    }
+  }
+
   double _budgetLimit = 2460000.0; // Default $150.0 in IDR
   double get budgetLimit => _budgetLimit;
 
@@ -86,6 +97,19 @@ class BudgetViewModel extends ChangeNotifier {
   List<CategoryAllocation> get allocations => _allocations;
   List<ShelfItem> get shelfItems => _shelfItems;
 
+  List<ShelfItem> get filteredShelfItemsForPeriod {
+    if (_selectedPeriod == 'all') {
+      return _shelfItems;
+    }
+    final int days = int.tryParse(_selectedPeriod) ?? 30;
+    final now = DateTime.now();
+    final threshold = now.subtract(Duration(days: days));
+    return _shelfItems.where((item) {
+      final date = item.createdAt ?? now;
+      return date.isAfter(threshold);
+    }).toList();
+  }
+
   double get totalMonthlySpend {
     return _allocations.fold(0.0, (sum, item) => sum + item.amount);
   }
@@ -97,7 +121,8 @@ class BudgetViewModel extends ChangeNotifier {
 
   void _recalculateAllocations() {
     final Map<String, double> totals = {};
-    for (final item in _shelfItems) {
+    final itemsToUse = filteredShelfItemsForPeriod;
+    for (final item in itemsToUse) {
       final category = item.category;
       final price = item.price;
       totals[category] = (totals[category] ?? 0.0) + price;
@@ -127,14 +152,18 @@ class BudgetViewModel extends ChangeNotifier {
   }
 
   List<double> get spendingHistory {
-    return [
-      45.0 * 16400.0,
-      78.0 * 16400.0,
-      62.0 * 16400.0,
-      110.0 * 16400.0,
-      95.0 * 16400.0,
-      totalMonthlySpend,
-    ];
+    final now = DateTime.now();
+    final history = <double>[];
+    for (int i = 5; i >= 0; i--) {
+      final targetDate = DateTime(now.year, now.month - i, 1);
+      final monthItems = _shelfItems.where((item) {
+        final date = item.createdAt ?? now;
+        return date.year == targetDate.year && date.month == targetDate.month;
+      });
+      final sum = monthItems.fold(0.0, (acc, item) => acc + item.price);
+      history.add(sum);
+    }
+    return history;
   }
 
   List<String> get spendingHistoryLabels {
@@ -169,23 +198,30 @@ class BudgetViewModel extends ChangeNotifier {
   List<SmartAlert> getSmartAlerts(CurrencyViewModel currencyVm) {
     final alerts = <SmartAlert>[];
 
-    if (totalMonthlySpend > _budgetLimit) {
-      final diff = totalMonthlySpend - _budgetLimit;
+    final now = DateTime.now();
+    final threshold30 = now.subtract(const Duration(days: 30));
+    final spend30Days = _shelfItems.where((item) {
+      final date = item.createdAt ?? now;
+      return date.isAfter(threshold30);
+    }).fold(0.0, (sum, item) => sum + item.price);
+
+    if (spend30Days > _budgetLimit) {
+      final diff = spend30Days - _budgetLimit;
       alerts.add(
         SmartAlert(
           title: 'Skincare Budget Exceeded',
           description:
-              'Your current spending of ${currencyVm.formatPrice(totalMonthlySpend)} exceeds your monthly limit of ${currencyVm.formatPrice(_budgetLimit)} by ${currencyVm.formatPrice(diff)}.',
+              'Your current spending of ${currencyVm.formatPrice(spend30Days)} exceeds your monthly limit of ${currencyVm.formatPrice(_budgetLimit)} by ${currencyVm.formatPrice(diff)}.',
           type: 'danger',
         ),
       );
-    } else if (totalMonthlySpend > _budgetLimit * 0.8) {
-      final pct = (totalMonthlySpend / _budgetLimit * 100).toStringAsFixed(0);
+    } else if (spend30Days > _budgetLimit * 0.8) {
+      final pct = (spend30Days / _budgetLimit * 100).toStringAsFixed(0);
       alerts.add(
         SmartAlert(
           title: 'Approaching Budget Limit',
           description:
-              'You have used $pct% of your monthly skincare budget limit (${currencyVm.formatPrice(totalMonthlySpend)} of ${currencyVm.formatPrice(_budgetLimit)}).',
+              'You have used $pct% of your monthly skincare budget limit (${currencyVm.formatPrice(spend30Days)} of ${currencyVm.formatPrice(_budgetLimit)}).',
           type: 'warning',
         ),
       );

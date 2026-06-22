@@ -126,54 +126,72 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       letterSpacing: -1,
                     ),
                   ),
-                  Text(
-                    ' / ${currencyVm.formatPrice(budgetVm.budgetLimit)}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: subtextColor,
+                  if (budgetVm.selectedPeriod != 'all')
+                    Text(
+                      ' / ${currencyVm.formatPrice(budgetVm.selectedPeriod == '90' ? budgetVm.budgetLimit * 3 : budgetVm.budgetLimit)}',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: subtextColor,
+                      ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
 
-              Builder(
-                builder: (context) {
-                  final spend = budgetVm.totalMonthlySpend;
-                  final limit = budgetVm.budgetLimit;
-                  final percent = limit > 0
-                      ? (spend / limit).clamp(0.0, 1.0)
-                      : 1.0;
-                  final isOverBudget = spend > limit;
-                  final progressColor = isOverBudget
-                      ? const Color(0xFFD50000)
-                      : const Color(0xFF64DD17);
+              // Period Selector Tabs
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildPeriodTab(context, budgetVm, '30', '30 Days'),
+                  const SizedBox(width: 8),
+                  _buildPeriodTab(context, budgetVm, '90', '90 Days'),
+                  const SizedBox(width: 8),
+                  _buildPeriodTab(context, budgetVm, 'all', 'All-Time'),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                  return Container(
-                    width: double.infinity,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.grey.shade900
-                          : Colors.grey.shade100,
-                      border: Border.all(color: borderColor, width: 1.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: percent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: progressColor,
-                          borderRadius: BorderRadius.circular(4),
+              if (budgetVm.selectedPeriod != 'all') ...[
+                Builder(
+                  builder: (context) {
+                    final spend = budgetVm.totalMonthlySpend;
+                    final limit = budgetVm.selectedPeriod == '90'
+                        ? budgetVm.budgetLimit * 3
+                        : budgetVm.budgetLimit;
+                    final percent = limit > 0
+                        ? (spend / limit).clamp(0.0, 1.0)
+                        : 1.0;
+                    final isOverBudget = spend > limit;
+                    final progressColor = isOverBudget
+                        ? const Color(0xFFD50000)
+                        : const Color(0xFF64DD17);
+
+                    return Container(
+                      width: double.infinity,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100,
+                        border: Border.all(color: borderColor, width: 1.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: percent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: progressColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 28),
+                    );
+                  },
+                ),
+                const SizedBox(height: 28),
+              ],
 
               AllocationCard(isDark: isDark),
               const SizedBox(height: 24),
@@ -222,6 +240,51 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 },
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPeriodTab(
+    BuildContext context,
+    BudgetViewModel budgetVm,
+    String period,
+    String label,
+  ) {
+    final isSelected = budgetVm.selectedPeriod == period;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final activeBg = isDark ? Colors.pinkAccent : Colors.yellowAccent;
+    final inactiveBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final activeText = isDark ? Colors.white : Colors.black;
+    final inactiveText = isDark ? Colors.grey.shade400 : Colors.black;
+
+    return GestureDetector(
+      onTap: () => budgetVm.setSelectedPeriod(period),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? activeBg : inactiveBg,
+          border: Border.all(color: borderColor, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? []
+              : [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black,
+                    offset: const Offset(2, 2),
+                  ),
+                ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? activeText : inactiveText,
           ),
         ),
       ),

@@ -355,5 +355,112 @@ void main() {
         );
       },
     );
+
+    test('setSelectedPeriod filters allocations and totalMonthlySpend correctly', () {
+      final now = DateTime.now();
+      final itemRecent = ShelfItem(
+        id: 'recent',
+        category: 'Serum',
+        price: 50.0 * 16400.0,
+        name: 'Recent',
+        brand: '',
+        estimatedUses: 50,
+        remainingUses: 50,
+        indicatorColor: '0xFFE040FB',
+        ingredients: const [],
+        createdAt: now.subtract(const Duration(days: 5)),
+      );
+      final itemOld = ShelfItem(
+        id: 'old',
+        category: 'Cleanser',
+        price: 30.0 * 16400.0,
+        name: 'Old',
+        brand: '',
+        estimatedUses: 50,
+        remainingUses: 50,
+        indicatorColor: '0xFF29B6F6',
+        ingredients: const [],
+        createdAt: now.subtract(const Duration(days: 60)),
+      );
+
+      vm.updateFromShelf([itemRecent, itemOld]);
+
+      // Default period is 30 days, should only contain Recent item
+      expect(vm.selectedPeriod, equals('30'));
+      expect(vm.totalMonthlySpend, closeTo(50.0 * 16400.0, 0.01));
+
+      // Switch to 90 days, should contain both Recent and Old items
+      vm.setSelectedPeriod('90');
+      expect(vm.selectedPeriod, equals('90'));
+      expect(vm.totalMonthlySpend, closeTo(80.0 * 16400.0, 0.01));
+
+      // Switch back to 30 days
+      vm.setSelectedPeriod('30');
+      expect(vm.totalMonthlySpend, closeTo(50.0 * 16400.0, 0.01));
+    });
+
+    test('spendingHistory groups entries by calendar month dynamically', () {
+      final now = DateTime.now();
+      final itemThisMonth = ShelfItem(
+        id: 'this-month',
+        category: 'Serum',
+        price: 100.0 * 16400.0,
+        name: 'Product 1',
+        brand: '',
+        estimatedUses: 50,
+        remainingUses: 50,
+        indicatorColor: '0xFFE040FB',
+        ingredients: const [],
+        createdAt: now,
+      );
+      final itemPrevMonth = ShelfItem(
+        id: 'prev-month',
+        category: 'Serum',
+        price: 50.0 * 16400.0,
+        name: 'Product 2',
+        brand: '',
+        estimatedUses: 50,
+        remainingUses: 50,
+        indicatorColor: '0xFFE040FB',
+        ingredients: const [],
+        createdAt: DateTime(now.year, now.month - 1, 15),
+      );
+
+      vm.updateFromShelf([itemThisMonth, itemPrevMonth]);
+
+      expect(vm.spendingHistory.length, equals(6));
+      expect(vm.spendingHistory.last, equals(100.0 * 16400.0));
+      expect(vm.spendingHistory[vm.spendingHistory.length - 2], equals(50.0 * 16400.0));
+    });
+
+    test('smartAlerts computes monthly warnings using 30-day spend regardless of selectedPeriod', () async {
+      final now = DateTime.now();
+      await vm.setBudgetLimit(40.0 * 16400.0);
+
+      // Add a product from 45 days ago that would exceed the budget if all-time is selected,
+      // but does NOT exceed the monthly budget since it is older than 30 days.
+      final oldProduct = ShelfItem(
+        id: 'old-limit',
+        category: 'Serum',
+        price: 50.0 * 16400.0,
+        name: 'Old Exceder',
+        brand: 'B1',
+        estimatedUses: 100,
+        remainingUses: 100,
+        indicatorColor: '0xFFE040FB',
+        ingredients: const [],
+        createdAt: now.subtract(const Duration(days: 45)),
+      );
+
+      vm.updateFromShelf([oldProduct]);
+
+      // Set period to 90 days. Total spend will be 50.0 (exceeding budget limit 40.0)
+      vm.setSelectedPeriod('90');
+      expect(vm.totalMonthlySpend, closeTo(50.0 * 16400.0, 0.01));
+
+      // Smart alerts should not contain a danger alert because rolling 30-day spend is 0.
+      final dangerAlerts = vm.smartAlerts.where((a) => a.type == 'danger').toList();
+      expect(dangerAlerts, isEmpty);
+    });
   });
 }
