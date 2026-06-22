@@ -752,65 +752,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: textColor,
-                                side: BorderSide(color: borderColor, width: 2),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                                Navigator.pop(
-                                  context,
-                                  result.detectedIngredients,
-                                );
-                              },
-                              child: const Text(
-                                'Save to Shelf',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark ? Colors.white : Colors.black,
+                          foregroundColor: isDark ? Colors.black : Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                            side: BorderSide(
+                              color: borderColor,
+                              width: 2,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark
-                                    ? Colors.white
-                                    : Colors.black,
-                                foregroundColor: isDark
-                                    ? Colors.black
-                                    : Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                  side: BorderSide(
-                                    color: borderColor,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              onPressed: () {
-                                vm.clearScan();
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                'OK',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
+                        onPressed: () {
+                          vm.clearScan();
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'OK',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
