@@ -22,7 +22,7 @@ void main() {
       expect(vm.totalMonthlySpend, equals(0.0));
     });
 
-    test('efficiencyMetric is calculated correctly: $120 / 60 = $2.00', () {
+    test('efficiencyMetric is calculated correctly: \$120 / 60 = \$2.00', () {
       expect(vm.efficiencyMetric, closeTo(32800.00, 0.001));
     });
 
