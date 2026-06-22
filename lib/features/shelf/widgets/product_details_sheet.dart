@@ -78,8 +78,6 @@ void showProductDetailsBottomSheet(
   final chipBg = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
   final chipBorderColor = isDark ? Colors.white10 : Colors.grey.shade300;
   final ingredientTextColor = isDark ? Colors.white70 : Colors.black87;
-  final buttonBg = isDark ? Colors.white : Colors.black;
-  final buttonFg = isDark ? Colors.black : Colors.white;
 
   showModalBottomSheet(
     context: context,
@@ -305,39 +303,6 @@ void showProductDetailsBottomSheet(
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonBg,
-                  foregroundColor: buttonFg,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    side: BorderSide(color: borderSideColor, width: 1.5),
-                  ),
-                ),
-                onPressed: remainingUses > 0
-                    ? () {
-                        shelfVm.useProduct(item.id);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Used 1 apply of ${item.name}!'),
-                            backgroundColor: isDark
-                                ? Colors.grey.shade900
-                                : Colors.black,
-                          ),
-                        );
-                      }
-                    : null,
-                child: const Text(
-                  'USE PRODUCT',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
             ),
           ],
         ),
