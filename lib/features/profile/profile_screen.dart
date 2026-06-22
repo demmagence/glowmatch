@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/viewmodels/theme_viewmodel.dart';
 import '../../core/viewmodels/currency_viewmodel.dart';
+import '../../core/services/supabase_service.dart';
+import '../shelf/shelf_viewmodel.dart';
+import '../journal/journal_viewmodel.dart';
+import '../home/routine_viewmodel.dart';
+import '../onboarding/onboarding_screen.dart';
 import 'profile_viewmodel.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -968,16 +974,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               onPressed: () async {
                 Navigator.pop(dialogContext);
-                await authVm.signOut();
-                if (mounted) {
-                  await authVm.loginAnonymously();
+                if (authVm.isAnonymous) {
+                  final navigator = Navigator.of(context);
+                  // 1. Reset Mock Database
+                  SupabaseService().resetMockData();
+
+                  // 2. Reset ViewModels state
+                  if (context.mounted) {
+                    Provider.of<ShelfViewModel>(context, listen: false).clearState();
+                    Provider.of<JournalViewModel>(context, listen: false).clearState();
+                    Provider.of<RoutineViewModel>(context, listen: false).clearState();
+                  }
+
+                  // 3. Clear SharedPreferences seen onboarding flag
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('has_seen_onboarding', false);
+
+                  // 4. Perform actual sign out
+                  await authVm.signOut();
+
+                  // 5. Navigate to Onboarding Screen and remove all previous routes
+                  navigator.pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+                    (route) => false,
+                  );
+                } else {
+                  await authVm.signOut();
                   if (mounted) {
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Successfully signed out.'),
-                        backgroundColor: Colors.black,
-                      ),
-                    );
+                    await authVm.loginAnonymously();
+                    if (mounted) {
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Successfully signed out.'),
+                          backgroundColor: Colors.black,
+                        ),
+                      );
+                    }
                   }
                 }
               },

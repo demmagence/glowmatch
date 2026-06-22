@@ -269,4 +269,14 @@ class ShelfViewModel extends ChangeNotifier {
       }
     }
   }
+
+  void clearState() {
+    _shelfItems = [];
+    _categories = [];
+    _isLoading = false;
+    _errorMessage = null;
+    _selectedCategoryFilter = 'All';
+    _searchQuery = '';
+    notifyListeners();
+  }
 }

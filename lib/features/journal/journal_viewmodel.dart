@@ -162,4 +162,12 @@ class JournalViewModel extends ChangeNotifier {
     ];
     return '${months[dt.month - 1]} ${dt.day}';
   }
+
+  void clearState() {
+    _entries = [];
+    _isLoading = false;
+    _isUploading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 }

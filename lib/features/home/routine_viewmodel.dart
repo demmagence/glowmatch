@@ -330,4 +330,16 @@ class RoutineViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void clearState() {
+    _amSteps = [];
+    _pmSteps = [];
+    _completedStepIds.clear();
+    _activeRoutine = 'AM';
+    _isLoading = false;
+    _errorMessage = null;
+    _weather = null;
+    _streakData = null;
+    notifyListeners();
+  }
 }
