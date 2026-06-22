@@ -12,13 +12,13 @@ void main() {
       vm = BudgetViewModel();
     });
 
-    test('efficiencyMetric: 120 / 60 = 2.00', () {
-      expect(vm.efficiencyMetric, closeTo(2.00, 0.001));
+    test('efficiencyMetric: 1968000 / 60 = 32800.00', () {
+      expect(vm.efficiencyMetric, closeTo(32800.00, 0.001));
     });
 
-    test('efficiencyMetric: 50 / 25 = 2.00', () {
-      vm.updateCalculator(price: 50.0, uses: 25);
-      expect(vm.efficiencyMetric, closeTo(2.00, 0.001));
+    test('efficiencyMetric: 50 * 16000 / 25 = 32800.00', () {
+      vm.updateCalculator(price: 50.0 * 16400.0, uses: 25);
+      expect(vm.efficiencyMetric, closeTo(32800.00, 0.001));
     });
 
     test('efficiencyMetric returns 0.0 when uses is 0', () {
@@ -26,9 +26,9 @@ void main() {
       expect(vm.efficiencyMetric, equals(0.0));
     });
 
-    test('efficiencyMetric: 42 / 60 ≈ 0.70', () {
-      vm.updateCalculator(price: 42.0, uses: 60);
-      expect(vm.efficiencyMetric, closeTo(0.70, 0.001));
+    test('efficiencyMetric: 42 * 16000 / 60 ≈ 11480.00', () {
+      vm.updateCalculator(price: 42.0 * 16400.0, uses: 60);
+      expect(vm.efficiencyMetric, closeTo(11480.00, 0.001));
     });
 
     test('updateFromShelf groups items by category and sums amounts', () {
@@ -36,7 +36,7 @@ void main() {
         ShelfItem(
           id: '1',
           category: 'Serum',
-          price: 42.0,
+          price: 42.0 * 16400.0,
           name: 'S1',
           brand: '',
           estimatedUses: 50,
@@ -47,7 +47,7 @@ void main() {
         ShelfItem(
           id: '2',
           category: 'Serum',
-          price: 18.0,
+          price: 18.0 * 16400.0,
           name: 'S2',
           brand: '',
           estimatedUses: 50,
@@ -58,7 +58,7 @@ void main() {
         ShelfItem(
           id: '3',
           category: 'Moisturizer',
-          price: 58.0,
+          price: 58.0 * 16400.0,
           name: 'M1',
           brand: '',
           estimatedUses: 50,
@@ -72,8 +72,8 @@ void main() {
       final moist = vm.allocations.firstWhere(
         (a) => a.category == 'Moisturizer',
       );
-      expect(serum.amount, closeTo(60.0, 0.001));
-      expect(moist.amount, closeTo(58.0, 0.001));
+      expect(serum.amount, closeTo(60.0 * 16400.0, 0.001));
+      expect(moist.amount, closeTo(58.0 * 16400.0, 0.001));
     });
 
     test('updateFromShelf assigns correct colorHex per category', () {
@@ -81,7 +81,7 @@ void main() {
         ShelfItem(
           id: '1',
           category: 'Sunscreen',
-          price: 20.0,
+          price: 20.0 * 16400.0,
           name: 'Sun1',
           brand: '',
           estimatedUses: 50,
@@ -92,7 +92,7 @@ void main() {
         ShelfItem(
           id: '2',
           category: 'Cleanser',
-          price: 15.0,
+          price: 15.0 * 16400.0,
           name: 'C1',
           brand: '',
           estimatedUses: 50,
@@ -113,7 +113,7 @@ void main() {
         ShelfItem(
           id: '1',
           category: 'Cleanser',
-          price: 10.0,
+          price: 10.0 * 16400.0,
           name: 'C1',
           brand: '',
           estimatedUses: 50,
@@ -124,7 +124,7 @@ void main() {
         ShelfItem(
           id: '2',
           category: 'Moisturizer',
-          price: 58.0,
+          price: 58.0 * 16400.0,
           name: 'M1',
           brand: '',
           estimatedUses: 50,
@@ -135,7 +135,7 @@ void main() {
         ShelfItem(
           id: '3',
           category: 'Serum',
-          price: 42.0,
+          price: 42.0 * 16400.0,
           name: 'S1',
           brand: '',
           estimatedUses: 50,
@@ -156,7 +156,7 @@ void main() {
         ShelfItem(
           id: '1',
           category: 'Serum',
-          price: 42.0,
+          price: 42.0 * 16400.0,
           name: 'S1',
           brand: '',
           estimatedUses: 50,
@@ -167,7 +167,7 @@ void main() {
         ShelfItem(
           id: '2',
           category: 'Sunscreen',
-          price: 20.0,
+          price: 20.0 * 16400.0,
           name: 'Sun1',
           brand: '',
           estimatedUses: 50,
@@ -178,7 +178,7 @@ void main() {
         ShelfItem(
           id: '3',
           category: 'Moisturizer',
-          price: 58.0,
+          price: 58.0 * 16400.0,
           name: 'M1',
           brand: '',
           estimatedUses: 50,
@@ -187,7 +187,7 @@ void main() {
           ingredients: const [],
         ),
       ]);
-      expect(vm.totalMonthlySpend, closeTo(120.0, 0.001));
+      expect(vm.totalMonthlySpend, closeTo(120.0 * 16400.0, 0.001));
     });
 
     test('totalMonthlySpend is 0.0 when shelf is empty', () {
@@ -196,29 +196,29 @@ void main() {
     });
 
     test('updateCalculator updates productPrice only', () {
-      vm.updateCalculator(price: 200.0);
-      expect(vm.productPrice, equals(200.0));
+      vm.updateCalculator(price: 200.0 * 16400.0);
+      expect(vm.productPrice, equals(200.0 * 16400.0));
       expect(vm.estimatedUses, equals(60));
     });
 
     test('updateCalculator updates estimatedUses only', () {
       vm.updateCalculator(uses: 100);
       expect(vm.estimatedUses, equals(100));
-      expect(vm.productPrice, equals(120.0));
+      expect(vm.productPrice, equals(1968000.0));
     });
 
-    test('loadBudgetLimit returns default 150.0 when not set', () async {
+    test('loadBudgetLimit returns default 2460000.0 when not set', () async {
       await vm.loadBudgetLimit();
-      expect(vm.budgetLimit, equals(150.0));
+      expect(vm.budgetLimit, equals(2460000.0));
     });
 
     test('setBudgetLimit sets and persists the limit', () async {
-      await vm.setBudgetLimit(200.0);
-      expect(vm.budgetLimit, equals(200.0));
+      await vm.setBudgetLimit(3200000.0);
+      expect(vm.budgetLimit, equals(3200000.0));
 
       final vm2 = BudgetViewModel();
       await vm2.loadBudgetLimit();
-      expect(vm2.budgetLimit, equals(200.0));
+      expect(vm2.budgetLimit, equals(3200000.0));
     });
 
     test('spendingHistory includes mock months plus total dynamic spend', () {
@@ -226,7 +226,7 @@ void main() {
         ShelfItem(
           id: '1',
           category: 'Serum',
-          price: 42.0,
+          price: 42.0 * 16400.0,
           name: 'S1',
           brand: '',
           estimatedUses: 50,
@@ -236,7 +236,7 @@ void main() {
         ),
       ]);
       expect(vm.spendingHistory.length, equals(6));
-      expect(vm.spendingHistory.last, equals(42.0));
+      expect(vm.spendingHistory.last, equals(42.0 * 16400.0));
     });
 
     test('spendingHistoryLabels contains exactly 6 chronological months', () {
@@ -254,12 +254,12 @@ void main() {
     test(
       'smartAlerts generates danger alert when budget is exceeded',
       () async {
-        await vm.setBudgetLimit(100.0);
+        await vm.setBudgetLimit(100.0 * 16400.0);
         vm.updateFromShelf([
           ShelfItem(
             id: '1',
             category: 'Serum',
-            price: 120.0,
+            price: 120.0 * 16400.0,
             name: 'S1',
             brand: 'B1',
             estimatedUses: 100,
@@ -280,12 +280,12 @@ void main() {
     test(
       'smartAlerts generates warning alert when spend is > 80% of budget limit',
       () async {
-        await vm.setBudgetLimit(100.0);
+        await vm.setBudgetLimit(100.0 * 16400.0);
         vm.updateFromShelf([
           ShelfItem(
             id: '1',
             category: 'Serum',
-            price: 85.0,
+            price: 85.0 * 16400.0,
             name: 'S1',
             brand: 'B1',
             estimatedUses: 100,
@@ -308,7 +308,7 @@ void main() {
         ShelfItem(
           id: '1',
           category: 'Serum',
-          price: 30.0,
+          price: 30.0 * 16400.0,
           name: 'Low Stock Product',
           brand: 'B1',
           estimatedUses: 50,
@@ -335,7 +335,7 @@ void main() {
           ShelfItem(
             id: '1',
             category: 'Serum',
-            price: 80.0,
+            price: 80.0 * 16400.0,
             name: 'Expensive Serum',
             brand: 'B1',
             estimatedUses: 40,

@@ -4,6 +4,7 @@ import 'core/services/supabase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/viewmodels/auth_viewmodel.dart';
 import 'core/viewmodels/theme_viewmodel.dart';
+import 'core/viewmodels/currency_viewmodel.dart';
 import 'features/home/routine_viewmodel.dart';
 import 'features/shelf/shelf_viewmodel.dart';
 import 'features/budget/budget_viewmodel.dart';
@@ -29,16 +30,25 @@ void main() async {
 
   await NotificationService.instance.init();
 
-  runApp(const GlowMatchApp());
+  final currencyVm = CurrencyViewModel();
+  await currencyVm.init();
+
+  runApp(GlowMatchApp(currencyViewModel: currencyVm));
 }
 
 class GlowMatchApp extends StatelessWidget {
-  const GlowMatchApp({super.key});
+  final CurrencyViewModel? currencyViewModel;
+  
+  const GlowMatchApp({super.key, this.currencyViewModel});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        if (currencyViewModel != null)
+          ChangeNotifierProvider.value(value: currencyViewModel!)
+        else
+          ChangeNotifierProvider(create: (_) => CurrencyViewModel()..init()),
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => RoutineViewModel()),

@@ -12,6 +12,7 @@ import 'package:glowmatch/features/budget/budget_viewmodel.dart';
 import 'package:glowmatch/features/scanner/scanner_viewmodel.dart';
 import 'package:glowmatch/features/journal/journal_viewmodel.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
+import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
 
 Widget _buildOnboarding() {
   return MultiProvider(
@@ -20,6 +21,7 @@ Widget _buildOnboarding() {
       ChangeNotifierProvider(create: (_) => AuthViewModel()),
       ChangeNotifierProvider(create: (_) => RoutineViewModel()),
       ChangeNotifierProvider(create: (_) => ShelfViewModel()),
+      ChangeNotifierProvider(create: (_) => CurrencyViewModel()),
       ChangeNotifierProxyProvider<ShelfViewModel, BudgetViewModel>(
         create: (_) => BudgetViewModel(),
         update: (_, shelf, budget) =>

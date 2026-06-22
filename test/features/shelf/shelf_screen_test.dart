@@ -6,12 +6,14 @@ import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_screen.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
 import 'package:glowmatch/core/models/models.dart';
+import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
 
 Widget _buildShelf(ShelfViewModel shelfVm) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthViewModel>(create: (_) => AuthViewModel()),
       ChangeNotifierProvider<ShelfViewModel>.value(value: shelfVm),
+      ChangeNotifierProvider<CurrencyViewModel>(create: (_) => CurrencyViewModel()),
     ],
     child: const MaterialApp(home: ShelfScreen()),
   );
@@ -22,6 +24,7 @@ Widget _buildShelfDark(ShelfViewModel shelfVm) {
     providers: [
       ChangeNotifierProvider<AuthViewModel>(create: (_) => AuthViewModel()),
       ChangeNotifierProvider<ShelfViewModel>.value(value: shelfVm),
+      ChangeNotifierProvider<CurrencyViewModel>(create: (_) => CurrencyViewModel()),
     ],
     child: MaterialApp(theme: ThemeData.dark(), home: const ShelfScreen()),
   );

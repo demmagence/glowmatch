@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
 import '../../../core/viewmodels/auth_viewmodel.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 import '../shelf_viewmodel.dart';
 import 'product_image.dart';
 
@@ -12,9 +13,12 @@ void showEditProductDialog(
   ShelfItem item,
   ShelfViewModel vm,
 ) {
+  final currencyVm = Provider.of<CurrencyViewModel>(context, listen: false);
   final nameController = TextEditingController(text: item.name);
   final brandController = TextEditingController(text: item.brand);
-  final priceController = TextEditingController(text: item.price.toString());
+  final priceController = TextEditingController(
+    text: currencyVm.formatPriceWithoutSymbol(item.price),
+  );
   final usesController = TextEditingController(
     text: item.estimatedUses.toString(),
   );
@@ -277,7 +281,7 @@ void showEditProductDialog(
                     controller: priceController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Price (USD)',
+                      labelText: 'Price (${currencyVm.selectedCurrency})',
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -425,13 +429,17 @@ void showEditProductDialog(
                         .where((e) => e.isNotEmpty)
                         .toList();
 
+                    final priceInput = double.tryParse(priceController.text);
+                    final priceInIDR = priceInput != null
+                        ? currencyVm.convertToIDR(priceInput)
+                        : item.price;
+
                     vm.editProduct(
                       itemId: item.id,
                       name: nameController.text,
                       brand: brandController.text,
                       category: selectedCategory,
-                      price:
-                          double.tryParse(priceController.text) ?? item.price,
+                      price: priceInIDR,
                       estimatedUses:
                           int.tryParse(usesController.text) ??
                           item.estimatedUses,

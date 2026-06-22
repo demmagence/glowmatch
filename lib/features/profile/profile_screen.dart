@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/viewmodels/theme_viewmodel.dart';
+import '../../core/viewmodels/currency_viewmodel.dart';
 import 'profile_viewmodel.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authVm = Provider.of<AuthViewModel>(context);
     final themeVm = Provider.of<ThemeViewModel>(context);
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
 
     return ChangeNotifierProvider<ProfileViewModel>(
       create: (_) => ProfileViewModel(authViewModel: authVm),
@@ -449,9 +451,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     padding: const EdgeInsets.symmetric(
                       vertical: 8.0,
-                      horizontal: 16.0,
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SwitchListTile(
                           title: Text(
@@ -479,6 +481,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onChanged: (value) {
                             themeVm.toggleThemeMode(value);
                           },
+                        ),
+                        Divider(
+                          color: isDark ? Colors.white24 : Colors.grey.shade300,
+                          thickness: 1.0,
+                          height: 1,
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 8.0,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Preferred Currency',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Choose your display and budget currency',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              DropdownButtonFormField<String>(
+                                initialValue: currencyVm.selectedCurrency,
+                                dropdownColor: cardBg,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Outfit',
+                                ),
+                                decoration: InputDecoration(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: borderColor,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: borderColor,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? Colors.pinkAccent
+                                          : Colors.pink,
+                                      width: 2.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'USD',
+                                    child: Text('USD - US Dollar (\$)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'IDR',
+                                    child: Text('IDR - Indonesian Rupiah (Rp)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'EUR',
+                                    child: Text('EUR - Euro (€)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'SGD',
+                                    child: Text('SGD - Singapore Dollar (S\$)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'MYR',
+                                    child: Text('MYR - Malaysian Ringgit (RM)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'JPY',
+                                    child: Text('JPY - Japanese Yen (¥)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'GBP',
+                                    child: Text('GBP - British Pound (£)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'AUD',
+                                    child: Text('AUD - Australian Dollar (A\$)'),
+                                  ),
+                                ],
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    currencyVm.setSelectedCurrency(val);
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
                         ),
                       ],
                     ),

@@ -4,6 +4,7 @@ import 'budget_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/loading_overlay.dart';
+import '../../core/viewmodels/currency_viewmodel.dart';
 import 'widgets/allocation_card.dart';
 import 'widgets/calculator_card.dart';
 import 'widgets/edit_limit_dialog.dart';
@@ -21,15 +22,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
   late TextEditingController _priceController;
   late TextEditingController _usesController;
   String _selectedProductId = 'custom';
+  String? _previousCurrency;
 
   @override
   void initState() {
     super.initState();
     final budgetVm = Provider.of<BudgetViewModel>(context, listen: false);
     budgetVm.loadBudgetLimit();
-    _priceController = TextEditingController(
-      text: budgetVm.productPrice.toStringAsFixed(2),
-    );
+    _priceController = TextEditingController(text: '');
     _usesController = TextEditingController(
       text: budgetVm.estimatedUses.toString(),
     );
@@ -45,12 +45,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
   void _syncControllersWithProduct(
     ShelfItem product,
     BudgetViewModel budgetVm,
+    CurrencyViewModel currencyVm,
   ) {
     final double price = product.price;
     final int uses = product.estimatedUses;
 
     setState(() {
-      _priceController.text = price.toStringAsFixed(2);
+      _priceController.text = currencyVm.formatPriceWithoutSymbol(price);
       _usesController.text = uses.toString();
     });
     budgetVm.updateCalculator(price: price, uses: uses);
@@ -59,6 +60,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
   @override
   Widget build(BuildContext context) {
     final budgetVm = Provider.of<BudgetViewModel>(context);
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
+    
+    // Sync price controller if currency changes
+    if (_previousCurrency != currencyVm.selectedCurrency) {
+      _previousCurrency = currencyVm.selectedCurrency;
+      _priceController.text = currencyVm.formatPriceWithoutSymbol(budgetVm.productPrice);
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -109,7 +118,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    '\$${budgetVm.totalMonthlySpend.toStringAsFixed(0)}',
+                    currencyVm.formatPrice(budgetVm.totalMonthlySpend),
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.w900,
@@ -118,7 +127,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     ),
                   ),
                   Text(
-                    ' / \$${budgetVm.budgetLimit.toStringAsFixed(0)}',
+                    ' / ${currencyVm.formatPrice(budgetVm.budgetLimit)}',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -189,7 +198,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       final prod = budgetVm.shelfItems.firstWhere(
                         (x) => x.id == val,
                       );
-                      _syncControllersWithProduct(prod, budgetVm);
+                      _syncControllersWithProduct(prod, budgetVm, currencyVm);
                     }
                   }
                 },
@@ -198,7 +207,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     _selectedProductId = 'custom';
                   });
                   final parsed = double.tryParse(val);
-                  if (parsed != null) budgetVm.updateCalculator(price: parsed);
+                  if (parsed != null) {
+                    budgetVm.updateCalculator(
+                      price: currencyVm.convertToIDR(parsed),
+                    );
+                  }
                 },
                 onUsesChanged: (val) {
                   setState(() {
