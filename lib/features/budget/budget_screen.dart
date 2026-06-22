@@ -9,7 +9,6 @@ import 'widgets/allocation_card.dart';
 import 'widgets/calculator_card.dart';
 import 'widgets/edit_limit_dialog.dart';
 import 'widgets/spending_history_card.dart';
-import 'widgets/smart_alerts_card.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -181,8 +180,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
               SpendingHistoryCard(isDark: isDark, budgetVm: budgetVm),
               const SizedBox(height: 24),
 
-              SmartAlertsCard(isDark: isDark, budgetVm: budgetVm),
-              const SizedBox(height: 24),
 
               CalculatorCard(
                 isDark: isDark,
