@@ -78,12 +78,14 @@ void main() {
     );
 
     test(
-      'seeds default ingredients when text has no known keywords',
+      'returns empty list and fallback message when text has no known keywords',
       () async {
         await vm.runOfflineFallbackAnalysis('xyz abc 123 unknown compound');
-        expect(vm.analysisResult!.detectedIngredients, isNotEmpty);
-
-        expect(vm.analysisResult!.detectedIngredients.length, equals(3));
+        expect(vm.analysisResult!.detectedIngredients, isEmpty);
+        expect(
+          vm.analysisResult!.recommendations,
+          contains('No skincare ingredients detected. Try scanning an ingredient list on a product label.'),
+        );
       },
       timeout: const Timeout(Duration(seconds: 10)),
     );
