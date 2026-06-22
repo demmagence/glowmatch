@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 
 class SpendingHistoryCard extends StatelessWidget {
   final bool isDark;
@@ -18,6 +20,11 @@ class SpendingHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
+    
+    final historyInSelectedCurrency = budgetVm.spendingHistory
+        .map((val) => currencyVm.convertFromIDR(val))
+        .toList();
 
     return NeobrutalistCard(
       padding: const EdgeInsets.all(20),
@@ -39,9 +46,9 @@ class SpendingHistoryCard extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: (budgetVm.spendingHistory.reduce(max) * 1.25).clamp(
-                  100.0,
-                  999999.0,
+                maxY: (historyInSelectedCurrency.reduce(max) * 1.25).clamp(
+                  1.0,
+                  999999999.0,
                 ),
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
@@ -51,8 +58,9 @@ class SpendingHistoryCard extends StatelessWidget {
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       final label =
                           budgetVm.spendingHistoryLabels[group.x.toInt()];
+                      final valInIDR = currencyVm.convertToIDR(rod.toY);
                       return BarTooltipItem(
-                        '$label\n\$${rod.toY.toStringAsFixed(0)}',
+                        '$label\n${currencyVm.formatPrice(valInIDR)}',
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -97,7 +105,7 @@ class SpendingHistoryCard extends StatelessWidget {
                       reservedSize: 32,
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          '\$${value.toInt()}',
+                          '${currencyVm.currencySymbol}${value.toInt()}',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -132,14 +140,14 @@ class SpendingHistoryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: List.generate(budgetVm.spendingHistory.length, (
+                barGroups: List.generate(historyInSelectedCurrency.length, (
                   index,
                 ) {
                   return BarChartGroupData(
                     x: index,
                     barRods: [
                       BarChartRodData(
-                        toY: budgetVm.spendingHistory[index],
+                        toY: historyInSelectedCurrency[index],
                         color: isDark
                             ? Colors.pink.shade300
                             : Colors.pinkAccent,

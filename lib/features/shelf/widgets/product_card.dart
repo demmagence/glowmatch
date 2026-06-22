@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 import '../shelf_viewmodel.dart';
 import 'product_image.dart';
 import 'product_details_sheet.dart';
@@ -14,6 +16,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
     final colorHex = item.indicatorColor;
     final dotColor = Color(int.parse(colorHex));
     final int estimatedUses = item.estimatedUses;
@@ -70,7 +73,7 @@ class ProductCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(2),
                     ),
                     child: Text(
-                      '\$${price.toStringAsFixed(0)}',
+                      currencyVm.formatPrice(price),
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,

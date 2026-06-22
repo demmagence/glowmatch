@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 
 class SmartAlertsCard extends StatelessWidget {
   final bool isDark;
@@ -14,6 +16,8 @@ class SmartAlertsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
+    final alerts = budgetVm.getSmartAlerts(currencyVm);
     final textColor = isDark ? Colors.white : Colors.black;
 
     return NeobrutalistCard(
@@ -41,7 +45,7 @@ class SmartAlertsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          if (budgetVm.smartAlerts.isEmpty)
+          if (alerts.isEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -81,10 +85,10 @@ class SmartAlertsCard extends StatelessWidget {
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: budgetVm.smartAlerts.length,
+              itemCount: alerts.length,
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                final alert = budgetVm.smartAlerts[index];
+                final alert = alerts[index];
 
                 Color alertBg;
                 Color alertBorderColor;

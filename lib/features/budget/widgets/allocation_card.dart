@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 import 'concentric_rings_painter.dart';
 
 class AllocationCard extends StatelessWidget {
@@ -11,6 +12,7 @@ class AllocationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final budgetVm = Provider.of<BudgetViewModel>(context);
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
     final hasAllocations = budgetVm.allocations.isNotEmpty;
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -111,7 +113,7 @@ class AllocationCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${item.category}: \$${item.amount.toStringAsFixed(0)}',
+                      '${item.category}: ${currencyVm.formatPrice(item.amount)}',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

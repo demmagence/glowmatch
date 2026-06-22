@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 import '../shelf_viewmodel.dart';
 import 'product_image.dart';
 import 'edit_product_dialog.dart';
@@ -58,6 +60,7 @@ void showProductDetailsBottomSheet(
   ShelfItem item,
   ShelfViewModel shelfVm,
 ) {
+  final currencyVm = Provider.of<CurrencyViewModel>(context, listen: false);
   final colorHex = item.indicatorColor;
   final dotColor = Color(int.parse(colorHex));
   final int estimatedUses = item.estimatedUses;
@@ -151,42 +154,42 @@ void showProductDetailsBottomSheet(
                             child: Text(
                               item.category,
                               style: TextStyle(
-                                fontSize: 12,
-                                color: dotColor,
-                                fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: dotColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildDetailMetric(
-                  context,
-                  'PRICE',
-                  '\$${price.toStringAsFixed(2)}',
-                ),
-                buildDetailMetric(
-                  context,
-                  'USES REMAINING',
-                  '$remainingUses / $estimatedUses',
-                ),
-                buildDetailMetric(
-                  context,
-                  'COST PER USE',
-                  '\$${costPerApply.toStringAsFixed(2)}',
-                ),
-              ],
-            ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildDetailMetric(
+                    context,
+                    'PRICE',
+                    currencyVm.formatPrice(price),
+                  ),
+                  buildDetailMetric(
+                    context,
+                    'USES REMAINING',
+                    '$remainingUses / $estimatedUses',
+                  ),
+                  buildDetailMetric(
+                    context,
+                    'COST PER USE',
+                    currencyVm.formatPrice(costPerApply),
+                  ),
+                ],
+              ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -209,7 +212,7 @@ void showProductDetailsBottomSheet(
                   child: buildDetailMetric(
                     context,
                     'COST PER USE',
-                    '\$0.00',
+                    currencyVm.formatPrice(0.0),
                   ),
                 ),
               ],

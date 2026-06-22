@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../budget_viewmodel.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 
 void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
+  final currencyVm = Provider.of<CurrencyViewModel>(context, listen: false);
   final controller = TextEditingController(
-    text: budgetVm.budgetLimit.toStringAsFixed(0),
+    text: currencyVm.formatPriceWithoutSymbol(budgetVm.budgetLimit),
   );
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -30,11 +33,11 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
           style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: 'Budget Limit (\$)',
+            labelText: 'Budget Limit (${currencyVm.selectedCurrency})',
             labelStyle: TextStyle(
               color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
             ),
-            prefixText: '\$ ',
+            prefixText: '${currencyVm.currencySymbol} ',
             prefixStyle: TextStyle(color: textColor),
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(
@@ -66,9 +69,10 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
               ),
             ),
             onPressed: () {
-              final limit = double.tryParse(controller.text);
-              if (limit != null && limit >= 0) {
-                budgetVm.setBudgetLimit(limit);
+              final limitInput = double.tryParse(controller.text);
+              if (limitInput != null && limitInput >= 0) {
+                final limitInIDR = currencyVm.convertToIDR(limitInput);
+                budgetVm.setBudgetLimit(limitInIDR);
                 Navigator.pop(context);
               }
             },

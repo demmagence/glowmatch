@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 import '../shelf_viewmodel.dart';
 
 void showAddProductDialog(
@@ -10,6 +12,7 @@ void showAddProductDialog(
   ShelfViewModel vm, {
   List<String>? preFilledIngredients,
 }) {
+  final currencyVm = Provider.of<CurrencyViewModel>(context, listen: false);
   final nameController = TextEditingController();
   final brandController = TextEditingController();
   final priceController = TextEditingController();
@@ -267,7 +270,7 @@ void showAddProductDialog(
                     controller: priceController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Price (USD)',
+                      labelText: 'Price (${currencyVm.selectedCurrency})',
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -392,12 +395,17 @@ void showAddProductDialog(
                         .where((e) => e.isNotEmpty)
                         .toList();
 
+                    final priceInput = double.tryParse(priceController.text);
+                    final priceInIDR = priceInput != null
+                        ? currencyVm.convertToIDR(priceInput)
+                        : currencyVm.convertUSDToIDR(20.0);
+
                     vm.addProduct(
                       userId: userId,
                       name: nameController.text,
                       brand: brandController.text,
                       category: selectedCategory,
-                      price: double.tryParse(priceController.text) ?? 20.0,
+                      price: priceInIDR,
                       estimatedUses: int.tryParse(usesController.text) ?? 50,
                       colorHex: hexColor,
                       localImagePath: localImagePath,

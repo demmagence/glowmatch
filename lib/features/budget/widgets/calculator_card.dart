@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
+import '../../../core/viewmodels/currency_viewmodel.dart';
 
 class CalculatorCard extends StatelessWidget {
   final bool isDark;
@@ -26,6 +27,7 @@ class CalculatorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final budgetVm = Provider.of<BudgetViewModel>(context);
+    final currencyVm = Provider.of<CurrencyViewModel>(context);
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -125,7 +127,7 @@ class CalculatorCard extends StatelessWidget {
             controller: priceController,
             style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
-              prefixText: '\$ ',
+              prefixText: '${currencyVm.currencySymbol} ',
               prefixStyle: TextStyle(color: textColor),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -205,7 +207,7 @@ class CalculatorCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '\$${budgetVm.efficiencyMetric.toStringAsFixed(2)}',
+                    currencyVm.formatPrice(budgetVm.efficiencyMetric),
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
