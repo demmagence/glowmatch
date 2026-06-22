@@ -19,12 +19,6 @@ void showEditProductDialog(
   final priceController = TextEditingController(
     text: currencyVm.formatPriceWithoutSymbol(item.price),
   );
-  final usesController = TextEditingController(
-    text: item.estimatedUses.toString(),
-  );
-  final remainingUsesController = TextEditingController(
-    text: item.remainingUses.toString(),
-  );
   final sizeController = TextEditingController(text: item.productSize);
   final ingredientsController = TextEditingController(
     text: item.ingredients.join(', '),
@@ -303,52 +297,6 @@ void showEditProductDialog(
                     ),
                   ),
                   TextField(
-                    controller: usesController,
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Estimated Uses',
-                      labelStyle: TextStyle(
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade700,
-                      ),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white30 : Colors.black26,
-                        ),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: remainingUsesController,
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Remaining Uses',
-                      labelStyle: TextStyle(
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade700,
-                      ),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white30 : Colors.black26,
-                        ),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
                     controller: sizeController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
@@ -440,12 +388,8 @@ void showEditProductDialog(
                       brand: brandController.text,
                       category: selectedCategory,
                       price: priceInIDR,
-                      estimatedUses:
-                          int.tryParse(usesController.text) ??
-                          item.estimatedUses,
-                      remainingUses:
-                          int.tryParse(remainingUsesController.text) ??
-                          item.remainingUses,
+                      estimatedUses: item.estimatedUses,
+                      remainingUses: item.remainingUses,
                       colorHex: hexColor,
                       currentImageUrl: item.imageUrl,
                       localImagePath: localImagePath,

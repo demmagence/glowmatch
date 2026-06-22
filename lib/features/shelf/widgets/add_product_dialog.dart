@@ -16,7 +16,6 @@ void showAddProductDialog(
   final nameController = TextEditingController();
   final brandController = TextEditingController();
   final priceController = TextEditingController();
-  final usesController = TextEditingController();
   final sizeController = TextEditingController();
   final ingredientsController = TextEditingController(
     text: preFilledIngredients != null ? preFilledIngredients.join(', ') : '',
@@ -292,29 +291,6 @@ void showAddProductDialog(
                     ),
                   ),
                   TextField(
-                    controller: usesController,
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Estimated Uses',
-                      labelStyle: TextStyle(
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade700,
-                      ),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white30 : Colors.black26,
-                        ),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
                     controller: sizeController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
@@ -406,7 +382,7 @@ void showAddProductDialog(
                       brand: brandController.text,
                       category: selectedCategory,
                       price: priceInIDR,
-                      estimatedUses: int.tryParse(usesController.text) ?? 50,
+                      estimatedUses: 50,
                       colorHex: hexColor,
                       localImagePath: localImagePath,
                       ingredients: ingList,
