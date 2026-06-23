@@ -1,3 +1,4 @@
+import 'dart:ui' show Size;
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:convert';
@@ -101,6 +102,13 @@ class ScannerViewModel extends ChangeNotifier {
   List<ScanAnalysisResult> _scanHistory = [];
   List<ScanAnalysisResult> get scanHistory => _scanHistory;
 
+  // ponytail: stream OCR state
+  bool _isDetecting = false;
+  List<TextBlock> _detectedBlocks = [];
+  List<TextBlock> get detectedBlocks => _detectedBlocks;
+  Size _imageSize = Size.zero;
+  Size get imageSize => _imageSize;
+
   ScannerViewModel() {
     loadScanHistory();
   }
@@ -109,6 +117,41 @@ class ScannerViewModel extends ChangeNotifier {
   void dispose() {
     _textRecognizer.close();
     super.dispose();
+  }
+
+  /// Process a single camera frame — throttled by _isDetecting flag.
+  Future<void> processFrame(InputImage inputImage, Size imageSize) async {
+    if (_isDetecting || _isProcessing) return;
+    _isDetecting = true;
+    try {
+      final RecognizedText result =
+          await _textRecognizer.processImage(inputImage);
+      _detectedBlocks = result.blocks;
+      _imageSize = imageSize;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('processFrame error: $e');
+    } finally {
+      _isDetecting = false;
+    }
+  }
+
+  /// Analyze only the text from the tapped block.
+  Future<void> analyzeTextBlock(String blockText) async {
+    if (_isProcessing) return;
+    _isProcessing = true;
+    _analysisResult = null;
+    _detectedBlocks = [];
+    notifyListeners();
+    try {
+      final ingredients = _parseIngredientsList(blockText);
+      await _analyzeIngredientsWithAIList(ingredients);
+    } catch (e) {
+      debugPrint('analyzeTextBlock error: $e');
+    } finally {
+      _isProcessing = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadScanHistory() async {
