@@ -54,5 +54,8 @@ keys.json
 *.key
 
 # Agent related
-.agent/
 .agents/
+.openspec/
+openspec/
+graphify-out/
+skills-lock.json

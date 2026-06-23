@@ -222,7 +222,26 @@ class _ScannerScreenState extends State<ScannerScreen>
         children: [
           // ── Camera or simulator ───────────────────────────────────
           _isCameraInitialized && _cameraController != null
-              ? CameraPreview(_cameraController!)
+              ? LayoutBuilder(
+                  builder: (context, constraints) {
+                    final camRatio =
+                        _cameraController!.value.aspectRatio; // w/h
+                    final screenRatio =
+                        constraints.maxWidth / constraints.maxHeight;
+                    // ponytail: cover-fit — scale to fill, never downscale
+                    final scale = (camRatio < screenRatio
+                            ? screenRatio / camRatio
+                            : camRatio / screenRatio)
+                        .clamp(1.0, double.infinity);
+                    return Transform.scale(
+                      scale: scale,
+                      child: AspectRatio(
+                        aspectRatio: camRatio,
+                        child: CameraPreview(_cameraController!),
+                      ),
+                    );
+                  },
+                )
               : _buildSimulatorViewfinder(),
 
           // ── Bounding box overlay + tap detector ───────────────────
