@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/features/onboarding/onboarding_screen.dart';
-import 'package:glowmatch/features/main_layout.dart';
+import 'package:glowmatch/features/auth/sign_in_screen.dart';
 import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
 import 'package:glowmatch/core/viewmodels/theme_viewmodel.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
@@ -133,7 +133,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.byType(MainLayout), findsOneWidget);
+      expect(find.byType(SignInScreen), findsOneWidget);
     });
 
     testWidgets('Get Started on last page navigates to MainLayout', (
@@ -157,7 +157,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pump(const Duration(seconds: 1));
 
-      expect(find.byType(MainLayout), findsOneWidget);
+      expect(find.byType(SignInScreen), findsOneWidget);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('has_seen_onboarding'), isTrue);

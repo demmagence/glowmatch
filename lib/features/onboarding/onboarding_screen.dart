@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../main_layout.dart';
+import '../auth/sign_in_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -41,7 +41,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const MainLayout()),
+      MaterialPageRoute(builder: (_) => const SignInScreen()),
     );
   }
 
