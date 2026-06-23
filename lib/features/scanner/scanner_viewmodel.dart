@@ -1,3 +1,4 @@
+import 'dart:ui' show Size;
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:convert';
@@ -62,6 +63,29 @@ class ScanAnalysisResult {
 }
 
 class ScannerViewModel extends ChangeNotifier {
+  static const List<String> _curatedIngredients = [
+    'niacinamide',
+    'hyaluronic',
+    'salicylic',
+    'glycolic',
+    'retinol',
+    'centella',
+    'glycerin',
+    'panthenol',
+    'paraben',
+    'alcohol denat',
+    'ceramide',
+    'tocopherol',
+    'vitamin c',
+    'zinc oxide',
+    'titanium dioxide',
+    'aloe vera',
+    'tea tree',
+    'squalane',
+    'peptides',
+    'collagen',
+  ];
+
   final TextRecognizer _textRecognizer = TextRecognizer(
     script: TextRecognitionScript.latin,
   );
@@ -78,6 +102,13 @@ class ScannerViewModel extends ChangeNotifier {
   List<ScanAnalysisResult> _scanHistory = [];
   List<ScanAnalysisResult> get scanHistory => _scanHistory;
 
+  // ponytail: stream OCR state
+  bool _isDetecting = false;
+  List<TextBlock> _detectedBlocks = [];
+  List<TextBlock> get detectedBlocks => _detectedBlocks;
+  Size _imageSize = Size.zero;
+  Size get imageSize => _imageSize;
+
   ScannerViewModel() {
     loadScanHistory();
   }
@@ -86,6 +117,41 @@ class ScannerViewModel extends ChangeNotifier {
   void dispose() {
     _textRecognizer.close();
     super.dispose();
+  }
+
+  /// Process a single camera frame — throttled by _isDetecting flag.
+  Future<void> processFrame(InputImage inputImage, Size imageSize) async {
+    if (_isDetecting || _isProcessing) return;
+    _isDetecting = true;
+    try {
+      final RecognizedText result =
+          await _textRecognizer.processImage(inputImage);
+      _detectedBlocks = result.blocks;
+      _imageSize = imageSize;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('processFrame error: $e');
+    } finally {
+      _isDetecting = false;
+    }
+  }
+
+  /// Analyze only the text from the tapped block.
+  Future<void> analyzeTextBlock(String blockText) async {
+    if (_isProcessing) return;
+    _isProcessing = true;
+    _analysisResult = null;
+    _detectedBlocks = [];
+    notifyListeners();
+    try {
+      final ingredients = _parseIngredientsList(blockText);
+      await _analyzeIngredientsWithAIList(ingredients);
+    } catch (e) {
+      debugPrint('analyzeTextBlock error: $e');
+    } finally {
+      _isProcessing = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadScanHistory() async {
@@ -147,7 +213,11 @@ class ScannerViewModel extends ChangeNotifier {
     for (var part in rawParts) {
       final trimmed = part.trim();
       if (trimmed.isNotEmpty && trimmed.length > 1) {
-        result.add(trimmed);
+        final lowerPart = trimmed.toLowerCase();
+        final matchesCurated = _curatedIngredients.any((kw) => lowerPart.contains(kw));
+        if (matchesCurated) {
+          result.add(trimmed);
+        }
       }
     }
     return result;
@@ -206,6 +276,22 @@ class ScannerViewModel extends ChangeNotifier {
   }
 
   Future<void> _analyzeIngredientsWithAIList(List<String> ingredients) async {
+    if (ingredients.isEmpty) {
+      _analysisResult = ScanAnalysisResult(
+        detectedIngredients: [],
+        safetyRating: 'No ingredients detected',
+        skinTypeSuitability: 'N/A',
+        recommendations: 'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
+        isSafe: true,
+        ingredientSafetyLevels: {},
+        ingredientDetails: {},
+        overallSafetyScore: 0,
+        interactionWarnings: [],
+      );
+      notifyListeners();
+      return;
+    }
+
     final supabaseUrl = const String.fromEnvironment(
       'SUPABASE_URL',
       defaultValue: '',
@@ -317,16 +403,20 @@ class ScannerViewModel extends ChangeNotifier {
     }
 
     if (found.isEmpty) {
-      found.addAll(['Glycerin', 'Panthenol', 'Niacinamide']);
-      safetyLevels['Glycerin'] = 'Safe';
-      details['Glycerin'] =
-          'Classic humectant that keeps the skin barrier hydrated and soft.';
-      safetyLevels['Panthenol'] = 'Safe';
-      details['Panthenol'] =
-          'Pro-vitamin B5 that hydrates and regenerates the skin barrier.';
-      safetyLevels['Niacinamide'] = 'Safe';
-      details['Niacinamide'] =
-          'Improves skin elasticity, strengthens the skin barrier, and evens out tone.';
+      _analysisResult = ScanAnalysisResult(
+        detectedIngredients: [],
+        safetyRating: 'No ingredients detected',
+        skinTypeSuitability: 'N/A',
+        recommendations:
+            'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
+        isSafe: true,
+        ingredientSafetyLevels: {},
+        ingredientDetails: {},
+        overallSafetyScore: 0,
+        interactionWarnings: [],
+      );
+      await _saveScanToHistory(_analysisResult!);
+      return;
     }
 
     bool containsHarsh =

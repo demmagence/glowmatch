@@ -16,7 +16,6 @@ void showAddProductDialog(
   final nameController = TextEditingController();
   final brandController = TextEditingController();
   final priceController = TextEditingController();
-  final usesController = TextEditingController();
   final sizeController = TextEditingController();
   final ingredientsController = TextEditingController(
     text: preFilledIngredients != null ? preFilledIngredients.join(', ') : '',
@@ -176,7 +175,9 @@ void showAddProductDialog(
                     controller: nameController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Product Name (e.g. GlowBomb)',
+                      labelText: 'Product Name',
+                      hintText: 'e.g. Moisture Surge Intense',
+                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -198,7 +199,9 @@ void showAddProductDialog(
                     controller: brandController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Brand (e.g. Skin1004)',
+                      labelText: 'Brand',
+                      hintText: 'e.g. Clinique',
+                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -225,6 +228,8 @@ void showAddProductDialog(
                     ),
                     decoration: InputDecoration(
                       labelText: 'Category',
+                      hintText: 'Select a category',
+                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -271,6 +276,8 @@ void showAddProductDialog(
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
                       labelText: 'Price (${currencyVm.selectedCurrency})',
+                      hintText: 'e.g. 150000',
+                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -292,33 +299,12 @@ void showAddProductDialog(
                     ),
                   ),
                   TextField(
-                    controller: usesController,
-                    style: TextStyle(color: textColor),
-                    decoration: InputDecoration(
-                      labelText: 'Estimated Uses',
-                      labelStyle: TextStyle(
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade700,
-                      ),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white30 : Colors.black26,
-                        ),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
                     controller: sizeController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Product Size (e.g. 50 ml)',
+                      labelText: 'Product Size',
+                      hintText: 'e.g. 30ml, 50g',
+                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -340,7 +326,9 @@ void showAddProductDialog(
                     controller: ingredientsController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Ingredients (comma separated)',
+                      labelText: 'Ingredients',
+                      hintText: 'e.g. Niacinamide, Hyaluronic Acid, Ceramide',
+                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -406,7 +394,7 @@ void showAddProductDialog(
                       brand: brandController.text,
                       category: selectedCategory,
                       price: priceInIDR,
-                      estimatedUses: int.tryParse(usesController.text) ?? 50,
+                      estimatedUses: 50,
                       colorHex: hexColor,
                       localImagePath: localImagePath,
                       ingredients: ingList,

@@ -26,17 +26,6 @@ class BudgetViewModel extends ChangeNotifier {
     }
   }
 
-  int _selectedPeriodDays = 30;
-  int get selectedPeriodDays => _selectedPeriodDays;
-
-  void setPeriodDays(int days) {
-    if (_selectedPeriodDays != days) {
-      _selectedPeriodDays = days;
-      _recalculateAllocations();
-      notifyListeners();
-    }
-  }
-
   double _budgetLimit = 2460000.0; // Default $150.0 in IDR
   double get budgetLimit => _budgetLimit;
 
@@ -64,6 +53,17 @@ class BudgetViewModel extends ChangeNotifier {
       await prefs.setDouble('budget_limit', limit);
     } catch (e) {
       debugPrint('Error saving budget limit: $e');
+    }
+  }
+
+  int _selectedPeriodDays = 30;
+  int get selectedPeriodDays => _selectedPeriodDays;
+
+  void setPeriodDays(int days) {
+    if (_selectedPeriodDays != days) {
+      _selectedPeriodDays = days;
+      _recalculateAllocations();
+      notifyListeners();
     }
   }
 

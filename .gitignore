@@ -52,3 +52,7 @@ credentials.json
 keys.json
 *.pem
 *.key
+
+# Agent related
+.agent/
+.agents/
