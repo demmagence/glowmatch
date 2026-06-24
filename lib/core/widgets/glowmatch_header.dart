@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:glowmatch/features/profile/profile_screen.dart';
 
 class GlowMatchHeader extends StatelessWidget {
@@ -17,7 +18,7 @@ class GlowMatchHeader extends StatelessWidget {
         RichText(
           text: TextSpan(
             text: 'GlowMatch',
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 26,
               fontWeight: FontWeight.w800,
               color: textColor,
