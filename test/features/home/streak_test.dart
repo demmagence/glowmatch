@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/models/models.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
@@ -8,6 +9,7 @@ void main() {
   late SupabaseService svc;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
@@ -153,6 +155,9 @@ void main() {
           await routineVm.toggleStep(step.id, shelfVm);
         }
 
+        // Call completeRoutine manually
+        await routineVm.completeRoutine('user-2');
+
         expect(routineVm.completedToday, isTrue);
         expect(routineVm.streakData?.currentStreak, equals(1));
       },
@@ -167,6 +172,9 @@ void main() {
         for (final step in routineVm.currentSteps) {
           await routineVm.toggleStep(step.id, shelfVm);
         }
+
+        // Call completeRoutine manually
+        await routineVm.completeRoutine('user-double');
         
         expect(routineVm.streakData?.currentStreak, equals(1));
         expect(routineVm.streakData?.totalCompletions, equals(1));
@@ -187,6 +195,9 @@ void main() {
         for (final step in routineVm.currentSteps) {
           await routineVm.toggleStep(step.id, shelfVm);
         }
+
+        // Call completeRoutine manually
+        await routineVm.completeRoutine('user-relogin');
         
         expect(routineVm.completedToday, isTrue);
         expect(routineVm.streakData?.currentStreak, equals(1));

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
@@ -8,6 +9,7 @@ void main() {
   late ShelfViewModel shelfVm;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     final svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
