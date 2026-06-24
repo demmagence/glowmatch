@@ -1,7 +1,14 @@
+import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:glowmatch/features/scanner/scanner_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'scanner_viewmodel_test.mocks.dart';
+
+@GenerateMocks([TextRecognizer])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -101,5 +108,31 @@ void main() {
       },
       timeout: const Timeout(Duration(seconds: 10)),
     );
+
+    test('detectBlocksInImage processes image file path and returns blocks', () async {
+      final mockRecognizer = MockTextRecognizer();
+      final vmWithMock = ScannerViewModel(textRecognizer: mockRecognizer);
+
+      final textBlock = TextBlock(
+        text: 'Niacinamide, Glycerin',
+        lines: const [],
+        boundingBox: const Rect.fromLTWH(0, 0, 100, 50),
+        recognizedLanguages: const [],
+        cornerPoints: const [],
+      );
+      final recognizedText = RecognizedText(
+        text: 'Niacinamide, Glycerin',
+        blocks: [textBlock],
+      );
+
+      when(mockRecognizer.processImage(any))
+          .thenAnswer((_) async => recognizedText);
+
+      final result = await vmWithMock.detectBlocksInImage('dummy_path.png');
+
+      expect(result, isNotEmpty);
+      expect(result.first.text, equals('Niacinamide, Glycerin'));
+      verify(mockRecognizer.processImage(any)).called(1);
+    });
   });
 }

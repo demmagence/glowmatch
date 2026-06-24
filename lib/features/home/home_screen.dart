@@ -123,7 +123,7 @@ class HomeScreen extends StatelessWidget {
                     Expanded(
                       child: _buildToggleItem(
                         context,
-                        label: 'AM',
+                        icon: Icons.light_mode_outlined,
                         isActive: routineVm.activeRoutine == 'AM',
                         onTap: () => routineVm.setActiveRoutine('AM'),
                       ),
@@ -131,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                     Expanded(
                       child: _buildToggleItem(
                         context,
-                        label: 'PM',
+                        icon: Icons.dark_mode_outlined,
                         isActive: routineVm.activeRoutine == 'PM',
                         onTap: () => routineVm.setActiveRoutine('PM'),
                       ),
@@ -192,7 +192,7 @@ class HomeScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: false,
                   itemCount: routineVm.currentSteps.length,
-                  onReorderItem: (oldIndex, newIndex) {
+                  onReorder: (oldIndex, newIndex) {
                     routineVm.reorderStepsDirect(authVm.userId, oldIndex, newIndex);
                   },
                   itemBuilder: (context, index) {
@@ -342,11 +342,34 @@ class HomeScreen extends StatelessWidget {
 
                             GestureDetector(
                               onTap: () {
-                                final bool isCompleting = !isCompleted;
+                                if (isCompleted) return;
+
+                                bool canComplete = true;
+                                if (index > 0) {
+                                  final prevStep = routineVm.currentSteps[index - 1];
+                                  if (!routineVm.completedStepIds.contains(prevStep.id)) {
+                                    canComplete = false;
+                                  }
+                                }
+
+                                if (!canComplete) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text(
+                                        'Please complete previous steps in order.',
+                                      ),
+                                      backgroundColor: isDark
+                                          ? Colors.grey.shade900
+                                          : Colors.black,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 routineVm.toggleStep(step.id, shelfVm);
 
-                                if (isCompleting &&
-                                    step.shelfItemId != null &&
+                                if (step.shelfItemId != null &&
                                     step.shelfItemId!.isNotEmpty) {
                                   final productName =
                                       linkedProduct != null &&
@@ -397,30 +420,53 @@ class HomeScreen extends StatelessWidget {
                             Expanded(
                               child: GestureDetector(
                                 onTap: () {
-                                  final bool isCompleting = !isCompleted;
-                                  routineVm.toggleStep(step.id, shelfVm);
+                                  if (isCompleted) return;
 
-                                  if (isCompleting &&
-                                      step.shelfItemId != null &&
-                                      step.shelfItemId!.isNotEmpty) {
-                                    final productName =
-                                        linkedProduct != null &&
-                                            linkedProduct.name.isNotEmpty
-                                        ? linkedProduct.name
-                                        : step.name;
+                                  bool canComplete = true;
+                                  if (index > 0) {
+                                    final prevStep = routineVm.currentSteps[index - 1];
+                                    if (!routineVm.completedStepIds.contains(prevStep.id)) {
+                                      canComplete = false;
+                                    }
+                                  }
+
+                                  if (!canComplete) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          'Used 1 apply of $productName!',
+                                        content: const Text(
+                                          'Please complete previous steps in order.',
                                         ),
                                         backgroundColor: isDark
                                             ? Colors.grey.shade900
                                             : Colors.black,
                                         duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                routineVm.toggleStep(step.id, shelfVm);
+
+                                if (step.shelfItemId != null &&
+                                    step.shelfItemId!.isNotEmpty) {
+                                  final productName =
+                                      linkedProduct != null &&
+                                          linkedProduct.name.isNotEmpty
+                                      ? linkedProduct.name
+                                      : step.name;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Used 1 apply of $productName!',
                                       ),
-                                    );
-                                  }
-                                },
+                                      backgroundColor: isDark
+                                          ? Colors.grey.shade900
+                                          : Colors.black,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -659,7 +705,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildToggleItem(
     BuildContext context, {
-    required String label,
+    required IconData icon,
     required bool isActive,
     required VoidCallback onTap,
   }) {
@@ -678,13 +724,10 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(26),
         ),
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isActive ? activeFg : inactiveFg,
-            ),
+          child: Icon(
+            icon,
+            size: 22,
+            color: isActive ? activeFg : inactiveFg,
           ),
         ),
       ),

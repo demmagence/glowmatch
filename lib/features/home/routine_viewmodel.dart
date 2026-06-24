@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/weather_service.dart';
 import '../../core/models/models.dart';
@@ -77,15 +78,28 @@ class RoutineViewModel extends ChangeNotifier {
     return segments;
   }
 
+  bool _amCompletedToday = false;
+  bool _pmCompletedToday = false;
+
+  bool get amCompletedToday => _amCompletedToday;
+  bool get pmCompletedToday => _pmCompletedToday;
+
+  String _getRoutinePrefsKey(String type, DateTime date) {
+    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return 'completed_${type}_$dateStr';
+  }
+
+  Future<void> _loadLocalCompletionStates() async {
+    final prefs = await SharedPreferences.getInstance();
+    final amKey = _getRoutinePrefsKey('AM', DateTime.now());
+    final pmKey = _getRoutinePrefsKey('PM', DateTime.now());
+    _amCompletedToday = prefs.getBool(amKey) ?? false;
+    _pmCompletedToday = prefs.getBool(pmKey) ?? false;
+    notifyListeners();
+  }
+
   bool get completedToday {
-    if (_streakData == null || _streakData!.lastCompletedDate == null) {
-      return false;
-    }
-    final now = DateTime.now();
-    final last = _streakData!.lastCompletedDate!;
-    return last.year == now.year &&
-        last.month == now.month &&
-        last.day == now.day;
+    return _activeRoutine == 'AM' ? _amCompletedToday : _pmCompletedToday;
   }
 
   List<RoutineStep> get currentSteps =>
@@ -109,6 +123,7 @@ class RoutineViewModel extends ChangeNotifier {
       await fetchWeather();
       await loadRoutines(userId);
       await loadStreakData(userId);
+      await _loadLocalCompletionStates();
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -153,6 +168,7 @@ class RoutineViewModel extends ChangeNotifier {
           _completedStepIds.add(step.id);
         }
       }
+      await _loadLocalCompletionStates();
     } catch (e) {
       debugPrint('Error loading routines: $e');
       _errorMessage = e.toString();
@@ -177,31 +193,23 @@ class RoutineViewModel extends ChangeNotifier {
 
   Future<void> toggleStep(String stepId, ShelfViewModel shelfVm) async {
     if (_completedStepIds.contains(stepId)) {
-      _completedStepIds.remove(stepId);
-      _todayCompletedStepIds.remove(stepId);
-      if (_userId != null) {
-        await _supabaseService.deleteRoutineStepCompletion(_userId!, stepId, DateTime.now());
-      }
-    } else {
-      _completedStepIds.add(stepId);
-      _todayCompletedStepIds.add(stepId);
-      if (_userId != null) {
-        await _supabaseService.insertRoutineStepCompletion(_userId!, stepId, DateTime.now());
-      }
+      return;
+    }
 
-      final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
-      if (stepIdx != -1) {
-        final step = currentSteps[stepIdx];
-        if (step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
-          await shelfVm.useProduct(step.shelfItemId!);
-        }
+    _completedStepIds.add(stepId);
+    _todayCompletedStepIds.add(stepId);
+    if (_userId != null) {
+      await _supabaseService.insertRoutineStepCompletion(_userId!, stepId, DateTime.now());
+    }
+
+    final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
+    if (stepIdx != -1) {
+      final step = currentSteps[stepIdx];
+      if (step.shelfItemId != null && step.shelfItemId!.isNotEmpty) {
+        await shelfVm.useProduct(step.shelfItemId!);
       }
     }
     notifyListeners();
-
-    if (completedCount == totalCount && totalCount > 0 && _userId != null) {
-      await completeRoutine(_userId!);
-    }
   }
 
   Future<void> addCustomStep(
@@ -320,6 +328,16 @@ class RoutineViewModel extends ChangeNotifier {
         return;
       }
 
+      final prefs = await SharedPreferences.getInstance();
+      final key = _getRoutinePrefsKey(_activeRoutine, DateTime.now());
+      await prefs.setBool(key, true);
+
+      if (_activeRoutine == 'AM') {
+        _amCompletedToday = true;
+      } else {
+        _pmCompletedToday = true;
+      }
+
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
       _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
     } catch (e) {
@@ -335,6 +353,8 @@ class RoutineViewModel extends ChangeNotifier {
     _amSteps = [];
     _pmSteps = [];
     _completedStepIds.clear();
+    _amCompletedToday = false;
+    _pmCompletedToday = false;
     _activeRoutine = 'AM';
     _isLoading = false;
     _errorMessage = null;

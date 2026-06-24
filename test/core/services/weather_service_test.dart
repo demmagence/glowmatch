@@ -16,14 +16,14 @@ void main() {
       expect(result, isA<WeatherData>());
       expect(result.temperature, equals(33.0));
       expect(result.condition, equals('Sunny'));
-      expect(result.locationName, contains('Los Angeles'));
+      expect(result.locationName, contains('Cilaku'));
     });
 
     test('fallback locationName contains the reason string', () async {
       final result = await service.fetchLocalWeather();
 
       expect(result.locationName, isNotEmpty);
-      expect(result.locationName, contains('Los Angeles, CA'));
+      expect(result.locationName, contains('Cilaku, Cianjur, Jawa Barat'));
     });
 
     test('fallback temperature is exactly 33.0 degrees Celsius', () async {

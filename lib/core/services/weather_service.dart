@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import '../constants.dart';
 
@@ -70,9 +71,37 @@ class WeatherService {
           condition = 'Thunderstorm';
         }
 
+        String address = 'My Location';
+        try {
+          final placemarks = await placemarkFromCoordinates(
+            position.latitude,
+            position.longitude,
+          ).timeout(const Duration(seconds: 3));
+          if (placemarks.isNotEmpty) {
+            final pm = placemarks.first;
+            final List<String> parts = [];
+            if (pm.subLocality != null && pm.subLocality!.isNotEmpty) {
+              parts.add(pm.subLocality!);
+            } else if (pm.locality != null && pm.locality!.isNotEmpty) {
+              parts.add(pm.locality!);
+            }
+            if (pm.subAdministrativeArea != null && pm.subAdministrativeArea!.isNotEmpty) {
+              parts.add(pm.subAdministrativeArea!);
+            }
+            if (pm.administrativeArea != null && pm.administrativeArea!.isNotEmpty) {
+              parts.add(pm.administrativeArea!);
+            }
+            if (parts.isNotEmpty) {
+              address = parts.join(', ');
+            }
+          }
+        } catch (e) {
+          debugPrint('Geocoding failed: $e');
+        }
+
         return WeatherData(
           locationName:
-              'My Location (${position.latitude.toStringAsFixed(1)}°, ${position.longitude.toStringAsFixed(1)}°)',
+              '$address (${position.latitude.toStringAsFixed(1)}°, ${position.longitude.toStringAsFixed(1)}°)',
           temperature: temp,
           condition: condition,
         );

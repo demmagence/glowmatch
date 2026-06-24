@@ -68,15 +68,16 @@ void main() {
     expect(find.text('Glow Activity'), findsOneWidget);
 
     // Verify weekday labels are rendered
-    expect(find.text('Mon'), findsOneWidget);
-    expect(find.text('Wed'), findsOneWidget);
-    expect(find.text('Fri'), findsOneWidget);
+    expect(find.text('M'), findsOneWidget);
+    expect(find.text('W'), findsOneWidget);
+    expect(find.text('F'), findsOneWidget);
 
-    // Verify scrollable grid exists
-    expect(find.byType(SingleChildScrollView), findsNWidgets(2));
+    // Verify parent scrollable grid exists
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
 
-    // Verify tooltip cells exist (each of the 371 cells + 5 legend cells uses Tooltip or contains it)
+    // Verify tooltip cells exist (which correspond to number of days in the month)
     final tooltipFinder = find.byType(Tooltip);
-    expect(tooltipFinder, findsAtLeast(300));
+    final count = tester.widgetList(tooltipFinder).length;
+    expect(count >= 28 && count <= 31, isTrue);
   });
 }

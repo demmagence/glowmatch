@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
@@ -31,6 +32,7 @@ Widget _buildHomeDark(RoutineViewModel routineVm) {
 
 void main() {
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     final svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
@@ -42,8 +44,8 @@ void main() {
       await tester.pumpWidget(_buildHome(vm));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('AM'), findsWidgets);
-      expect(find.text('PM'), findsWidgets);
+      expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
     });
 
     testWidgets('"Click to add" card is always present', (tester) async {

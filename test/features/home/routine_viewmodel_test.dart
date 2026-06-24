@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
@@ -8,6 +9,7 @@ void main() {
   late ShelfViewModel shelfVm;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     final svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
@@ -22,10 +24,10 @@ void main() {
       expect(vm.completedStepIds.contains('step-1'), isTrue);
     });
 
-    test('toggleStep removes stepId when already completed', () {
+    test('toggleStep does not remove stepId when already completed (no unchecking)', () {
       vm.toggleStep('step-1', shelfVm);
       vm.toggleStep('step-1', shelfVm);
-      expect(vm.completedStepIds.contains('step-1'), isFalse);
+      expect(vm.completedStepIds.contains('step-1'), isTrue);
     });
 
     test('toggling multiple steps tracks each independently', () {
@@ -40,10 +42,7 @@ void main() {
   group('RoutineViewModel – completedCount', () {
     test('completedCount is 0 when no steps are completed', () async {
       await vm.loadRoutines('test-user');
-
-      for (final id in List.from(vm.completedStepIds)) {
-        vm.toggleStep(id, shelfVm);
-      }
+      // No steps are completed initially, so completedCount should be 0
       expect(vm.completedCount, equals(0));
     });
 

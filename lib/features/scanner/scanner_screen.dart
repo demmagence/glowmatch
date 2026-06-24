@@ -6,6 +6,15 @@ import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'scanner_viewmodel.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:math' show min;
+
+enum CameraState {
+  loading,
+  initialized,
+  permissionDenied,
+  error,
+}
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -18,10 +27,15 @@ class _ScannerScreenState extends State<ScannerScreen>
     with WidgetsBindingObserver {
   CameraController? _cameraController;
   CameraDescription? _camera;
-  bool _isCameraInitialized = false;
   bool _isFlashOn = false;
   bool _isStreaming = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  CameraState _cameraState = CameraState.loading;
+  String? _cameraErrorMessage;
+  File? _pickedImage;
+  List<TextBlock> _uploadedImageBlocks = [];
+  Size _uploadedImageSize = Size.zero;
 
   // ponytail: auto device orientation → correct ML Kit rotation
   DeviceOrientation _deviceOrientation = DeviceOrientation.portraitUp;
@@ -80,10 +94,17 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _initializeCamera() async {
+    setState(() {
+      _cameraState = CameraState.loading;
+    });
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         debugPrint('No cameras available.');
+        setState(() {
+          _cameraState = CameraState.error;
+          _cameraErrorMessage = 'Kamera Tidak Tersedia';
+        });
         return;
       }
 
@@ -105,15 +126,28 @@ class _ScannerScreenState extends State<ScannerScreen>
       }
       if (!mounted) return;
 
-      setState(() => _isCameraInitialized = true);
+      setState(() {
+        _cameraState = CameraState.initialized;
+      });
       _startImageStream();
     } catch (e) {
       debugPrint('Camera initialization error: $e');
+      if (!mounted) return;
+      setState(() {
+        if (e is CameraException &&
+            (e.code == 'CameraAccessDenied' ||
+             e.code == 'CameraAccessDeniedWithoutPrompt')) {
+          _cameraState = CameraState.permissionDenied;
+        } else {
+          _cameraState = CameraState.error;
+          _cameraErrorMessage = 'Kabel/kamera bermasalah atau tidak tersedia';
+        }
+      });
     }
   }
 
   void _startImageStream() {
-    if (_isStreaming || _cameraController == null || !_isCameraInitialized) {
+    if (_isStreaming || _cameraController == null || _cameraState != CameraState.initialized) {
       return;
     }
     setState(() => _isStreaming = true);
@@ -155,7 +189,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _toggleFlash() async {
-    if (!_isCameraInitialized || _cameraController == null) return;
+    if (_cameraState != CameraState.initialized || _cameraController == null) return;
     try {
       await _cameraController!.setFlashMode(
         _isFlashOn ? FlashMode.off : FlashMode.torch,
@@ -163,6 +197,93 @@ class _ScannerScreenState extends State<ScannerScreen>
       setState(() => _isFlashOn = !_isFlashOn);
     } catch (e) {
       debugPrint('Flash toggle error: $e');
+    }
+  }
+
+  Future<Size> _getImageSize(File file) async {
+    final bytes = await file.readAsBytes();
+    final image = await decodeImageFromList(bytes);
+    return Size(image.width.toDouble(), image.height.toDouble());
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final vm = Provider.of<ScannerViewModel>(context, listen: false);
+    final ImagePicker picker = ImagePicker();
+    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+
+    final File imageFile = File(file.path);
+    final Size size = await _getImageSize(imageFile);
+
+    // Stop live camera stream while displaying static image
+    if (_isStreaming) {
+      await _cameraController?.stopImageStream().catchError((_) {});
+      setState(() {
+        _isStreaming = false;
+      });
+    }
+
+    setState(() {
+      _pickedImage = imageFile;
+      _uploadedImageSize = size;
+      _uploadedImageBlocks = [];
+    });
+
+    final blocks = await vm.detectBlocksInImage(file.path);
+    if (mounted) {
+      setState(() {
+        _uploadedImageBlocks = blocks;
+      });
+    }
+  }
+
+  void _clearPickedImage() {
+    setState(() {
+      _pickedImage = null;
+      _uploadedImageSize = Size.zero;
+      _uploadedImageBlocks = [];
+    });
+    // Restart live camera stream if camera is initialized
+    if (_cameraState == CameraState.initialized && !_isStreaming) {
+      _startImageStream();
+    }
+  }
+
+  void _handleStaticImageTap(
+    Offset tapPos,
+    Size containerSize,
+    Size imgSize,
+    ScannerViewModel vm,
+  ) {
+    if (vm.isProcessing || _uploadedImageBlocks.isEmpty || imgSize == Size.zero) return;
+
+    double scale = min(
+      containerSize.width / imgSize.width,
+      containerSize.height / imgSize.height,
+    );
+    double displayW = imgSize.width * scale;
+    double displayH = imgSize.height * scale;
+    double offsetX = (containerSize.width - displayW) / 2;
+    double offsetY = (containerSize.height - displayH) / 2;
+
+    for (final block in _uploadedImageBlocks) {
+      final scaledRect = Rect.fromLTRB(
+        offsetX + block.boundingBox.left * scale,
+        offsetY + block.boundingBox.top * scale,
+        offsetX + block.boundingBox.right * scale,
+        offsetY + block.boundingBox.bottom * scale,
+      );
+
+      if (scaledRect.contains(tapPos)) {
+        vm.analyzeTextBlock(block.text).then((_) {
+          if (!mounted) return;
+          final result = vm.analysisResult;
+          if (result != null) {
+            _showResultSheet(context, result, vm);
+          }
+        });
+        break;
+      }
     }
   }
 
@@ -198,7 +319,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           if (result != null) {
             _showResultSheet(context, result, vm).then((_) {
               // Restart stream after sheet dismissed if it was stopped
-              if (mounted && _isCameraInitialized && !_isStreaming) {
+              if (mounted && _cameraState == CameraState.initialized && !_isStreaming) {
                 _startImageStream();
               }
             });
@@ -225,32 +346,64 @@ class _ScannerScreenState extends State<ScannerScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Camera or simulator ───────────────────────────────────
-          _isCameraInitialized && _cameraController != null
+          // ── Camera or simulator or static picked image ───────────────────────────
+          _pickedImage != null
               ? LayoutBuilder(
                   builder: (context, constraints) {
-                    final camRatio =
-                        _cameraController!.value.aspectRatio; // w/h
-                    final screenRatio =
-                        constraints.maxWidth / constraints.maxHeight;
-                    // ponytail: cover-fit — scale to fill, never downscale
-                    final scale = (camRatio < screenRatio
-                            ? screenRatio / camRatio
-                            : camRatio / screenRatio)
-                        .clamp(1.0, double.infinity);
-                    return Transform.scale(
-                      scale: scale,
-                      child: AspectRatio(
-                        aspectRatio: camRatio,
-                        child: CameraPreview(_cameraController!),
+                    return GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTapDown: (d) => _handleStaticImageTap(
+                        d.localPosition,
+                        Size(constraints.maxWidth, constraints.maxHeight),
+                        _uploadedImageSize,
+                        vm,
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Center(
+                            child: Image.file(
+                              _pickedImage!,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          CustomPaint(
+                            painter: _StaticImageOverlayPainter(
+                              blocks: _uploadedImageBlocks,
+                              imageSize: _uploadedImageSize,
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
+                        ],
                       ),
                     );
                   },
                 )
-              : _buildSimulatorViewfinder(),
+              : (_cameraState == CameraState.initialized && _cameraController != null
+                  ? LayoutBuilder(
+                      builder: (context, constraints) {
+                        final camRatio =
+                            _cameraController!.value.aspectRatio; // w/h
+                        final screenRatio =
+                            constraints.maxWidth / constraints.maxHeight;
+                        // ponytail: cover-fit — scale to fill, never downscale
+                        final scale = (camRatio < screenRatio
+                                ? screenRatio / camRatio
+                                : camRatio / screenRatio)
+                            .clamp(1.0, double.infinity);
+                        return Transform.scale(
+                          scale: scale,
+                          child: AspectRatio(
+                            aspectRatio: camRatio,
+                            child: CameraPreview(_cameraController!),
+                          ),
+                        );
+                      },
+                    )
+                  : _buildCameraStateView(context)),
 
-          // ── Bounding box overlay + tap detector ───────────────────
-          if (_isCameraInitialized)
+          // ── Bounding box overlay + tap detector for live camera ─────────
+          if (_pickedImage == null && _cameraState == CameraState.initialized)
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTapDown: (d) => _handleTap(d.localPosition, vm, screenSize),
@@ -301,8 +454,14 @@ class _ScannerScreenState extends State<ScannerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _circleBtn(
-                        icon: Icons.close,
-                        onTap: () => Navigator.pop(context),
+                        icon: _pickedImage != null ? Icons.arrow_back : Icons.close,
+                        onTap: () {
+                          if (_pickedImage != null) {
+                            _clearPickedImage();
+                          } else {
+                            Navigator.pop(context);
+                          }
+                        },
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -313,9 +472,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        child: const Text(
-                          'GLOWMATCH',
-                          style: TextStyle(
+                        child: Text(
+                          _pickedImage != null ? 'IMAGE SCANNER' : 'GLOWMATCH',
+                          style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
                             color: Colors.black,
@@ -325,11 +484,18 @@ class _ScannerScreenState extends State<ScannerScreen>
                       ),
                       Row(
                         children: [
+                          if (_pickedImage == null) ...[
+                            _circleBtn(
+                              icon: _isFlashOn
+                                  ? Icons.flashlight_on
+                                  : Icons.flashlight_off,
+                              onTap: _toggleFlash,
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           _circleBtn(
-                            icon: _isFlashOn
-                                ? Icons.flashlight_on
-                                : Icons.flashlight_off,
-                            onTap: _toggleFlash,
+                            icon: Icons.photo_library,
+                            onTap: _pickImageFromGallery,
                           ),
                           const SizedBox(width: 8),
                           _circleBtn(
@@ -348,21 +514,29 @@ class _ScannerScreenState extends State<ScannerScreen>
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     child: Container(
-                      key: ValueKey(vm.detectedBlocks.length),
+                      key: ValueKey(_pickedImage != null
+                          ? _uploadedImageBlocks.length
+                          : vm.detectedBlocks.length),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: vm.detectedBlocks.isNotEmpty
+                        color: (_pickedImage != null
+                                ? _uploadedImageBlocks.isNotEmpty
+                                : vm.detectedBlocks.isNotEmpty)
                             ? Colors.yellow.withValues(alpha: 0.92)
                             : Colors.white.withValues(alpha: 0.85),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        vm.detectedBlocks.isNotEmpty
-                            ? '${vm.detectedBlocks.length} blok teks terdeteksi — TAP untuk analisis'
-                            : 'Arahkan kamera ke daftar ingredients',
+                        _pickedImage != null
+                            ? (_uploadedImageBlocks.isNotEmpty
+                                ? '${_uploadedImageBlocks.length} blok teks terdeteksi — TAP untuk analisis'
+                                : 'Mendeteksi teks...')
+                            : (vm.detectedBlocks.isNotEmpty
+                                ? '${vm.detectedBlocks.length} blok teks terdeteksi — TAP untuk analisis'
+                                : 'Arahkan kamera ke daftar ingredients'),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -397,41 +571,167 @@ class _ScannerScreenState extends State<ScannerScreen>
     );
   }
 
-  Widget _buildSimulatorViewfinder() {
-    return Container(
-      color: const Color(0xFF0F0F0F),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Opacity(
-            opacity: 0.25,
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=600',
+  Widget _buildCameraStateView(BuildContext context) {
+    if (_cameraState == CameraState.loading) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.white),
+              SizedBox(height: 16),
+              Text(
+                'Menginisialisasi Kamera...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_cameraState == CameraState.permissionDenied) {
+      return Container(
+        color: Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.red, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.videocam_off_outlined,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Izin Kamera Ditolak',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'GlowMatch memerlukan akses kamera untuk memindai bahan kosmetik secara langsung. Silakan berikan izin kamera di pengaturan perangkat Anda.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: const BorderSide(color: Colors.white, width: 2),
+                    ),
                   ),
-                  fit: BoxFit.cover,
+                  onPressed: _initializeCamera,
+                  child: const Text(
+                    'COBA LAGI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // CameraState.error or other issues
+    return Container(
+      color: Colors.black,
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                border: Border.all(color: Colors.white30, width: 1.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.no_photography_outlined,
+                    color: Colors.white54,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _cameraErrorMessage ?? 'Kamera Tidak Tersedia',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'GlowMatch tidak dapat mendeteksi kamera fisik pada perangkat atau simulator ini.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    side: const BorderSide(color: Colors.white, width: 2),
+                  ),
+                ),
+                onPressed: _initializeCamera,
+                child: const Text(
+                  'COBA LAGI',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
-          ),
-          Container(
-            width: 280,
-            height: 380,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white38, width: 1.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const Positioned(
-            bottom: 130,
-            child: Text(
-              'Kamera tidak tersedia',
-              style: TextStyle(color: Colors.white54, fontSize: 13),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1020,5 +1320,51 @@ class _TextBlockOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_TextBlockOverlayPainter old) =>
+      blocks != old.blocks || imageSize != old.imageSize;
+}
+
+class _StaticImageOverlayPainter extends CustomPainter {
+  final List<TextBlock> blocks;
+  final Size imageSize;
+
+  const _StaticImageOverlayPainter({
+    required this.blocks,
+    required this.imageSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (blocks.isEmpty || imageSize == Size.zero) return;
+
+    double scale = min(size.width / imageSize.width, size.height / imageSize.height);
+    double displayW = imageSize.width * scale;
+    double displayH = imageSize.height * scale;
+    double offsetX = (size.width - displayW) / 2;
+    double offsetY = (size.height - displayH) / 2;
+
+    final fillPaint = Paint()
+      ..color = Colors.yellow.withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+
+    final boxPaint = Paint()
+      ..color = Colors.yellow.withValues(alpha: 0.75)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    for (final block in blocks) {
+      final rect = Rect.fromLTRB(
+        offsetX + block.boundingBox.left * scale,
+        offsetY + block.boundingBox.top * scale,
+        offsetX + block.boundingBox.right * scale,
+        offsetY + block.boundingBox.bottom * scale,
+      );
+      final rRect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+      canvas.drawRRect(rRect, fillPaint);
+      canvas.drawRRect(rRect, boxPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StaticImageOverlayPainter old) =>
       blocks != old.blocks || imageSize != old.imageSize;
 }

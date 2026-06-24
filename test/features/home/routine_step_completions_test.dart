@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
@@ -7,6 +8,7 @@ void main() {
   late SupabaseService svc;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     svc = SupabaseService();
     svc.resetForTesting();
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
@@ -42,6 +44,7 @@ void main() {
     late ShelfViewModel shelfVm;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       routineVm = RoutineViewModel();
       shelfVm = ShelfViewModel();
     });
@@ -67,12 +70,12 @@ void main() {
       final dbLogs = await svc.getRoutineStepCompletions('user-toggle', DateTime.now());
       expect(dbLogs, contains('r-1'));
 
-      // Toggle step r-1 back to uncompleted
+      // Toggle step r-1 again - should NOT uncheck it (no unchecking allowed)
       await routineVm.toggleStep('r-1', shelfVm);
-      expect(routineVm.completedStepIds, isNot(contains('r-1')));
+      expect(routineVm.completedStepIds, contains('r-1'));
 
       final dbLogsAfter = await svc.getRoutineStepCompletions('user-toggle', DateTime.now());
-      expect(dbLogsAfter, isNot(contains('r-1')));
+      expect(dbLogsAfter, contains('r-1'));
     });
 
     test('switching active routine AM/PM retains completion states', () async {
@@ -106,6 +109,9 @@ void main() {
       for (final step in routineVm.currentSteps) {
         await routineVm.toggleStep(step.id, shelfVm);
       }
+
+      // Finalize routine manually
+      await routineVm.completeRoutine('user-completion');
 
       // Verification: routine completed today
       expect(routineVm.completedToday, isTrue);
