@@ -111,15 +111,17 @@ class AuthViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    final String oldUserId = userId;
+
     try {
       if (_supabaseService.isOfflineMode) {
         final prefs = await SharedPreferences.getInstance();
-        final userId = 'mock-user-${email.split('@')[0]}';
-        await prefs.setString('mock_user_id', userId);
+        final mockId = 'mock-user-${email.split('@')[0]}';
+        await prefs.setString('mock_user_id', mockId);
         await prefs.setString('mock_user_email', email);
 
         _currentUser = User(
-          id: userId,
+          id: mockId,
           appMetadata: const {},
           userMetadata: const {},
           aud: '',
@@ -132,6 +134,10 @@ class AuthViewModel extends ChangeNotifier {
           password: password,
         );
         _currentUser = response.user;
+      }
+
+      if (_currentUser != null) {
+        await _supabaseService.migrateLocalData(oldUserId, _currentUser!.id);
       }
     } on AuthException catch (e) {
       _errorMessage = e.message;
@@ -150,15 +156,17 @@ class AuthViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    final String oldUserId = userId;
+
     try {
       if (_supabaseService.isOfflineMode) {
         final prefs = await SharedPreferences.getInstance();
-        final userId = 'mock-user-${email.split('@')[0]}';
-        await prefs.setString('mock_user_id', userId);
+        final mockId = 'mock-user-${email.split('@')[0]}';
+        await prefs.setString('mock_user_id', mockId);
         await prefs.setString('mock_user_email', email);
 
         _currentUser = User(
-          id: userId,
+          id: mockId,
           appMetadata: const {},
           userMetadata: const {},
           aud: '',
@@ -171,6 +179,10 @@ class AuthViewModel extends ChangeNotifier {
           password: password,
         );
         _currentUser = response.user;
+      }
+
+      if (_currentUser != null) {
+        await _supabaseService.migrateLocalData(oldUserId, _currentUser!.id);
       }
     } on AuthException catch (e) {
       _errorMessage = e.message;
