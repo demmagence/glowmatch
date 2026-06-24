@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 import '../constants.dart';
+import 'database_helper.dart';
+import 'sync_service.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -12,6 +14,9 @@ class SupabaseService {
 
   bool _isOfflineMode = true;
   bool get isOfflineMode => _isOfflineMode;
+
+  @visibleForTesting
+  set isOfflineMode(bool value) => _isOfflineMode = value;
 
   final List<ShelfItem> _mockShelf = [];
   final List<RoutineStep> _mockRoutines = [];
@@ -27,6 +32,13 @@ class SupabaseService {
     required String url,
     required String anonKey,
   }) async {
+    // Initialize SQLite database cache first
+    try {
+      await DatabaseHelper().database;
+    } catch (e) {
+      debugPrint('Failed to initialize SQLite database cache: $e');
+    }
+
     if (url.isEmpty ||
         url.startsWith('YOUR_') ||
         anonKey.isEmpty ||
@@ -293,23 +305,14 @@ class SupabaseService {
 
   Future<List<ShelfItem>> getShelfItems(String userId) async {
     if (_isOfflineMode) {
-      return List.from(_mockShelf);
+      return await DatabaseHelper().getShelfItems(userId);
     }
     try {
-      final response = await Supabase.instance.client
-          .from(AppConstants.tableSkincareShelf)
-          .select()
-          .eq('user_id', userId);
-      return (response as List)
-          .map((x) => ShelfItem.fromJson(x as Map<String, dynamic>))
-          .toList();
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('getShelfItems', e);
-      return List.from(_mockShelf);
+      await SyncService().syncAndFetchShelf(userId);
     } catch (e) {
-      _handleGenericException('getShelfItems', e);
-      return List.from(_mockShelf);
+      debugPrint('SupabaseService: getShelfItems remote sync/fetch failed: $e');
     }
+    return await DatabaseHelper().getShelfItems(userId);
   }
 
   Future<ShelfItem> addShelfItem(String userId, ShelfItem item) async {
@@ -321,146 +324,138 @@ class SupabaseService {
       id: id,
       createdAt: item.createdAt ?? now,
     );
-    final newItemMap = {
-      ...newItem.toJson(),
-      'user_id': userId,
-      'created_at': newItem.createdAt!.toIso8601String(),
-    };
 
-    if (_isOfflineMode) {
-      _mockShelf.add(newItem);
-      return newItem;
+    // 1. Save to local SQLite cache
+    await DatabaseHelper().insertShelfItem(userId, newItem);
+
+    // 2. Queue for remote sync if not guest
+    if (userId != 'offline-guest-user' && userId.isNotEmpty) {
+      final dataMap = {
+        ...newItem.toJson(),
+        'user_id': userId,
+        'created_at': newItem.createdAt!.toIso8601String(),
+      };
+      await DatabaseHelper().queueSyncTask(
+        userId: userId,
+        tableName: AppConstants.tableSkincareShelf,
+        operation: 'INSERT',
+        itemId: newItem.id,
+        data: dataMap,
+      );
+
+      // 3. Trigger async sync if online
+      if (!_isOfflineMode) {
+        SyncService().syncQueue(userId).catchError((e) {
+          debugPrint('Background sync failed: $e');
+        });
+      }
     }
 
-    try {
-      final response = await Supabase.instance.client
-          .from(AppConstants.tableSkincareShelf)
-          .insert(newItemMap)
-          .select()
-          .single();
-      return ShelfItem.fromJson(response);
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('addShelfItem', e);
-      _mockShelf.add(newItem);
-      return newItem;
-    } catch (e) {
-      _handleGenericException('addShelfItem', e);
-      _mockShelf.add(newItem);
-      return newItem;
-    }
+    return newItem;
   }
 
   Future<ShelfItem?> updateShelfItem(String itemId, ShelfItem updates) async {
-    final newItemMap = {...updates.toJson(), 'id': itemId};
+    final db = DatabaseHelper();
+    final String? userId = await db.getShelfItemUserId(itemId);
+    if (userId == null) return null;
 
-    if (_isOfflineMode) {
-      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
-      if (idx != -1) {
-        _mockShelf[idx] = updates.copyWith(id: itemId);
-        return _mockShelf[idx];
+    final updatedItem = updates.copyWith(id: itemId);
+
+    // 1. Update SQLite
+    await db.updateShelfItem(userId, updatedItem);
+
+    // 2. Queue for remote sync
+    if (userId != 'offline-guest-user' && userId.isNotEmpty) {
+      final dataMap = {
+        ...updatedItem.toJson(),
+        'user_id': userId,
+        'created_at': updatedItem.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      };
+      await db.queueSyncTask(
+        userId: userId,
+        tableName: AppConstants.tableSkincareShelf,
+        operation: 'UPDATE',
+        itemId: itemId,
+        data: dataMap,
+      );
+
+      // 3. Trigger async sync if online
+      if (!_isOfflineMode) {
+        SyncService().syncQueue(userId).catchError((e) {
+          debugPrint('Background sync failed: $e');
+        });
       }
-      return null;
     }
 
-    try {
-      final response = await Supabase.instance.client
-          .from(AppConstants.tableSkincareShelf)
-          .update(newItemMap)
-          .eq('id', itemId)
-          .select()
-          .single();
-      return ShelfItem.fromJson(response);
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('updateShelfItem', e);
-      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
-      if (idx != -1) {
-        _mockShelf[idx] = updates.copyWith(id: itemId);
-        return _mockShelf[idx];
-      }
-      return null;
-    } catch (e) {
-      _handleGenericException('updateShelfItem', e);
-      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
-      if (idx != -1) {
-        _mockShelf[idx] = updates.copyWith(id: itemId);
-        return _mockShelf[idx];
-      }
-      return null;
-    }
+    return updatedItem;
   }
 
   Future<ShelfItem?> decrementShelfItemUses(String itemId) async {
-    if (_isOfflineMode) {
-      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
-      if (idx != -1) {
-        final currentUses = _mockShelf[idx].remainingUses;
-        final newUses = (currentUses - 1).clamp(0, 999999);
-        _mockShelf[idx] = _mockShelf[idx].copyWith(remainingUses: newUses);
-        return _mockShelf[idx];
+    final db = DatabaseHelper();
+    final item = await db.getShelfItemById(itemId);
+    if (item == null) return null;
+
+    final String? userId = await db.getShelfItemUserId(itemId);
+    if (userId == null) return null;
+
+    final newUses = (item.remainingUses - 1).clamp(0, 999999);
+    final updatedItem = item.copyWith(remainingUses: newUses);
+
+    // 1. Update SQLite
+    await db.updateShelfItem(userId, updatedItem);
+
+    // 2. Queue for remote sync
+    if (userId != 'offline-guest-user' && userId.isNotEmpty) {
+      final dataMap = {
+        ...updatedItem.toJson(),
+        'user_id': userId,
+        'created_at': updatedItem.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      };
+      await db.queueSyncTask(
+        userId: userId,
+        tableName: AppConstants.tableSkincareShelf,
+        operation: 'UPDATE',
+        itemId: itemId,
+        data: dataMap,
+      );
+
+      // 3. Trigger async sync if online
+      if (!_isOfflineMode) {
+        SyncService().syncQueue(userId).catchError((e) {
+          debugPrint('Background sync failed: $e');
+        });
       }
-      return null;
     }
 
-    try {
-      final currentResponse = await Supabase.instance.client
-          .from(AppConstants.tableSkincareShelf)
-          .select('remaining_uses')
-          .eq('id', itemId)
-          .single();
-      final currentUses = currentResponse['remaining_uses'] as int? ?? 0;
-      final newUses = (currentUses - 1).clamp(0, 999999);
-
-      final response = await Supabase.instance.client
-          .from(AppConstants.tableSkincareShelf)
-          .update({'remaining_uses': newUses})
-          .eq('id', itemId)
-          .select()
-          .single();
-      return ShelfItem.fromJson(response);
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('decrementShelfItemUses', e);
-      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
-      if (idx != -1) {
-        final currentUses = _mockShelf[idx].remainingUses;
-        final newUses = (currentUses - 1).clamp(0, 999999);
-        _mockShelf[idx] = _mockShelf[idx].copyWith(remainingUses: newUses);
-        return _mockShelf[idx];
-      }
-      return null;
-    } catch (e) {
-      _handleGenericException('decrementShelfItemUses', e);
-      final idx = _mockShelf.indexWhere((x) => x.id == itemId);
-      if (idx != -1) {
-        final currentUses = _mockShelf[idx].remainingUses;
-        final newUses = (currentUses - 1).clamp(0, 999999);
-        _mockShelf[idx] = _mockShelf[idx].copyWith(remainingUses: newUses);
-        return _mockShelf[idx];
-      }
-      return null;
-    }
+    return updatedItem;
   }
 
   Future<bool> deleteShelfItem(String itemId) async {
-    if (_isOfflineMode) {
-      _mockShelf.removeWhere((x) => x.id == itemId);
-      return true;
+    final db = DatabaseHelper();
+    final String? userId = await db.getShelfItemUserId(itemId);
+    if (userId == null) return true;
+
+    // 1. Delete from SQLite
+    await db.deleteShelfItem(userId, itemId);
+
+    // 2. Queue for remote sync
+    if (userId != 'offline-guest-user' && userId.isNotEmpty) {
+      await db.queueSyncTask(
+        userId: userId,
+        tableName: AppConstants.tableSkincareShelf,
+        operation: 'DELETE',
+        itemId: itemId,
+      );
+
+      // 3. Trigger async sync if online
+      if (!_isOfflineMode) {
+        SyncService().syncQueue(userId).catchError((e) {
+          debugPrint('Background sync failed: $e');
+        });
+      }
     }
 
-    try {
-      await Supabase.instance.client
-          .from(AppConstants.tableSkincareShelf)
-          .delete()
-          .eq('id', itemId);
-      return true;
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('deleteShelfItem', e);
-      _mockShelf.removeWhere((x) => x.id == itemId);
-      return true;
-    } catch (e) {
-      _handleGenericException('deleteShelfItem', e);
-      _mockShelf.removeWhere((x) => x.id == itemId);
-      return true;
-    }
+    return true;
   }
 
   Future<List<SkincareCategory>> getCategories(String userId) async {
@@ -724,24 +719,14 @@ class SupabaseService {
 
   Future<List<JournalEntry>> getJournalEntries(String userId) async {
     if (_isOfflineMode) {
-      return List.from(_mockJournalEntries);
+      return await DatabaseHelper().getJournalEntries(userId);
     }
     try {
-      final response = await Supabase.instance.client
-          .from(AppConstants.tableJournalEntries)
-          .select()
-          .eq('user_id', userId)
-          .order('logged_date', ascending: false);
-      return (response as List)
-          .map((x) => JournalEntry.fromJson(x as Map<String, dynamic>))
-          .toList();
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('getJournalEntries', e);
-      return List.from(_mockJournalEntries);
+      await SyncService().syncAndFetchJournal(userId);
     } catch (e) {
-      _handleGenericException('getJournalEntries', e);
-      return List.from(_mockJournalEntries);
+      debugPrint('SupabaseService: getJournalEntries remote sync/fetch failed: $e');
     }
+    return await DatabaseHelper().getJournalEntries(userId);
   }
 
   Future<JournalEntry> addJournalEntry(
@@ -756,53 +741,70 @@ class SupabaseService {
       id: id,
       createdAt: entry.createdAt ?? now,
     );
-    final newEntryMap = {
-      ...newEntry.toJson(),
-      'user_id': userId,
-      'created_at': newEntry.createdAt!.toIso8601String(),
-    };
-    if (_isOfflineMode) {
-      _mockJournalEntries.insert(0, newEntry);
-      return newEntry;
+
+    // 1. Save to local SQLite cache
+    await DatabaseHelper().insertJournalEntry(userId, newEntry);
+
+    // 2. Queue for remote sync if not guest
+    if (userId != 'offline-guest-user' && userId.isNotEmpty) {
+      final dataMap = {
+        ...newEntry.toJson(),
+        'user_id': userId,
+        'created_at': newEntry.createdAt!.toIso8601String(),
+      };
+      await DatabaseHelper().queueSyncTask(
+        userId: userId,
+        tableName: AppConstants.tableJournalEntries,
+        operation: 'INSERT',
+        itemId: newEntry.id,
+        data: dataMap,
+      );
+
+      // 3. Trigger async sync if online
+      if (!_isOfflineMode) {
+        SyncService().syncQueue(userId).catchError((e) {
+          debugPrint('Background sync failed: $e');
+        });
+      }
     }
-    try {
-      final response = await Supabase.instance.client
-          .from(AppConstants.tableJournalEntries)
-          .insert(newEntryMap)
-          .select()
-          .single();
-      return JournalEntry.fromJson(response);
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('addJournalEntry', e);
-      _mockJournalEntries.insert(0, newEntry);
-      return newEntry;
-    } catch (e) {
-      _handleGenericException('addJournalEntry', e);
-      _mockJournalEntries.insert(0, newEntry);
-      return newEntry;
-    }
+
+    return newEntry;
   }
 
   Future<bool> deleteJournalEntry(String entryId) async {
-    if (_isOfflineMode) {
-      _mockJournalEntries.removeWhere((x) => x.id == entryId);
-      return true;
+    final db = DatabaseHelper();
+    final String? userId = await db.getJournalEntryUserId(entryId);
+    if (userId == null) return true;
+
+    // 1. Delete from SQLite
+    await db.deleteJournalEntry(userId, entryId);
+
+    // 2. Queue for remote sync
+    if (userId != 'offline-guest-user' && userId.isNotEmpty) {
+      await db.queueSyncTask(
+        userId: userId,
+        tableName: AppConstants.tableJournalEntries,
+        operation: 'DELETE',
+        itemId: entryId,
+      );
+
+      // 3. Trigger async sync if online
+      if (!_isOfflineMode) {
+        SyncService().syncQueue(userId).catchError((e) {
+          debugPrint('Background sync failed: $e');
+        });
+      }
     }
 
-    try {
-      await Supabase.instance.client
-          .from(AppConstants.tableJournalEntries)
-          .delete()
-          .eq('id', entryId);
-      return true;
-    } on PostgrestException catch (e) {
-      _handlePostgrestException('deleteJournalEntry', e);
-      _mockJournalEntries.removeWhere((x) => x.id == entryId);
-      return true;
-    } catch (e) {
-      _handleGenericException('deleteJournalEntry', e);
-      _mockJournalEntries.removeWhere((x) => x.id == entryId);
-      return true;
+    return true;
+  }
+
+  Future<void> migrateLocalData(String oldId, String newId) async {
+    await DatabaseHelper().migrateGuestData(oldId, newId);
+    if (!_isOfflineMode) {
+      SyncService().syncQueue(newId).catchError((e) {
+        debugPrint('Post-migration background sync failed: $e');
+      });
     }
   }
 

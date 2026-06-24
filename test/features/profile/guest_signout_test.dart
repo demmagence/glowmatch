@@ -17,7 +17,7 @@ void main() {
 
     test('ShelfViewModel clearState clears all items and resets query/filters', () async {
       final shelfVm = ShelfViewModel();
-      await shelfVm.fetchShelf('guest-user');
+      await shelfVm.fetchShelf('test-user');
 
       expect(shelfVm.shelfItems, isNotEmpty);
 
@@ -32,7 +32,7 @@ void main() {
 
     test('JournalViewModel clearState clears all entries', () async {
       final journalVm = JournalViewModel();
-      await journalVm.fetchJournal('guest-user');
+      await journalVm.fetchJournal('test-user');
 
       expect(journalVm.entries, isNotEmpty);
 
@@ -43,7 +43,7 @@ void main() {
 
     test('RoutineViewModel clearState clears AM/PM steps and resets fields', () async {
       final routineVm = RoutineViewModel();
-      await routineVm.init('guest-user');
+      await routineVm.init('test-user');
 
       expect(routineVm.amSteps, isNotEmpty);
       expect(routineVm.pmSteps, isNotEmpty);
