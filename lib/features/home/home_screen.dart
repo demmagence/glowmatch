@@ -30,8 +30,11 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      body: RefreshIndicator(
+        onRefresh: () => routineVm.init(authVm.userId),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -699,6 +702,7 @@ class HomeScreen extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }
