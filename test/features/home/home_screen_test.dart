@@ -42,8 +42,8 @@ void main() {
       await tester.pumpWidget(_buildHome(vm));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('AM'), findsWidgets);
-      expect(find.text('PM'), findsWidgets);
+      expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
     });
 
     testWidgets('"Click to add" card is always present', (tester) async {
