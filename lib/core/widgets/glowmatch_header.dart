@@ -18,7 +18,6 @@ class GlowMatchHeader extends StatelessWidget {
           text: TextSpan(
             text: 'GlowMatch',
             style: TextStyle(
-              fontFamily: 'Outfit',
               fontSize: 26,
               fontWeight: FontWeight.w800,
               color: textColor,

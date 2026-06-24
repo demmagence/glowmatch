@@ -89,7 +89,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
               children: [
                 Text(
                   'Streak History & Stats',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
                     color: textColor,
@@ -155,7 +155,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
             // 30 Days Grid Section
             Text(
               'Last 30 Days visual calendar',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: textColor,
@@ -232,7 +232,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
             // Historical Streak List Section
             Text(
               'Streak History',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: textColor,
@@ -256,7 +256,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                 ),
                 child: Text(
                   'No streak history yet. Complete your first routine!',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: subtextColor,
                     fontWeight: FontWeight.w500,
@@ -307,7 +307,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                           ),
                           child: Text(
                             '${segment.length} Day${segment.length > 1 ? 's' : ''}',
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w900,
                               color: isMilestone ? Colors.black : textColor,
                               fontSize: 13,
@@ -321,7 +321,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                             children: [
                               Text(
                                 '${_formatDate(segment.startDate)} - ${_formatDate(segment.endDate)}',
-                                style: GoogleFonts.outfit(
+                                style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                   color: textColor,
@@ -335,7 +335,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                                       : segment.length >= 14
                                           ? '🌟 Unstoppable barrier milestone!'
                                           : '🏆 Solid habit milestone!',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: isDark ? const Color(0xFFFFD54F) : const Color(0xFFD3A200),
                                     fontWeight: FontWeight.w700,
@@ -381,7 +381,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w900,
               color: isDark ? Colors.white : Colors.black,
@@ -390,7 +390,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
@@ -422,7 +422,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.poppins(
             fontSize: 12,
             color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
             fontWeight: FontWeight.w600,

@@ -192,7 +192,7 @@ class HomeScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   buildDefaultDragHandles: false,
                   itemCount: routineVm.currentSteps.length,
-                  onReorderItem: (oldIndex, newIndex) {
+                  onReorder: (oldIndex, newIndex) {
                     routineVm.reorderStepsDirect(authVm.userId, oldIndex, newIndex);
                   },
                   itemBuilder: (context, index) {

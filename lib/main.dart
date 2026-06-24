@@ -74,7 +74,7 @@ class GlowMatchApp extends StatelessWidget {
             themeMode: themeVm.themeMode,
             theme: ThemeData(
               useMaterial3: true,
-              textTheme: GoogleFonts.outfitTextTheme(),
+              textTheme: GoogleFonts.poppinsTextTheme(),
               colorScheme: ColorScheme.fromSeed(
                 seedColor: Colors.pinkAccent,
                 primary: Colors.black,
@@ -87,7 +87,7 @@ class GlowMatchApp extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: Colors.white,
                 iconTheme: const IconThemeData(color: Colors.black),
-                titleTextStyle: GoogleFonts.outfit(
+                titleTextStyle: GoogleFonts.poppins(
                   color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -97,7 +97,7 @@ class GlowMatchApp extends StatelessWidget {
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
-              textTheme: GoogleFonts.outfitTextTheme(
+              textTheme: GoogleFonts.poppinsTextTheme(
                 ThemeData.dark().textTheme,
               ),
               brightness: Brightness.dark,
@@ -114,7 +114,7 @@ class GlowMatchApp extends StatelessWidget {
                 elevation: 0,
                 backgroundColor: const Color(0xFF121212),
                 iconTheme: const IconThemeData(color: Colors.white),
-                titleTextStyle: GoogleFonts.outfit(
+                titleTextStyle: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

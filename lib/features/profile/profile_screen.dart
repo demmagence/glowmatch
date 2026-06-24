@@ -526,7 +526,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 style: TextStyle(
                                   color: isDark ? Colors.white : Colors.black,
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: 'Outfit',
                                 ),
                                 decoration: InputDecoration(
                                   contentPadding: const EdgeInsets.symmetric(

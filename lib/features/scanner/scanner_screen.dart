@@ -311,7 +311,6 @@ class _ScannerScreenState extends State<ScannerScreen>
                         child: const Text(
                           'GLOWMATCH',
                           style: TextStyle(
-                            fontFamily: 'Outfit',
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
                             color: Colors.black,

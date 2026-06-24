@@ -69,7 +69,6 @@ class CalculatorCard extends StatelessWidget {
             style: TextStyle(
               color: textColor,
               fontWeight: FontWeight.w600,
-              fontFamily: 'Outfit',
             ),
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
