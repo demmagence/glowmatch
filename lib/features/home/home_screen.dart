@@ -123,7 +123,7 @@ class HomeScreen extends StatelessWidget {
                     Expanded(
                       child: _buildToggleItem(
                         context,
-                        label: 'AM',
+                        icon: Icons.light_mode_outlined,
                         isActive: routineVm.activeRoutine == 'AM',
                         onTap: () => routineVm.setActiveRoutine('AM'),
                       ),
@@ -131,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                     Expanded(
                       child: _buildToggleItem(
                         context,
-                        label: 'PM',
+                        icon: Icons.dark_mode_outlined,
                         isActive: routineVm.activeRoutine == 'PM',
                         onTap: () => routineVm.setActiveRoutine('PM'),
                       ),
@@ -659,7 +659,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildToggleItem(
     BuildContext context, {
-    required String label,
+    required IconData icon,
     required bool isActive,
     required VoidCallback onTap,
   }) {
@@ -678,13 +678,10 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(26),
         ),
         child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isActive ? activeFg : inactiveFg,
-            ),
+          child: Icon(
+            icon,
+            size: 22,
+            color: isActive ? activeFg : inactiveFg,
           ),
         ),
       ),
