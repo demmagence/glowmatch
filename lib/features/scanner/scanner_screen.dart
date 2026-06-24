@@ -9,6 +9,13 @@ import 'scanner_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:math' show min;
 
+enum CameraState {
+  loading,
+  initialized,
+  permissionDenied,
+  error,
+}
+
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
 
@@ -20,11 +27,12 @@ class _ScannerScreenState extends State<ScannerScreen>
     with WidgetsBindingObserver {
   CameraController? _cameraController;
   CameraDescription? _camera;
-  bool _isCameraInitialized = false;
   bool _isFlashOn = false;
   bool _isStreaming = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  CameraState _cameraState = CameraState.loading;
+  String? _cameraErrorMessage;
   File? _pickedImage;
   List<TextBlock> _uploadedImageBlocks = [];
   Size _uploadedImageSize = Size.zero;
@@ -86,10 +94,17 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _initializeCamera() async {
+    setState(() {
+      _cameraState = CameraState.loading;
+    });
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         debugPrint('No cameras available.');
+        setState(() {
+          _cameraState = CameraState.error;
+          _cameraErrorMessage = 'Kamera Tidak Tersedia';
+        });
         return;
       }
 
@@ -111,15 +126,28 @@ class _ScannerScreenState extends State<ScannerScreen>
       }
       if (!mounted) return;
 
-      setState(() => _isCameraInitialized = true);
+      setState(() {
+        _cameraState = CameraState.initialized;
+      });
       _startImageStream();
     } catch (e) {
       debugPrint('Camera initialization error: $e');
+      if (!mounted) return;
+      setState(() {
+        if (e is CameraException &&
+            (e.code == 'CameraAccessDenied' ||
+             e.code == 'CameraAccessDeniedWithoutPrompt')) {
+          _cameraState = CameraState.permissionDenied;
+        } else {
+          _cameraState = CameraState.error;
+          _cameraErrorMessage = 'Kabel/kamera bermasalah atau tidak tersedia';
+        }
+      });
     }
   }
 
   void _startImageStream() {
-    if (_isStreaming || _cameraController == null || !_isCameraInitialized) {
+    if (_isStreaming || _cameraController == null || _cameraState != CameraState.initialized) {
       return;
     }
     setState(() => _isStreaming = true);
@@ -161,7 +189,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _toggleFlash() async {
-    if (!_isCameraInitialized || _cameraController == null) return;
+    if (_cameraState != CameraState.initialized || _cameraController == null) return;
     try {
       await _cameraController!.setFlashMode(
         _isFlashOn ? FlashMode.off : FlashMode.torch,
@@ -216,7 +244,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       _uploadedImageBlocks = [];
     });
     // Restart live camera stream if camera is initialized
-    if (_isCameraInitialized && !_isStreaming) {
+    if (_cameraState == CameraState.initialized && !_isStreaming) {
       _startImageStream();
     }
   }
@@ -291,7 +319,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           if (result != null) {
             _showResultSheet(context, result, vm).then((_) {
               // Restart stream after sheet dismissed if it was stopped
-              if (mounted && _isCameraInitialized && !_isStreaming) {
+              if (mounted && _cameraState == CameraState.initialized && !_isStreaming) {
                 _startImageStream();
               }
             });
@@ -351,7 +379,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     );
                   },
                 )
-              : (_isCameraInitialized && _cameraController != null
+              : (_cameraState == CameraState.initialized && _cameraController != null
                   ? LayoutBuilder(
                       builder: (context, constraints) {
                         final camRatio =
@@ -372,10 +400,10 @@ class _ScannerScreenState extends State<ScannerScreen>
                         );
                       },
                     )
-                  : _buildSimulatorViewfinder()),
+                  : _buildCameraStateView(context)),
 
           // ── Bounding box overlay + tap detector for live camera ─────────
-          if (_pickedImage == null && _isCameraInitialized)
+          if (_pickedImage == null && _cameraState == CameraState.initialized)
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTapDown: (d) => _handleTap(d.localPosition, vm, screenSize),
@@ -543,41 +571,167 @@ class _ScannerScreenState extends State<ScannerScreen>
     );
   }
 
-  Widget _buildSimulatorViewfinder() {
-    return Container(
-      color: const Color(0xFF0F0F0F),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Opacity(
-            opacity: 0.25,
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=600',
+  Widget _buildCameraStateView(BuildContext context) {
+    if (_cameraState == CameraState.loading) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.white),
+              SizedBox(height: 16),
+              Text(
+                'Menginisialisasi Kamera...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_cameraState == CameraState.permissionDenied) {
+      return Container(
+        color: Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.red, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.videocam_off_outlined,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Izin Kamera Ditolak',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'GlowMatch memerlukan akses kamera untuk memindai bahan kosmetik secara langsung. Silakan berikan izin kamera di pengaturan perangkat Anda.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: const BorderSide(color: Colors.white, width: 2),
+                    ),
                   ),
-                  fit: BoxFit.cover,
+                  onPressed: _initializeCamera,
+                  child: const Text(
+                    'COBA LAGI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // CameraState.error or other issues
+    return Container(
+      color: Colors.black,
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                border: Border.all(color: Colors.white30, width: 1.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.no_photography_outlined,
+                    color: Colors.white54,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _cameraErrorMessage ?? 'Kamera Tidak Tersedia',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'GlowMatch tidak dapat mendeteksi kamera fisik pada perangkat atau simulator ini.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    side: const BorderSide(color: Colors.white, width: 2),
+                  ),
+                ),
+                onPressed: _initializeCamera,
+                child: const Text(
+                  'COBA LAGI',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
-          ),
-          Container(
-            width: 280,
-            height: 380,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white38, width: 1.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const Positioned(
-            bottom: 130,
-            child: Text(
-              'Kamera tidak tersedia',
-              style: TextStyle(color: Colors.white54, fontSize: 13),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
