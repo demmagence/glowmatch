@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   provider: ^6.1.2
   supabase_flutter: ^2.5.4
   geolocator: ^11.0.0
@@ -43,6 +45,7 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/logo_padded.png"
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/logo.png

@@ -12,6 +12,7 @@ import 'features/scanner/scanner_viewmodel.dart';
 import 'features/journal/journal_viewmodel.dart';
 import 'features/splash/splash_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +72,9 @@ class GlowMatchApp extends StatelessWidget {
           return MaterialApp(
             title: 'GlowMatch',
             debugShowCheckedModeBanner: false,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: themeVm.locale,
             themeMode: themeVm.themeMode,
             theme: ThemeData(
               useMaterial3: true,
