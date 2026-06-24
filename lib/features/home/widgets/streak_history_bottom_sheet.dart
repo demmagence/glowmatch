@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../routine_viewmodel.dart';
+import 'streak_monthly_calendar.dart';
 
 class StreakHistoryBottomSheet extends StatelessWidget {
   const StreakHistoryBottomSheet({super.key});
@@ -32,12 +33,6 @@ class StreakHistoryBottomSheet extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
 
-    // Generate last 30 calendar days ending today
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final last30Days = List.generate(30, (index) {
-      return today.subtract(Duration(days: 29 - index));
-    });
 
     final completedSet = routineVm.dailyCompletionLogs
         .map((d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}')
@@ -152,16 +147,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // 30 Days Grid Section
-            Text(
-              'Last 30 Days visual calendar',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: textColor,
-              ),
-            ),
-            const SizedBox(height: 12),
+            // Monthly visual calendar for streaks
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -178,40 +164,8 @@ class StreakHistoryBottomSheet extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 10,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                    ),
-                    itemCount: 30,
-                    itemBuilder: (context, index) {
-                      final date = last30Days[index];
-                      final key = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-                      final completed = completedSet.contains(key);
-
-                      final color = completed
-                          ? const Color(0xFF64DD17)
-                          : (isDark ? const Color(0xFF424242) : const Color(0xFFE0E0E0));
-
-                      return Tooltip(
-                        message: '${_formatDate(date)}: ${completed ? 'Completed' : 'Missed'}',
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: color,
-                            border: Border.all(
-                              color: isDark ? Colors.white : Colors.black,
-                              width: 1.2,
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
+                  StreakMonthlyCalendar(completedSet: completedSet),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

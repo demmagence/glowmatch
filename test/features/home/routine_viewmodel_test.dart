@@ -22,10 +22,10 @@ void main() {
       expect(vm.completedStepIds.contains('step-1'), isTrue);
     });
 
-    test('toggleStep removes stepId when already completed', () {
+    test('toggleStep does not remove stepId when already completed (no unchecking)', () {
       vm.toggleStep('step-1', shelfVm);
       vm.toggleStep('step-1', shelfVm);
-      expect(vm.completedStepIds.contains('step-1'), isFalse);
+      expect(vm.completedStepIds.contains('step-1'), isTrue);
     });
 
     test('toggling multiple steps tracks each independently', () {
@@ -40,10 +40,7 @@ void main() {
   group('RoutineViewModel – completedCount', () {
     test('completedCount is 0 when no steps are completed', () async {
       await vm.loadRoutines('test-user');
-
-      for (final id in List.from(vm.completedStepIds)) {
-        vm.toggleStep(id, shelfVm);
-      }
+      // No steps are completed initially, so completedCount should be 0
       expect(vm.completedCount, equals(0));
     });
 

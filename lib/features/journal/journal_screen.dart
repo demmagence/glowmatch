@@ -118,21 +118,8 @@ class _JournalScreenState extends State<JournalScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: [
-                    const Expanded(child: GlowMatchHeader()),
-                    IconButton(
-                      icon: Icon(
-                        _isCompareMode ? Icons.close : Icons.compare_arrows,
-                        color: textColor,
-                      ),
-                      tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
-                      onPressed: () {
-                        setState(() {
-                          _isCompareMode = !_isCompareMode;
-                          _selectedEntryIds.clear();
-                        });
-                      },
-                    ),
+                  children: const [
+                    Expanded(child: GlowMatchHeader()),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -208,20 +195,22 @@ class _JournalScreenState extends State<JournalScreen> {
           ),
         ),
       ),
-      floatingActionButton: journalVm.isUploading || _isCompareMode
+      floatingActionButton: journalVm.isUploading
           ? null
           : FloatingActionButton(
               backgroundColor: isDark ? Colors.white : Colors.black,
               foregroundColor: isDark ? Colors.black : Colors.white,
               shape: const CircleBorder(),
-              tooltip: 'Add Progress Photo',
-              onPressed: () => showPhotoSourceSheet(
-                context,
-                authVm.userId,
-                journalVm,
-                _doUpload,
-              ),
-              child: const Icon(Icons.add_a_photo_outlined),
+              tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
+              onPressed: () {
+                setState(() {
+                  _isCompareMode = !_isCompareMode;
+                  if (!_isCompareMode) {
+                    _selectedEntryIds.clear();
+                  }
+                });
+              },
+              child: Icon(_isCompareMode ? Icons.close : Icons.compare_arrows),
             ),
       bottomSheet: _selectedEntryIds.isEmpty
           ? null

@@ -21,7 +21,7 @@ class AppConstants {
     'Eye Cream': '0xFFFF4081',
   };
 
-  static const String defaultMockLocation = 'Los Angeles, CA';
+  static const String defaultMockLocation = 'Cilaku, Cianjur, Jawa Barat';
   static const double defaultMockTemperature = 33.0;
   static const int defaultInitialScore = 80;
 }
