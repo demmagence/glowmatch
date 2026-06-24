@@ -93,14 +93,17 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.grey,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    weather != null
-                        ? '${weather.locationName} • ${weather.temperature.toStringAsFixed(0)}°C'
-                        : 'Los Angeles, CA • 33°C',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: subtextColor,
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      weather != null
+                          ? weather.locationName
+                          : 'Los Angeles, CA',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: subtextColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

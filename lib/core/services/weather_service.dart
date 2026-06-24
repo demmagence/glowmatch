@@ -116,7 +116,7 @@ class WeatherService {
 
   WeatherData _mockFallback(String status) {
     return WeatherData(
-      locationName: '${AppConstants.defaultMockLocation} ($status)',
+      locationName: AppConstants.defaultMockLocation,
       temperature: AppConstants.defaultMockTemperature,
       condition: 'Sunny',
     );

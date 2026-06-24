@@ -19,11 +19,11 @@ void main() {
       expect(result.locationName, contains('Cilaku'));
     });
 
-    test('fallback locationName contains the reason string', () async {
+    test('fallback locationName matches default mock location', () async {
       final result = await service.fetchLocalWeather();
 
       expect(result.locationName, isNotEmpty);
-      expect(result.locationName, contains('Cilaku, Cianjur, Jawa Barat'));
+      expect(result.locationName, equals('Cilaku, Cianjur, Jawa Barat'));
     });
 
     test('fallback temperature is exactly 33.0 degrees Celsius', () async {
