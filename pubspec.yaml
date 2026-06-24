@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.20.2
   sqflite: ^2.3.0
   path: ^1.9.0
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:
