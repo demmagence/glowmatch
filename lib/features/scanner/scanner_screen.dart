@@ -98,6 +98,11 @@ class _ScannerScreenState extends State<ScannerScreen>
       );
 
       await _cameraController!.initialize();
+      try {
+        await _cameraController!.setZoomLevel(1.0);
+      } catch (e) {
+        debugPrint('Camera zoom setting error: $e');
+      }
       if (!mounted) return;
 
       setState(() => _isCameraInitialized = true);
