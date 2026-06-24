@@ -8,6 +8,8 @@ import '../../core/viewmodels/currency_viewmodel.dart';
 import 'widgets/allocation_card.dart';
 import 'widgets/calculator_card.dart';
 import 'widgets/spending_history_card.dart';
+import '../shelf/shelf_viewmodel.dart';
+import '../../core/viewmodels/auth_viewmodel.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -59,6 +61,8 @@ class _BudgetScreenState extends State<BudgetScreen> {
   Widget build(BuildContext context) {
     final budgetVm = Provider.of<BudgetViewModel>(context);
     final currencyVm = Provider.of<CurrencyViewModel>(context);
+    final shelfVm = Provider.of<ShelfViewModel>(context, listen: false);
+    final authVm = Provider.of<AuthViewModel>(context, listen: false);
     
     // Sync price controller if currency changes
     if (_previousCurrency != currencyVm.selectedCurrency) {
@@ -76,8 +80,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
       body: LoadingOverlay(
         isLoading: budgetVm.isLoading,
         message: 'Calculating budget...',
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: RefreshIndicator(
+          onRefresh: () => shelfVm.fetchShelf(authVm.userId),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -189,6 +196,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );
