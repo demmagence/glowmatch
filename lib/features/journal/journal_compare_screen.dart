@@ -61,7 +61,6 @@ class JournalCompareScreen extends StatelessWidget {
         title: Text(
           'COMPARE GLOW',
           style: TextStyle(
-            fontFamily: 'Outfit',
             fontWeight: FontWeight.w900,
             fontSize: 20,
             color: textColor,

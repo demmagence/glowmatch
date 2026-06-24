@@ -84,7 +84,7 @@ No business logic or direct API calls exist in widget files.
 | Gemini API | Ingredient safety analysis | `gemini-3.1-flash-lite` |
 | Open-Meteo | Weather data (no API key required) | REST API via `http: ^1.2.1` |
 | fl_chart | Charts (line chart, bar chart) | `fl_chart: ^0.66.0` |
-| Google Fonts | Typography (Outfit font family) | `google_fonts: ^8.1.0` |
+| Google Fonts | Typography (Poppins font family) | `google_fonts: ^8.1.0` |
 | Geolocator | Device location for weather | `geolocator: ^11.0.0` |
 | image_picker | Camera and gallery image selection | `image_picker: ^1.1.2` |
 

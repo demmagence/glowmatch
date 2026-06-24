@@ -206,7 +206,7 @@ flutter test test/features/budget/budget_viewmodel_test.dart
 
 - Lint rules are defined in `analysis_options.yaml` using `flutter_lints`.
 - Run `flutter analyze` before committing. Zero warnings and zero errors are required.
-- Use `Outfit` (via `google_fonts`) as the primary font family. Do not introduce additional fonts without approval.
+- Use `Poppins` (via `google_fonts`) as the primary font family. Do not introduce additional fonts without approval.
 - Follow the neobrutalist design language: bold borders (2-4px), offset shadows, high-contrast colors. Refer to `NeobrutalistCard` in `lib/core/widgets/` as the reference implementation.
 - Use the `SkincareCategory` enum from `lib/core/constants.dart` for all category references. Do not use raw strings for categories.
 - Use constants from `AppConstants` for table names, bucket names, and default values. Do not hardcode these strings.

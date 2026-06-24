@@ -32,7 +32,6 @@ class JournalDetailScreen extends StatelessWidget {
         title: const Text(
           'LOG ENTRY',
           style: TextStyle(
-            fontFamily: 'Outfit',
             fontWeight: FontWeight.w900,
             fontSize: 20,
             color: Colors.black,

@@ -33,7 +33,6 @@ class LoadingOverlay extends StatelessWidget {
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Outfit',
                       ),
                     ),
                   ],
