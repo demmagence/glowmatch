@@ -521,7 +521,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String?>(
-                                value: themeVm.locale?.languageCode,
+                                initialValue: themeVm.locale?.languageCode,
                                 dropdownColor: cardBg,
                                 style: TextStyle(
                                   color: isDark ? Colors.white : Colors.black,
