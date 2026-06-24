@@ -6,6 +6,8 @@ import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'scanner_viewmodel.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:math' show min;
 
 enum CameraState {
   loading,
@@ -31,6 +33,9 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   CameraState _cameraState = CameraState.loading;
   String? _cameraErrorMessage;
+  File? _pickedImage;
+  List<TextBlock> _uploadedImageBlocks = [];
+  Size _uploadedImageSize = Size.zero;
 
   // ponytail: auto device orientation → correct ML Kit rotation
   DeviceOrientation _deviceOrientation = DeviceOrientation.portraitUp;
@@ -195,6 +200,93 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  Future<Size> _getImageSize(File file) async {
+    final bytes = await file.readAsBytes();
+    final image = await decodeImageFromList(bytes);
+    return Size(image.width.toDouble(), image.height.toDouble());
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final vm = Provider.of<ScannerViewModel>(context, listen: false);
+    final ImagePicker picker = ImagePicker();
+    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+
+    final File imageFile = File(file.path);
+    final Size size = await _getImageSize(imageFile);
+
+    // Stop live camera stream while displaying static image
+    if (_isStreaming) {
+      await _cameraController?.stopImageStream().catchError((_) {});
+      setState(() {
+        _isStreaming = false;
+      });
+    }
+
+    setState(() {
+      _pickedImage = imageFile;
+      _uploadedImageSize = size;
+      _uploadedImageBlocks = [];
+    });
+
+    final blocks = await vm.detectBlocksInImage(file.path);
+    if (mounted) {
+      setState(() {
+        _uploadedImageBlocks = blocks;
+      });
+    }
+  }
+
+  void _clearPickedImage() {
+    setState(() {
+      _pickedImage = null;
+      _uploadedImageSize = Size.zero;
+      _uploadedImageBlocks = [];
+    });
+    // Restart live camera stream if camera is initialized
+    if (_cameraState == CameraState.initialized && !_isStreaming) {
+      _startImageStream();
+    }
+  }
+
+  void _handleStaticImageTap(
+    Offset tapPos,
+    Size containerSize,
+    Size imgSize,
+    ScannerViewModel vm,
+  ) {
+    if (vm.isProcessing || _uploadedImageBlocks.isEmpty || imgSize == Size.zero) return;
+
+    double scale = min(
+      containerSize.width / imgSize.width,
+      containerSize.height / imgSize.height,
+    );
+    double displayW = imgSize.width * scale;
+    double displayH = imgSize.height * scale;
+    double offsetX = (containerSize.width - displayW) / 2;
+    double offsetY = (containerSize.height - displayH) / 2;
+
+    for (final block in _uploadedImageBlocks) {
+      final scaledRect = Rect.fromLTRB(
+        offsetX + block.boundingBox.left * scale,
+        offsetY + block.boundingBox.top * scale,
+        offsetX + block.boundingBox.right * scale,
+        offsetY + block.boundingBox.bottom * scale,
+      );
+
+      if (scaledRect.contains(tapPos)) {
+        vm.analyzeTextBlock(block.text).then((_) {
+          if (!mounted) return;
+          final result = vm.analysisResult;
+          if (result != null) {
+            _showResultSheet(context, result, vm);
+          }
+        });
+        break;
+      }
+    }
+  }
+
   void _handleTap(Offset tapPos, ScannerViewModel vm, Size screenSize) {
     if (vm.isProcessing || vm.detectedBlocks.isEmpty) return;
 
@@ -254,32 +346,64 @@ class _ScannerScreenState extends State<ScannerScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Camera or simulator ───────────────────────────────────
-          _cameraState == CameraState.initialized && _cameraController != null
+          // ── Camera or simulator or static picked image ───────────────────────────
+          _pickedImage != null
               ? LayoutBuilder(
                   builder: (context, constraints) {
-                    final camRatio =
-                        _cameraController!.value.aspectRatio; // w/h
-                    final screenRatio =
-                        constraints.maxWidth / constraints.maxHeight;
-                    // ponytail: cover-fit — scale to fill, never downscale
-                    final scale = (camRatio < screenRatio
-                            ? screenRatio / camRatio
-                            : camRatio / screenRatio)
-                        .clamp(1.0, double.infinity);
-                    return Transform.scale(
-                      scale: scale,
-                      child: AspectRatio(
-                        aspectRatio: camRatio,
-                        child: CameraPreview(_cameraController!),
+                    return GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTapDown: (d) => _handleStaticImageTap(
+                        d.localPosition,
+                        Size(constraints.maxWidth, constraints.maxHeight),
+                        _uploadedImageSize,
+                        vm,
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Center(
+                            child: Image.file(
+                              _pickedImage!,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          CustomPaint(
+                            painter: _StaticImageOverlayPainter(
+                              blocks: _uploadedImageBlocks,
+                              imageSize: _uploadedImageSize,
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
+                        ],
                       ),
                     );
                   },
                 )
-              : _buildCameraStateView(context),
+              : (_cameraState == CameraState.initialized && _cameraController != null
+                  ? LayoutBuilder(
+                      builder: (context, constraints) {
+                        final camRatio =
+                            _cameraController!.value.aspectRatio; // w/h
+                        final screenRatio =
+                            constraints.maxWidth / constraints.maxHeight;
+                        // ponytail: cover-fit — scale to fill, never downscale
+                        final scale = (camRatio < screenRatio
+                                ? screenRatio / camRatio
+                                : camRatio / screenRatio)
+                            .clamp(1.0, double.infinity);
+                        return Transform.scale(
+                          scale: scale,
+                          child: AspectRatio(
+                            aspectRatio: camRatio,
+                            child: CameraPreview(_cameraController!),
+                          ),
+                        );
+                      },
+                    )
+                  : _buildCameraStateView(context)),
 
-          // ── Bounding box overlay + tap detector ───────────────────
-          if (_cameraState == CameraState.initialized)
+          // ── Bounding box overlay + tap detector for live camera ─────────
+          if (_pickedImage == null && _cameraState == CameraState.initialized)
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTapDown: (d) => _handleTap(d.localPosition, vm, screenSize),
@@ -330,8 +454,14 @@ class _ScannerScreenState extends State<ScannerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _circleBtn(
-                        icon: Icons.close,
-                        onTap: () => Navigator.pop(context),
+                        icon: _pickedImage != null ? Icons.arrow_back : Icons.close,
+                        onTap: () {
+                          if (_pickedImage != null) {
+                            _clearPickedImage();
+                          } else {
+                            Navigator.pop(context);
+                          }
+                        },
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -342,9 +472,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        child: const Text(
-                          'GLOWMATCH',
-                          style: TextStyle(
+                        child: Text(
+                          _pickedImage != null ? 'IMAGE SCANNER' : 'GLOWMATCH',
+                          style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
                             color: Colors.black,
@@ -354,11 +484,18 @@ class _ScannerScreenState extends State<ScannerScreen>
                       ),
                       Row(
                         children: [
+                          if (_pickedImage == null) ...[
+                            _circleBtn(
+                              icon: _isFlashOn
+                                  ? Icons.flashlight_on
+                                  : Icons.flashlight_off,
+                              onTap: _toggleFlash,
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           _circleBtn(
-                            icon: _isFlashOn
-                                ? Icons.flashlight_on
-                                : Icons.flashlight_off,
-                            onTap: _toggleFlash,
+                            icon: Icons.photo_library,
+                            onTap: _pickImageFromGallery,
                           ),
                           const SizedBox(width: 8),
                           _circleBtn(
@@ -377,21 +514,29 @@ class _ScannerScreenState extends State<ScannerScreen>
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     child: Container(
-                      key: ValueKey(vm.detectedBlocks.length),
+                      key: ValueKey(_pickedImage != null
+                          ? _uploadedImageBlocks.length
+                          : vm.detectedBlocks.length),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: vm.detectedBlocks.isNotEmpty
+                        color: (_pickedImage != null
+                                ? _uploadedImageBlocks.isNotEmpty
+                                : vm.detectedBlocks.isNotEmpty)
                             ? Colors.yellow.withValues(alpha: 0.92)
                             : Colors.white.withValues(alpha: 0.85),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        vm.detectedBlocks.isNotEmpty
-                            ? '${vm.detectedBlocks.length} blok teks terdeteksi — TAP untuk analisis'
-                            : 'Arahkan kamera ke daftar ingredients',
+                        _pickedImage != null
+                            ? (_uploadedImageBlocks.isNotEmpty
+                                ? '${_uploadedImageBlocks.length} blok teks terdeteksi — TAP untuk analisis'
+                                : 'Mendeteksi teks...')
+                            : (vm.detectedBlocks.isNotEmpty
+                                ? '${vm.detectedBlocks.length} blok teks terdeteksi — TAP untuk analisis'
+                                : 'Arahkan kamera ke daftar ingredients'),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -1175,5 +1320,51 @@ class _TextBlockOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_TextBlockOverlayPainter old) =>
+      blocks != old.blocks || imageSize != old.imageSize;
+}
+
+class _StaticImageOverlayPainter extends CustomPainter {
+  final List<TextBlock> blocks;
+  final Size imageSize;
+
+  const _StaticImageOverlayPainter({
+    required this.blocks,
+    required this.imageSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (blocks.isEmpty || imageSize == Size.zero) return;
+
+    double scale = min(size.width / imageSize.width, size.height / imageSize.height);
+    double displayW = imageSize.width * scale;
+    double displayH = imageSize.height * scale;
+    double offsetX = (size.width - displayW) / 2;
+    double offsetY = (size.height - displayH) / 2;
+
+    final fillPaint = Paint()
+      ..color = Colors.yellow.withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+
+    final boxPaint = Paint()
+      ..color = Colors.yellow.withValues(alpha: 0.75)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    for (final block in blocks) {
+      final rect = Rect.fromLTRB(
+        offsetX + block.boundingBox.left * scale,
+        offsetY + block.boundingBox.top * scale,
+        offsetX + block.boundingBox.right * scale,
+        offsetY + block.boundingBox.bottom * scale,
+      );
+      final rRect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+      canvas.drawRRect(rRect, fillPaint);
+      canvas.drawRRect(rRect, boxPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StaticImageOverlayPainter old) =>
       blocks != old.blocks || imageSize != old.imageSize;
 }

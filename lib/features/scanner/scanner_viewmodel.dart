@@ -86,9 +86,7 @@ class ScannerViewModel extends ChangeNotifier {
     'collagen',
   ];
 
-  final TextRecognizer _textRecognizer = TextRecognizer(
-    script: TextRecognitionScript.latin,
-  );
+  final TextRecognizer _textRecognizer;
 
   bool _isProcessing = false;
   bool get isProcessing => _isProcessing;
@@ -109,7 +107,8 @@ class ScannerViewModel extends ChangeNotifier {
   Size _imageSize = Size.zero;
   Size get imageSize => _imageSize;
 
-  ScannerViewModel() {
+  ScannerViewModel({TextRecognizer? textRecognizer})
+      : _textRecognizer = textRecognizer ?? TextRecognizer(script: TextRecognitionScript.latin) {
     loadScanHistory();
   }
 
@@ -133,6 +132,24 @@ class ScannerViewModel extends ChangeNotifier {
       debugPrint('processFrame error: $e');
     } finally {
       _isDetecting = false;
+    }
+  }
+
+  /// Detect text blocks in a static image from gallery.
+  Future<List<TextBlock>> detectBlocksInImage(String filePath) async {
+    _isProcessing = true;
+    _analysisResult = null;
+    notifyListeners();
+    try {
+      final inputImage = InputImage.fromFilePath(filePath);
+      final RecognizedText result = await _textRecognizer.processImage(inputImage);
+      return result.blocks;
+    } catch (e) {
+      debugPrint('detectBlocksInImage error: $e');
+      return [];
+    } finally {
+      _isProcessing = false;
+      notifyListeners();
     }
   }
 
