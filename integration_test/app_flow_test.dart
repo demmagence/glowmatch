@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/main.dart' as app;
+import 'staging_config.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -11,7 +12,15 @@ void main() {
   setUpAll(() async {
     final svc = SupabaseService();
     svc.resetForTesting();
-    await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
+    final config = StagingConfig.tryLoad();
+    if (config != null && config.isConfigured) {
+      await svc.initialize(url: config.url, anonKey: config.anonKey);
+    } else {
+      await svc.initialize(
+        url: 'https://staging.placeholder.supabase.co',
+        anonKey: 'placeholder-anon-key-local-test',
+      );
+    }
   });
 
   group('GlowMatch App Integration Tests', () {

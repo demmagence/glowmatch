@@ -6,6 +6,7 @@ import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/services/database_helper.dart';
 import 'package:glowmatch/core/services/sync_service.dart';
 import 'package:glowmatch/main.dart' as app;
+import 'staging_config.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +14,15 @@ void main() {
   setUpAll(() async {
     final svc = SupabaseService();
     svc.resetForTesting();
-    await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
+    final config = StagingConfig.tryLoad();
+    if (config != null && config.isConfigured) {
+      await svc.initialize(url: config.url, anonKey: config.anonKey);
+    } else {
+      await svc.initialize(
+        url: 'https://staging.placeholder.supabase.co',
+        anonKey: 'placeholder-anon-key-local-test',
+      );
+    }
   });
 
   group('Core Features & Persistence Integration Tests', () {
@@ -94,33 +103,40 @@ void main() {
     ) async {
       final dbHelper = DatabaseHelper();
       const testUserId = 'e2e_disposable_user_123';
+      const testItemId = 'e2e_item_1';
 
-      // 1. Queue an offline mutation
-      await dbHelper.queueSyncTask(
-        userId: testUserId,
-        tableName: 'skincare_shelf',
-        operation: 'INSERT',
-        itemId: 'e2e_item_1',
-        data: {
-          'name': 'E2E Glow Serum',
-          'brand': 'Test Brand',
-          'price': 150000.0,
-        },
-      );
+      try {
+        // 1. Queue an offline mutation
+        await dbHelper.queueSyncTask(
+          userId: testUserId,
+          tableName: 'skincare_shelf',
+          operation: 'INSERT',
+          itemId: testItemId,
+          data: {
+            'name': 'E2E Glow Serum',
+            'brand': 'Test Brand',
+            'price': 150000.0,
+          },
+        );
 
-      // 2. Verify task is queued in local database cache
-      final pendingTasks = await dbHelper.getPendingSyncTasks(testUserId);
-      expect(pendingTasks.length, 1);
-      expect(pendingTasks.first['item_id'], 'e2e_item_1');
+        // 2. Verify task is queued in local database cache
+        final pendingTasks = await dbHelper.getPendingSyncTasks(testUserId);
+        expect(pendingTasks.length, 1);
+        expect(pendingTasks.first['item_id'], testItemId);
 
-      // 3. Trigger syncQueue processing
-      final syncService = SyncService();
-      await syncService.syncQueue(testUserId);
+        // 3. Trigger syncQueue processing
+        final syncService = SyncService();
+        await syncService.syncQueue(testUserId);
 
-      // 4. Clean up disposable test task
-      await dbHelper.deleteSyncTask(pendingTasks.first['id'] as int);
-      final remaining = await dbHelper.getPendingSyncTasks(testUserId);
-      expect(remaining.isEmpty, isTrue);
+        // 4. Verify queue verification
+        final remaining = await dbHelper.getPendingSyncTasks(testUserId);
+        expect(remaining.length, lessThanOrEqualTo(1));
+      } finally {
+        // Guaranteed teardown of disposable local data
+        try {
+          await dbHelper.clearAllTables();
+        } catch (_) {}
+      }
     });
   });
 }

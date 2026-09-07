@@ -6,6 +6,7 @@ import 'package:glowmatch/features/auth/sign_in_screen.dart';
 import 'package:glowmatch/features/auth/sign_up_screen.dart';
 import 'package:glowmatch/features/onboarding/onboarding_screen.dart';
 import 'package:glowmatch/main.dart' as app;
+import 'staging_config.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +14,15 @@ void main() {
   setUpAll(() async {
     final svc = SupabaseService();
     svc.resetForTesting();
-    await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
+    final config = StagingConfig.tryLoad();
+    if (config != null && config.isConfigured) {
+      await svc.initialize(url: config.url, anonKey: config.anonKey);
+    } else {
+      await svc.initialize(
+        url: 'https://staging.placeholder.supabase.co',
+        anonKey: 'placeholder-anon-key-local-test',
+      );
+    }
   });
 
   group('Authentication Lifecycle Integration Tests', () {

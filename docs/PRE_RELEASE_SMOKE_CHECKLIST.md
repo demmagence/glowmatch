@@ -72,6 +72,16 @@ A comprehensive, repeatable verification checklist to execute on staging builds 
   - Switch Language to Indonesian (ID): Interface strings update immediately.
   - Switch Language to English (EN): Interface strings restore to English.
 
+### 10. Automated Staging Backend Verification
+- [ ] Staging secrets present in environment or `secrets.json` (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, optional `SUPABASE_TEST_EMAIL` / `SUPABASE_TEST_PASSWORD`).
+- [ ] Execute authenticated staging integration test:
+  ```bash
+  flutter test integration_test/staging_authenticated_flow_test.dart -d <device_id> --dart-define-from-file=secrets.json
+  ```
+- [ ] Verify test suite asserts real Supabase auth session, remote CRUD operations on `skincare_shelf`, and offline queue synchronization.
+- [ ] Verify disposable test data (`e2e_*`) is completely torn down upon test completion.
+- [ ] Verify failure assertion: Executing without secrets fails fast with descriptive `TestFailure` message.
+
 ---
 
 ## Release Evidence Sign-off
@@ -80,6 +90,7 @@ A comprehensive, repeatable verification checklist to execute on staging builds 
 | :--- | :--- |
 | **Release Candidate Version** | `v0.1.0+1` (or target release tag) |
 | **Tested Platforms** | Android (Model / OS: __________) / iOS (Model / OS: __________) |
+| **Backend Integration Suite** | [ ] PASS (Authenticated Staging Flow + Teardown) / [ ] SKIPPED |
 | **Test Date** | ____________________ |
 | **Lead QA / Tester Name** | ____________________ |
 | **Result** | [ ] PASS / [ ] FAIL / [ ] BLOCKER IDENTIFIED |
