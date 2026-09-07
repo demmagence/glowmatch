@@ -13,7 +13,6 @@ class DatabaseHelper {
 
   bool _useInMemoryFallback = false;
   bool get useInMemoryFallback => _useInMemoryFallback;
-  set useInMemoryFallback(bool value) => _useInMemoryFallback = value;
   final List<Map<String, dynamic>> _fallbackShelf = [];
   final List<Map<String, dynamic>> _fallbackJournal = [];
   final List<Map<String, dynamic>> _fallbackSyncQueue = [];
