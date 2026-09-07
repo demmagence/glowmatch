@@ -458,9 +458,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(
                       vertical: 8.0,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         SwitchListTile(
                           title: Text(
                             'Dark Mode',
@@ -693,7 +695,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 32),
 
                   // ── Notifications section ──────────────────────────────
                   Text(
@@ -721,9 +724,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       vertical: 8.0,
                       horizontal: 16.0,
                     ),
-                    child: Column(
-                      children: [
-                        // Master toggle
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Column(
+                        children: [
+                          // Master toggle
                         SwitchListTile(
                           title: Text(
                             'Routine Reminders',
@@ -750,6 +755,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             profileVm.toggleNotifications(value);
                           },
                         ),
+
+                        if (profileVm.notificationError != null) ...[
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade100,
+                              border: Border.all(
+                                color: Colors.amber.shade800,
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.amber.shade900,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    profileVm.notificationError!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.amber.shade900,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
 
                         if (profileVm.isNotificationsEnabled) ...[
                           Divider(
@@ -953,7 +996,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 32),
 
                   SizedBox(
                     width: double.infinity,

@@ -23,23 +23,60 @@ class _FakeAuthViewModel extends AuthViewModel {
 class MockNotificationService extends NotificationService {
   MockNotificationService() : super.internal();
 
+  int amScheduleCalls = 0;
+  int pmScheduleCalls = 0;
+  int amCancelCalls = 0;
+  int pmCancelCalls = 0;
+  int cancelAllCalls = 0;
+  int reconcileCalls = 0;
+
+  ScheduleResult amScheduleResult = const ScheduleResult.success();
+  ScheduleResult pmScheduleResult = const ScheduleResult.success();
+
   @override
-  Future<void> init() async {}
+  Future<void> init({String? ianaTimeZone}) async {}
 
   @override
   Future<bool> requestPermission() async => true;
 
   @override
-  Future<void> scheduleAmReminder(TimeOfDay time) async {}
+  Future<ScheduleResult> scheduleAmReminder(TimeOfDay time) async {
+    amScheduleCalls++;
+    return amScheduleResult;
+  }
 
   @override
-  Future<void> schedulePmReminder(TimeOfDay time) async {}
+  Future<ScheduleResult> schedulePmReminder(TimeOfDay time) async {
+    pmScheduleCalls++;
+    return pmScheduleResult;
+  }
 
   @override
-  Future<void> cancelAmReminder() async {}
+  Future<void> cancelAmReminder() async {
+    amCancelCalls++;
+  }
 
   @override
-  Future<void> cancelPmReminder() async {}
+  Future<void> cancelPmReminder() async {
+    pmCancelCalls++;
+  }
+
+  @override
+  Future<void> cancelAllReminders() async {
+    cancelAllCalls++;
+  }
+
+  @override
+  Future<void> reconcileReminders({
+    required bool isNotificationsEnabled,
+    required bool amEnabled,
+    required TimeOfDay amTime,
+    required bool pmEnabled,
+    required TimeOfDay pmTime,
+    SharedPreferences? prefs,
+  }) async {
+    reconcileCalls++;
+  }
 }
 
 void main() {
@@ -47,12 +84,17 @@ void main() {
 
   late ProfileViewModel vm;
   late _FakeAuthViewModel fakeAuth;
+  late MockNotificationService mockNotif;
 
   setUp(() {
-    NotificationService.instance = MockNotificationService();
+    mockNotif = MockNotificationService();
+    NotificationService.instance = mockNotif;
     SharedPreferences.setMockInitialValues({});
     fakeAuth = _FakeAuthViewModel();
-    vm = ProfileViewModel(authViewModel: fakeAuth);
+    vm = ProfileViewModel(
+      authViewModel: fakeAuth,
+      notificationService: mockNotif,
+    );
   });
 
   group('ProfileViewModel – linkEmail', () {
@@ -95,10 +137,11 @@ void main() {
       expect(vm.isNotificationsEnabled, isTrue);
     });
 
-    test('toggles notifications off and persists', () async {
+    test('toggles notifications off and persists, cancels all reminders', () async {
       await vm.toggleNotifications(false);
 
       expect(vm.isNotificationsEnabled, isFalse);
+      expect(mockNotif.cancelAllCalls, equals(1));
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('notifications_enabled'), isFalse);
@@ -116,11 +159,100 @@ void main() {
 
     test('loads persisted notification setting on construction', () async {
       SharedPreferences.setMockInitialValues({'notifications_enabled': false});
-      final vm2 = ProfileViewModel(authViewModel: fakeAuth);
+      final vm2 = ProfileViewModel(
+        authViewModel: fakeAuth,
+        notificationService: mockNotif,
+      );
 
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(vm2.isNotificationsEnabled, isFalse);
+      expect(mockNotif.reconcileCalls, greaterThan(0));
+    });
+  });
+
+  group('ProfileViewModel – Routine Reminders scheduling & error handling', () {
+    test('toggling AM reminder on calls scheduleAmReminder', () async {
+      await vm.toggleAmReminder(true);
+
+      expect(vm.amEnabled, isTrue);
+      expect(mockNotif.amScheduleCalls, equals(1));
+      expect(vm.notificationError, isNull);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('am_reminder_enabled'), isTrue);
+    });
+
+    test('toggling AM reminder off calls cancelAmReminder', () async {
+      await vm.toggleAmReminder(true);
+      await vm.toggleAmReminder(false);
+
+      expect(vm.amEnabled, isFalse);
+      expect(mockNotif.amCancelCalls, equals(1));
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('am_reminder_enabled'), isFalse);
+    });
+
+    test('setting AM time updates time and reschedules if enabled', () async {
+      await vm.toggleAmReminder(true);
+      mockNotif.amScheduleCalls = 0;
+
+      await vm.setAmTime(const TimeOfDay(hour: 8, minute: 30));
+
+      expect(vm.amTime, equals(const TimeOfDay(hour: 8, minute: 30)));
+      expect(mockNotif.amScheduleCalls, equals(1));
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('am_hour'), equals(8));
+      expect(prefs.getInt('am_minute'), equals(30));
+    });
+
+    test('setting PM time updates time and reschedules if enabled', () async {
+      await vm.togglePmReminder(true);
+      mockNotif.pmScheduleCalls = 0;
+
+      await vm.setPmTime(const TimeOfDay(hour: 21, minute: 15));
+
+      expect(vm.pmTime, equals(const TimeOfDay(hour: 21, minute: 15)));
+      expect(mockNotif.pmScheduleCalls, equals(1));
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getInt('pm_hour'), equals(21));
+      expect(prefs.getInt('pm_minute'), equals(15));
+    });
+
+    test('surfaces notification error when scheduling is denied', () async {
+      mockNotif.amScheduleResult = const ScheduleResult.denied(
+        status: NotificationPermissionStatus.notificationDenied,
+        message: 'Notification permission is required.',
+      );
+
+      await vm.toggleAmReminder(true);
+
+      expect(vm.notificationError, equals('Notification permission is required.'));
+    });
+
+    test('surfaces exact alarm error when exact alarms are denied', () async {
+      mockNotif.pmScheduleResult = const ScheduleResult.denied(
+        status: NotificationPermissionStatus.exactAlarmDenied,
+        message: 'Exact alarm permission is required.',
+      );
+
+      await vm.togglePmReminder(true);
+
+      expect(vm.notificationError, equals('Exact alarm permission is required.'));
+    });
+
+    test('clearNotificationError resets error message', () async {
+      mockNotif.amScheduleResult = const ScheduleResult.denied(
+        message: 'Error occurred',
+      );
+      await vm.toggleAmReminder(true);
+      expect(vm.notificationError, isNotNull);
+
+      vm.clearNotificationError();
+      expect(vm.notificationError, isNull);
     });
   });
 }
