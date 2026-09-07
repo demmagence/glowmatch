@@ -42,9 +42,15 @@ class DatabaseHelper {
           'remaining_uses': 45,
           'indicator_color': '0xFFE040FB',
           'image_url': 'https://placehold.co/150/pink/white?text=GlowBomb',
-          'ingredients': jsonEncode(['Hyaluronic Acid', 'Niacinamide', 'Watermelon Extract']),
+          'ingredients': jsonEncode([
+            'Hyaluronic Acid',
+            'Niacinamide',
+            'Watermelon Extract',
+          ]),
           'product_size': '50 ml',
-          'created_at': DateTime.now().subtract(const Duration(days: 14)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 14))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
         {
@@ -56,10 +62,17 @@ class DatabaseHelper {
           'estimated_uses': 50,
           'remaining_uses': 32,
           'indicator_color': '0xFF64DD17',
-          'image_url': 'https://placehold.co/150/lightgreen/white?text=Skin1004',
-          'ingredients': jsonEncode(['Centella Asiatica', 'Zinc Oxide', 'Titanium Dioxide']),
+          'image_url':
+              'https://placehold.co/150/lightgreen/white?text=Skin1004',
+          'ingredients': jsonEncode([
+            'Centella Asiatica',
+            'Zinc Oxide',
+            'Titanium Dioxide',
+          ]),
           'product_size': '50 ml',
-          'created_at': DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 30))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
         {
@@ -74,7 +87,9 @@ class DatabaseHelper {
           'image_url': 'https://placehold.co/150/purple/white?text=Panthenol',
           'ingredients': jsonEncode(['Panthenol', 'Squalane', 'Ceramide NP']),
           'product_size': '80 ml',
-          'created_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 5))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
       ]);
@@ -87,7 +102,8 @@ class DatabaseHelper {
           'logged_date': 'Today',
           'skin_score': 84,
           'photo_path': 'assets/skin_today.png',
-          'notes': 'Skin barrier feels extremely strong today. Redness has completely gone.',
+          'notes':
+              'Skin barrier feels extremely strong today. Redness has completely gone.',
           'created_at': DateTime.now().toIso8601String(),
           'user_id': 'test-user',
         },
@@ -96,8 +112,11 @@ class DatabaseHelper {
           'logged_date': 'Oct 24',
           'skin_score': 80,
           'photo_path': 'assets/skin_oct24.png',
-          'notes': 'Slight irritation around the cheeks. Increased moisturizer.',
-          'created_at': DateTime.now().subtract(const Duration(days: 4)).toIso8601String(),
+          'notes':
+              'Slight irritation around the cheeks. Increased moisturizer.',
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 4))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
         {
@@ -106,7 +125,9 @@ class DatabaseHelper {
           'skin_score': 76,
           'photo_path': 'assets/skin_oct17.png',
           'notes': 'Started new routine steps.',
-          'created_at': DateTime.now().subtract(const Duration(days: 9)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 9))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
       ]);
@@ -124,7 +145,9 @@ class DatabaseHelper {
       _database = await _initDatabase();
       return _database!;
     } catch (e) {
-      debugPrint('DatabaseHelper: database initialization failed, enabling in-memory fallback: $e');
+      debugPrint(
+        'DatabaseHelper: database initialization failed, enabling in-memory fallback: $e',
+      );
       _useInMemoryFallback = true;
       _seedFallbackData();
       rethrow;
@@ -137,8 +160,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       pathString,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -181,9 +205,32 @@ class DatabaseHelper {
         item_id TEXT NOT NULL,
         serialized_data TEXT,
         created_at TEXT NOT NULL,
-        user_id TEXT NOT NULL
+        user_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        retry_count INTEGER NOT NULL DEFAULT 0,
+        last_attempt_at TEXT,
+        next_attempt_at TEXT,
+        last_error TEXT
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        "ALTER TABLE sync_queue ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'",
+      );
+      await db.execute(
+        'ALTER TABLE sync_queue ADD COLUMN retry_count INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute(
+        'ALTER TABLE sync_queue ADD COLUMN last_attempt_at TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE sync_queue ADD COLUMN next_attempt_at TEXT',
+      );
+      await db.execute('ALTER TABLE sync_queue ADD COLUMN last_error TEXT');
+    }
   }
 
   // --- Shelf Items CRUD ---
@@ -196,7 +243,9 @@ class DatabaseHelper {
         List<String> ingredients = [];
         if (map['ingredients'] != null && map['ingredients'] is String) {
           try {
-            ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+            ingredients = List<String>.from(
+              jsonDecode(map['ingredients'] as String) as Iterable,
+            );
           } catch (_) {}
         }
         return ShelfItem(
@@ -211,7 +260,9 @@ class DatabaseHelper {
           imageUrl: map['image_url'] as String?,
           ingredients: ingredients,
           productSize: map['product_size'] as String?,
-          createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+          createdAt: map['created_at'] != null
+              ? DateTime.tryParse(map['created_at'] as String)
+              : null,
         );
       });
     }
@@ -228,7 +279,9 @@ class DatabaseHelper {
       List<String> ingredients = [];
       if (map['ingredients'] != null && map['ingredients'] is String) {
         try {
-          ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+          ingredients = List<String>.from(
+            jsonDecode(map['ingredients'] as String) as Iterable,
+          );
         } catch (_) {
           ingredients = [];
         }
@@ -284,32 +337,30 @@ class DatabaseHelper {
       );
 
       for (final item in items) {
-        await txn.insert(
-          'shelf_items',
-          {
-            'id': item.id,
-            'name': item.name,
-            'brand': item.brand,
-            'category': item.category,
-            'price': item.price,
-            'estimated_uses': item.estimatedUses,
-            'remaining_uses': item.remainingUses,
-            'indicator_color': item.indicatorColor,
-            'image_url': item.imageUrl,
-            'ingredients': jsonEncode(item.ingredients),
-            'product_size': item.productSize,
-            'created_at': item.createdAt?.toIso8601String(),
-            'user_id': userId,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert('shelf_items', {
+          'id': item.id,
+          'name': item.name,
+          'brand': item.brand,
+          'category': item.category,
+          'price': item.price,
+          'estimated_uses': item.estimatedUses,
+          'remaining_uses': item.remainingUses,
+          'indicator_color': item.indicatorColor,
+          'image_url': item.imageUrl,
+          'ingredients': jsonEncode(item.ingredients),
+          'product_size': item.productSize,
+          'created_at': item.createdAt?.toIso8601String(),
+          'user_id': userId,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
   Future<void> insertShelfItem(String userId, ShelfItem item) async {
     if (_useInMemoryFallback) {
-      _fallbackShelf.removeWhere((x) => x['id'] == item.id && x['user_id'] == userId);
+      _fallbackShelf.removeWhere(
+        (x) => x['id'] == item.id && x['user_id'] == userId,
+      );
       _fallbackShelf.add({
         'id': item.id,
         'name': item.name,
@@ -329,30 +380,28 @@ class DatabaseHelper {
     }
 
     final db = await database;
-    await db.insert(
-      'shelf_items',
-      {
-        'id': item.id,
-        'name': item.name,
-        'brand': item.brand,
-        'category': item.category,
-        'price': item.price,
-        'estimated_uses': item.estimatedUses,
-        'remaining_uses': item.remainingUses,
-        'indicator_color': item.indicatorColor,
-        'image_url': item.imageUrl,
-        'ingredients': jsonEncode(item.ingredients),
-        'product_size': item.productSize,
-        'created_at': item.createdAt?.toIso8601String(),
-        'user_id': userId,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('shelf_items', {
+      'id': item.id,
+      'name': item.name,
+      'brand': item.brand,
+      'category': item.category,
+      'price': item.price,
+      'estimated_uses': item.estimatedUses,
+      'remaining_uses': item.remainingUses,
+      'indicator_color': item.indicatorColor,
+      'image_url': item.imageUrl,
+      'ingredients': jsonEncode(item.ingredients),
+      'product_size': item.productSize,
+      'created_at': item.createdAt?.toIso8601String(),
+      'user_id': userId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateShelfItem(String userId, ShelfItem item) async {
     if (_useInMemoryFallback) {
-      final idx = _fallbackShelf.indexWhere((x) => x['id'] == item.id && x['user_id'] == userId);
+      final idx = _fallbackShelf.indexWhere(
+        (x) => x['id'] == item.id && x['user_id'] == userId,
+      );
       if (idx != -1) {
         _fallbackShelf[idx] = {
           'id': item.id,
@@ -396,7 +445,9 @@ class DatabaseHelper {
 
   Future<void> deleteShelfItem(String userId, String itemId) async {
     if (_useInMemoryFallback) {
-      _fallbackShelf.removeWhere((x) => x['id'] == itemId && x['user_id'] == userId);
+      _fallbackShelf.removeWhere(
+        (x) => x['id'] == itemId && x['user_id'] == userId,
+      );
       return;
     }
 
@@ -416,7 +467,9 @@ class DatabaseHelper {
       List<String> ingredients = [];
       if (map['ingredients'] != null && map['ingredients'] is String) {
         try {
-          ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+          ingredients = List<String>.from(
+            jsonDecode(map['ingredients'] as String) as Iterable,
+          );
         } catch (_) {}
       }
       return ShelfItem(
@@ -431,7 +484,9 @@ class DatabaseHelper {
         imageUrl: map['image_url'] as String?,
         ingredients: ingredients,
         productSize: map['product_size'] as String?,
-        createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+        createdAt: map['created_at'] != null
+            ? DateTime.tryParse(map['created_at'] as String)
+            : null,
       );
     }
 
@@ -446,7 +501,9 @@ class DatabaseHelper {
     List<String> ingredients = [];
     if (map['ingredients'] != null && map['ingredients'] is String) {
       try {
-        ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+        ingredients = List<String>.from(
+          jsonDecode(map['ingredients'] as String) as Iterable,
+        );
       } catch (_) {
         ingredients = [];
       }
@@ -507,8 +564,13 @@ class DatabaseHelper {
 
   Future<List<JournalEntry>> getJournalEntries(String userId) async {
     if (_useInMemoryFallback) {
-      final list = _fallbackJournal.where((x) => x['user_id'] == userId).toList();
-      list.sort((a, b) => (b['created_at'] as String).compareTo(a['created_at'] as String));
+      final list = _fallbackJournal
+          .where((x) => x['user_id'] == userId)
+          .toList();
+      list.sort(
+        (a, b) =>
+            (b['created_at'] as String).compareTo(a['created_at'] as String),
+      );
       return List.generate(list.length, (i) {
         final map = list[i];
         return JournalEntry(
@@ -517,7 +579,9 @@ class DatabaseHelper {
           skinScore: map['skin_score'] as int? ?? 80,
           photoPath: map['photo_path'] as String?,
           notes: map['notes'] as String?,
-          createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+          createdAt: map['created_at'] != null
+              ? DateTime.tryParse(map['created_at'] as String)
+              : null,
         );
       });
     }
@@ -545,7 +609,10 @@ class DatabaseHelper {
     });
   }
 
-  Future<void> saveJournalEntries(String userId, List<JournalEntry> entries) async {
+  Future<void> saveJournalEntries(
+    String userId,
+    List<JournalEntry> entries,
+  ) async {
     if (_useInMemoryFallback) {
       _fallbackJournal.removeWhere((x) => x['user_id'] == userId);
       for (final entry in entries) {
@@ -571,26 +638,24 @@ class DatabaseHelper {
       );
 
       for (final entry in entries) {
-        await txn.insert(
-          'journal_entries',
-          {
-            'id': entry.id,
-            'logged_date': entry.loggedDate,
-            'skin_score': entry.skinScore,
-            'photo_path': entry.photoPath,
-            'notes': entry.notes,
-            'created_at': entry.createdAt?.toIso8601String(),
-            'user_id': userId,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert('journal_entries', {
+          'id': entry.id,
+          'logged_date': entry.loggedDate,
+          'skin_score': entry.skinScore,
+          'photo_path': entry.photoPath,
+          'notes': entry.notes,
+          'created_at': entry.createdAt?.toIso8601String(),
+          'user_id': userId,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
   Future<void> insertJournalEntry(String userId, JournalEntry entry) async {
     if (_useInMemoryFallback) {
-      _fallbackJournal.removeWhere((x) => x['id'] == entry.id && x['user_id'] == userId);
+      _fallbackJournal.removeWhere(
+        (x) => x['id'] == entry.id && x['user_id'] == userId,
+      );
       _fallbackJournal.add({
         'id': entry.id,
         'logged_date': entry.loggedDate,
@@ -604,24 +669,22 @@ class DatabaseHelper {
     }
 
     final db = await database;
-    await db.insert(
-      'journal_entries',
-      {
-        'id': entry.id,
-        'logged_date': entry.loggedDate,
-        'skin_score': entry.skinScore,
-        'photo_path': entry.photoPath,
-        'notes': entry.notes,
-        'created_at': entry.createdAt?.toIso8601String(),
-        'user_id': userId,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('journal_entries', {
+      'id': entry.id,
+      'logged_date': entry.loggedDate,
+      'skin_score': entry.skinScore,
+      'photo_path': entry.photoPath,
+      'notes': entry.notes,
+      'created_at': entry.createdAt?.toIso8601String(),
+      'user_id': userId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deleteJournalEntry(String userId, String entryId) async {
     if (_useInMemoryFallback) {
-      _fallbackJournal.removeWhere((x) => x['id'] == entryId && x['user_id'] == userId);
+      _fallbackJournal.removeWhere(
+        (x) => x['id'] == entryId && x['user_id'] == userId,
+      );
       return;
     }
 
@@ -646,7 +709,12 @@ class DatabaseHelper {
 
     if (_useInMemoryFallback) {
       if (operation == 'DELETE') {
-        _fallbackSyncQueue.removeWhere((x) => x['item_id'] == itemId && x['user_id'] == userId && x['table_name'] == tableName);
+        _fallbackSyncQueue.removeWhere(
+          (x) =>
+              x['item_id'] == itemId &&
+              x['user_id'] == userId &&
+              x['table_name'] == tableName,
+        );
         _syncQueueIdCounter++;
         _fallbackSyncQueue.add({
           'id': _syncQueueIdCounter,
@@ -656,18 +724,24 @@ class DatabaseHelper {
           'serialized_data': null,
           'created_at': DateTime.now().toIso8601String(),
           'user_id': userId,
+          ..._newSyncMetadata,
+          ..._newSyncMetadata,
         });
         return;
       }
 
       if (operation == 'UPDATE') {
-        final idx = _fallbackSyncQueue.indexWhere((x) =>
-            x['item_id'] == itemId &&
-            x['user_id'] == userId &&
-            x['table_name'] == tableName &&
-            x['operation'] == 'INSERT');
+        final idx = _fallbackSyncQueue.indexWhere(
+          (x) =>
+              x['item_id'] == itemId &&
+              x['user_id'] == userId &&
+              x['table_name'] == tableName &&
+              x['operation'] == 'INSERT',
+        );
         if (idx != -1) {
-          _fallbackSyncQueue[idx]['serialized_data'] = data != null ? jsonEncode(data) : null;
+          _fallbackSyncQueue[idx]['serialized_data'] = data != null
+              ? jsonEncode(data)
+              : null;
           return;
         }
       }
@@ -681,6 +755,7 @@ class DatabaseHelper {
         'serialized_data': data != null ? jsonEncode(data) : null,
         'created_at': DateTime.now().toIso8601String(),
         'user_id': userId,
+        ..._newSyncMetadata,
       });
       return;
     }
@@ -693,24 +768,22 @@ class DatabaseHelper {
         where: 'item_id = ? AND user_id = ? AND table_name = ?',
         whereArgs: [itemId, userId, tableName],
       );
-      await db.insert(
-        'sync_queue',
-        {
-          'table_name': tableName,
-          'operation': 'DELETE',
-          'item_id': itemId,
-          'serialized_data': null,
-          'created_at': DateTime.now().toIso8601String(),
-          'user_id': userId,
-        },
-      );
+      await db.insert('sync_queue', {
+        'table_name': tableName,
+        'operation': 'DELETE',
+        'item_id': itemId,
+        'serialized_data': null,
+        'created_at': DateTime.now().toIso8601String(),
+        'user_id': userId,
+      });
       return;
     }
 
     if (operation == 'UPDATE') {
       final List<Map<String, dynamic>> pendingInserts = await db.query(
         'sync_queue',
-        where: 'item_id = ? AND user_id = ? AND table_name = ? AND operation = ?',
+        where:
+            'item_id = ? AND user_id = ? AND table_name = ? AND operation = ?',
         whereArgs: [itemId, userId, tableName, 'INSERT'],
       );
       if (pendingInserts.isNotEmpty) {
@@ -724,29 +797,125 @@ class DatabaseHelper {
       }
     }
 
-    await db.insert(
-      'sync_queue',
-      {
-        'table_name': tableName,
-        'operation': operation,
-        'item_id': itemId,
-        'serialized_data': data != null ? jsonEncode(data) : null,
-        'created_at': DateTime.now().toIso8601String(),
-        'user_id': userId,
-      },
-    );
+    await db.insert('sync_queue', {
+      'table_name': tableName,
+      'operation': operation,
+      'item_id': itemId,
+      'serialized_data': data != null ? jsonEncode(data) : null,
+      'created_at': DateTime.now().toIso8601String(),
+      'user_id': userId,
+      ..._newSyncMetadata,
+    });
   }
+
+  Map<String, dynamic> get _newSyncMetadata => {
+    'status': 'pending',
+    'retry_count': 0,
+    'last_attempt_at': null,
+    'next_attempt_at': null,
+    'last_error': null,
+  };
 
   Future<List<Map<String, dynamic>>> getPendingSyncTasks(String userId) async {
     if (_useInMemoryFallback) {
-      return _fallbackSyncQueue.where((x) => x['user_id'] == userId).toList();
+      final now = DateTime.now();
+      return _fallbackSyncQueue.where((x) {
+        if (x['user_id'] != userId || x['status'] == 'failed') return false;
+        final next = DateTime.tryParse(x['next_attempt_at'] as String? ?? '');
+        return next == null || !next.isAfter(now);
+      }).toList();
     }
 
     final db = await database;
     return await db.query(
       'sync_queue',
-      where: 'user_id = ?',
+      where:
+          "user_id = ? AND status != 'failed' AND "
+          '(next_attempt_at IS NULL OR next_attempt_at <= ?)',
       orderBy: 'id ASC',
+      whereArgs: [userId, DateTime.now().toIso8601String()],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getSyncTasks(String userId) async {
+    if (_useInMemoryFallback) {
+      return _fallbackSyncQueue.where((x) => x['user_id'] == userId).toList();
+    }
+    final db = await database;
+    return db.query(
+      'sync_queue',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'id ASC',
+    );
+  }
+
+  Future<void> markSyncTaskFailed(
+    int taskId, {
+    required String error,
+    required bool retryable,
+  }) async {
+    final task = _useInMemoryFallback
+        ? _fallbackSyncQueue.cast<Map<String, dynamic>?>().firstWhere(
+            (x) => x?['id'] == taskId,
+            orElse: () => null,
+          )
+        : null;
+    final retryCount = _useInMemoryFallback
+        ? ((task?['retry_count'] as int?) ?? 0) + 1
+        : await _nextRetryCount(taskId);
+    final now = DateTime.now();
+    final delaySeconds = retryable
+        ? (1 << (retryCount.clamp(1, 8) - 1)) * 30
+        : 0;
+    final values = <String, dynamic>{
+      'status': retryable ? 'pending' : 'failed',
+      'retry_count': retryCount,
+      'last_attempt_at': now.toIso8601String(),
+      'next_attempt_at': retryable
+          ? now.add(Duration(seconds: delaySeconds)).toIso8601String()
+          : null,
+      'last_error': error,
+    };
+    if (_useInMemoryFallback) {
+      task?.addAll(values);
+      return;
+    }
+    final db = await database;
+    await db.update('sync_queue', values, where: 'id = ?', whereArgs: [taskId]);
+  }
+
+  Future<int> _nextRetryCount(int taskId) async {
+    final db = await database;
+    final rows = await db.query(
+      'sync_queue',
+      columns: ['retry_count'],
+      where: 'id = ?',
+      whereArgs: [taskId],
+      limit: 1,
+    );
+    return ((rows.isEmpty ? null : rows.first['retry_count'] as int?) ?? 0) + 1;
+  }
+
+  Future<void> retryFailedSyncTasks(String userId) async {
+    const values = <String, dynamic>{
+      'status': 'pending',
+      'next_attempt_at': null,
+      'last_error': null,
+    };
+    if (_useInMemoryFallback) {
+      for (final task in _fallbackSyncQueue) {
+        if (task['user_id'] == userId && task['status'] == 'failed') {
+          task.addAll(values);
+        }
+      }
+      return;
+    }
+    final db = await database;
+    await db.update(
+      'sync_queue',
+      values,
+      where: "user_id = ? AND status = 'failed'",
       whereArgs: [userId],
     );
   }
@@ -758,11 +927,7 @@ class DatabaseHelper {
     }
 
     final db = await database;
-    await db.delete(
-      'sync_queue',
-      where: 'id = ?',
-      whereArgs: [taskId],
-    );
+    await db.delete('sync_queue', where: 'id = ?', whereArgs: [taskId]);
   }
 
   // --- Migration: Guest User -> Registered User ---
@@ -772,10 +937,14 @@ class DatabaseHelper {
 
     if (_useInMemoryFallback) {
       // 1. Fetch all local guest shelf items
-      final guestShelfMap = _fallbackShelf.where((x) => x['user_id'] == oldUserId).toList();
+      final guestShelfMap = _fallbackShelf
+          .where((x) => x['user_id'] == oldUserId)
+          .toList();
 
       // 2. Fetch all local guest journal entries
-      final guestJournalMap = _fallbackJournal.where((x) => x['user_id'] == oldUserId).toList();
+      final guestJournalMap = _fallbackJournal
+          .where((x) => x['user_id'] == oldUserId)
+          .toList();
 
       // 3. Update user_id
       for (final item in _fallbackShelf) {
@@ -864,17 +1033,14 @@ class DatabaseHelper {
         final Map<String, dynamic> data = Map.from(row);
         data['user_id'] = newUserId;
 
-        await txn.insert(
-          'sync_queue',
-          {
-            'table_name': 'skincare_shelf',
-            'operation': 'INSERT',
-            'item_id': itemId,
-            'serialized_data': jsonEncode(data),
-            'created_at': DateTime.now().toIso8601String(),
-            'user_id': newUserId,
-          },
-        );
+        await txn.insert('sync_queue', {
+          'table_name': 'skincare_shelf',
+          'operation': 'INSERT',
+          'item_id': itemId,
+          'serialized_data': jsonEncode(data),
+          'created_at': DateTime.now().toIso8601String(),
+          'user_id': newUserId,
+        });
       }
 
       for (final row in guestJournalMap) {
@@ -882,17 +1048,14 @@ class DatabaseHelper {
         final Map<String, dynamic> data = Map.from(row);
         data['user_id'] = newUserId;
 
-        await txn.insert(
-          'sync_queue',
-          {
-            'table_name': 'journal_entries',
-            'operation': 'INSERT',
-            'item_id': entryId,
-            'serialized_data': jsonEncode(data),
-            'created_at': DateTime.now().toIso8601String(),
-            'user_id': newUserId,
-          },
-        );
+        await txn.insert('sync_queue', {
+          'table_name': 'journal_entries',
+          'operation': 'INSERT',
+          'item_id': entryId,
+          'serialized_data': jsonEncode(data),
+          'created_at': DateTime.now().toIso8601String(),
+          'user_id': newUserId,
+        });
       }
 
       await txn.delete(
