@@ -8,6 +8,7 @@ import '../../core/models/models.dart';
 import '../shelf/shelf_viewmodel.dart';
 import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/error_state_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final routineVm = Provider.of<RoutineViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context);
+    final l10n = AppLocalizations.of(context)!;
     final weather = routineVm.weather;
     final shelfVm = Provider.of<ShelfViewModel>(context);
 
@@ -63,8 +65,8 @@ class HomeScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       routineVm.activeRoutine == 'AM'
-                          ? 'Morning Routine'
-                          : 'Evening Routine',
+                          ? l10n.morningRoutine
+                          : l10n.eveningRoutine,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -151,7 +153,7 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Steps',
+                    l10n.steps,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -173,7 +175,7 @@ class HomeScreen extends StatelessWidget {
                         vertical: 2.0,
                       ),
                       child: Text(
-                        '${routineVm.completedCount}/${routineVm.totalCount} Completed',
+                        l10n.stepsCompleted(routineVm.completedCount, routineVm.totalCount),
                         style: TextStyle(
                           fontSize: 12,
                           color: stepBadgeText,
@@ -187,10 +189,9 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               if (routineVm.currentSteps.isEmpty)
-                const ErrorStateWidget(
+                ErrorStateWidget(
                   icon: Icons.event_note,
-                  message:
-                      'No routine steps yet. Tap below to add your first step!',
+                  message: l10n.noRoutineSteps,
                 )
               else
                 ReorderableListView.builder(
@@ -243,7 +244,7 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                               title: Text(
-                                'Delete Step?',
+                                l10n.deleteStepTitle,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: isDarkDlg
@@ -252,7 +253,12 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                               content: Text(
-                                'Remove "${step.name.isEmpty ? 'Custom Step' : step.name}" from your ${routineVm.activeRoutine} routine?',
+                                l10n.deleteStepMessage(
+                                  step.name.isEmpty ? l10n.customStep : step.name,
+                                  routineVm.activeRoutine == 'AM'
+                                      ? l10n.morningRoutine
+                                      : l10n.eveningRoutine,
+                                ),
                                 style: TextStyle(
                                   color: isDarkDlg
                                       ? Colors.grey.shade300
@@ -264,7 +270,7 @@ class HomeScreen extends StatelessWidget {
                                   onPressed: () =>
                                       Navigator.pop(dialogCtx, false),
                                   child: Text(
-                                    'Cancel',
+                                    l10n.cancel,
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: isDarkDlg
@@ -284,9 +290,9 @@ class HomeScreen extends StatelessWidget {
                                   ),
                                   onPressed: () =>
                                       Navigator.pop(dialogCtx, true),
-                                  child: const Text(
-                                    'Delete',
-                                    style: TextStyle(
+                                  child: Text(
+                                    l10n.delete,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -361,8 +367,8 @@ class HomeScreen extends StatelessWidget {
                                 if (!canComplete) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: const Text(
-                                        'Please complete previous steps in order.',
+                                      content: Text(
+                                        l10n.completePreviousStepsOrder,
                                       ),
                                       backgroundColor: isDark
                                           ? Colors.grey.shade900
@@ -385,7 +391,7 @@ class HomeScreen extends StatelessWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        'Used 1 apply of $productName!',
+                                        l10n.usedOneApply(productName),
                                       ),
                                       backgroundColor: isDark
                                           ? Colors.grey.shade900
@@ -439,46 +445,46 @@ class HomeScreen extends StatelessWidget {
                                   if (!canComplete) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: const Text(
-                                          'Please complete previous steps in order.',
+                                        content: Text(
+                                          l10n.completePreviousStepsOrder,
                                         ),
                                         backgroundColor: isDark
                                             ? Colors.grey.shade900
                                             : Colors.black,
                                         duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                routineVm.toggleStep(step.id, shelfVm);
-
-                                if (step.shelfItemId != null &&
-                                    step.shelfItemId!.isNotEmpty) {
-                                  final productName =
-                                      linkedProduct != null &&
-                                          linkedProduct.name.isNotEmpty
-                                      ? linkedProduct.name
-                                      : step.name;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Used 1 apply of $productName!',
                                       ),
-                                      backgroundColor: isDark
-                                          ? Colors.grey.shade900
-                                          : Colors.black,
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
-                              },
+                                    );
+                                    return;
+                                  }
+
+                                  routineVm.toggleStep(step.id, shelfVm);
+
+                                  if (step.shelfItemId != null &&
+                                      step.shelfItemId!.isNotEmpty) {
+                                    final productName =
+                                        linkedProduct != null &&
+                                            linkedProduct.name.isNotEmpty
+                                        ? linkedProduct.name
+                                        : step.name;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          l10n.usedOneApply(productName),
+                                        ),
+                                        backgroundColor: isDark
+                                            ? Colors.grey.shade900
+                                            : Colors.black,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                },
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       step.name.isEmpty
-                                          ? 'Custom Step'
+                                          ? l10n.customStep
                                           : step.name,
                                       style: TextStyle(
                                         fontSize: 16,
@@ -542,7 +548,7 @@ class HomeScreen extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Step ${index + 1}',
+                                  l10n.stepNumber(index + 1),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isCompleted
@@ -603,7 +609,7 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 22),
                   child: Center(
                     child: Text(
-                      'Click to add',
+                      l10n.clickToAdd,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -656,15 +662,13 @@ class HomeScreen extends StatelessWidget {
                                 await routineVm.completeRoutine(authVm.userId);
                                 final newStreak =
                                     routineVm.streakData?.currentStreak ?? 0;
-                                String msg =
-                                    'Routine Completed! Consistency score updated.';
+                                String msg = l10n.routineCompletedToast;
                                 if (newStreak == 7) {
-                                  msg = '🎉 7 Day Milestone! Awesome dedication!';
+                                  msg = l10n.milestone7DaysToast;
                                 } else if (newStreak == 14) {
-                                  msg = '🎉 14 Day Milestone! You are unstoppable!';
+                                  msg = l10n.milestone14DaysToast;
                                 } else if (newStreak == 30) {
-                                  msg =
-                                      '🎉 30 Day Milestone! You are a skincare master!';
+                                  msg = l10n.milestone30DaysToast;
                                 }
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -682,8 +686,8 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             Text(
                               routineVm.completedToday
-                                  ? 'Completed for Today'
-                                  : 'Complete Routine',
+                                  ? l10n.completedForToday
+                                  : l10n.completeRoutine,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -747,6 +751,7 @@ class HomeScreen extends StatelessWidget {
     RoutineViewModel vm,
     ShelfViewModel shelfVm,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final titleController = TextEditingController();
     final descController = TextEditingController();
     String? selectedShelfItemId;
@@ -770,7 +775,7 @@ class HomeScreen extends StatelessWidget {
                 side: BorderSide(color: borderColor, width: 2),
               ),
               title: Text(
-                'Add Routine Step',
+                l10n.addRoutineStep,
                 style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
               ),
               content: SingleChildScrollView(
@@ -782,7 +787,7 @@ class HomeScreen extends StatelessWidget {
                       controller: titleController,
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
-                        labelText: 'Step Name (e.g., Toner)',
+                        labelText: l10n.stepNameLabel,
                         labelStyle: TextStyle(
                           color: isDark
                               ? Colors.grey.shade400
@@ -805,7 +810,7 @@ class HomeScreen extends StatelessWidget {
                       controller: descController,
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
-                        labelText: 'Instructions (e.g., Apply with pad)',
+                        labelText: l10n.instructionsLabel,
                         labelStyle: TextStyle(
                           color: isDark
                               ? Colors.grey.shade400
@@ -825,7 +830,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Link Shelf Product (Optional)',
+                      l10n.linkShelfProductOptional,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -851,7 +856,7 @@ class HomeScreen extends StatelessWidget {
                           dropdownColor: dialogBg,
                           style: TextStyle(color: textColor, fontSize: 14),
                           hint: Text(
-                            'Select product',
+                            l10n.selectProductHint,
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey.shade500
@@ -862,7 +867,7 @@ class HomeScreen extends StatelessWidget {
                             DropdownMenuItem<String?>(
                               value: null,
                               child: Text(
-                                'None',
+                                l10n.noneOption,
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.grey.shade400
@@ -894,7 +899,7 @@ class HomeScreen extends StatelessWidget {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Cancel',
+                    l10n.cancel,
                     style: TextStyle(
                       color: textColor,
                       fontWeight: FontWeight.bold,
@@ -921,9 +926,9 @@ class HomeScreen extends StatelessWidget {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n.add,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -941,6 +946,7 @@ class HomeScreen extends StatelessWidget {
     RoutineStep step,
     ShelfViewModel shelfVm,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final titleController = TextEditingController(text: step.name);
     final descController = TextEditingController(text: step.description ?? '');
     String? selectedShelfItemId = step.shelfItemId;
@@ -964,7 +970,7 @@ class HomeScreen extends StatelessWidget {
                 side: BorderSide(color: borderColor, width: 2),
               ),
               title: Text(
-                'Edit Routine Step',
+                l10n.editRoutineStep,
                 style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
               ),
               content: SingleChildScrollView(
@@ -976,7 +982,7 @@ class HomeScreen extends StatelessWidget {
                       controller: titleController,
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
-                        labelText: 'Step Name',
+                        labelText: l10n.stepNameSimpleLabel,
                         labelStyle: TextStyle(
                           color: isDark
                               ? Colors.grey.shade400
@@ -999,7 +1005,7 @@ class HomeScreen extends StatelessWidget {
                       controller: descController,
                       style: TextStyle(color: textColor),
                       decoration: InputDecoration(
-                        labelText: 'Instructions',
+                        labelText: l10n.instructionsSimpleLabel,
                         labelStyle: TextStyle(
                           color: isDark
                               ? Colors.grey.shade400
@@ -1019,7 +1025,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Link Shelf Product',
+                      l10n.linkShelfProduct,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -1045,7 +1051,7 @@ class HomeScreen extends StatelessWidget {
                           dropdownColor: dialogBg,
                           style: TextStyle(color: textColor, fontSize: 14),
                           hint: Text(
-                            'Select product',
+                            l10n.selectProductHint,
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey.shade500
@@ -1056,7 +1062,7 @@ class HomeScreen extends StatelessWidget {
                             DropdownMenuItem<String?>(
                               value: null,
                               child: Text(
-                                'None',
+                                l10n.noneOption,
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.grey.shade400
@@ -1093,9 +1099,9 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () {
                         _showDeleteConfirmDialog(context, userId, vm, step);
                       },
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(
+                        l10n.delete,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     Row(
@@ -1103,7 +1109,7 @@ class HomeScreen extends StatelessWidget {
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            'Cancel',
+                            l10n.cancel,
                             style: TextStyle(
                               color: textColor,
                               fontWeight: FontWeight.bold,
@@ -1130,9 +1136,9 @@ class HomeScreen extends StatelessWidget {
                               Navigator.pop(context);
                             }
                           },
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          child: Text(
+                            l10n.save,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -1153,6 +1159,7 @@ class HomeScreen extends StatelessWidget {
     RoutineViewModel vm,
     RoutineStep step,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -1168,18 +1175,18 @@ class HomeScreen extends StatelessWidget {
             side: BorderSide(color: borderColor, width: 2),
           ),
           title: Text(
-            'Delete Step?',
+            l10n.deleteStepTitle,
             style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
           ),
           content: Text(
-            'Are you sure you want to delete this step? Remaining steps will be renumbered.',
+            l10n.deleteStepWarning,
             style: TextStyle(color: textColor),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                l10n.cancel,
                 style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
               ),
             ),
@@ -1199,9 +1206,9 @@ class HomeScreen extends StatelessWidget {
 
                 Navigator.pop(context);
               },
-              child: const Text(
-                'Delete',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                l10n.delete,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -1211,6 +1218,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildStreakBadge(BuildContext context, int streak) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white : Colors.black;
     final shadowColor = isDark
@@ -1237,7 +1245,7 @@ class HomeScreen extends StatelessWidget {
           const Text('🔥', style: TextStyle(fontSize: 16)),
           const SizedBox(width: 4),
           Text(
-            '$streak Day Streak',
+            l10n.dayStreakBadge(streak),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w900,
@@ -1250,6 +1258,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildMotivationalBanner(BuildContext context, int streak) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white : Colors.black;
     final shadowColor = isDark
@@ -1261,21 +1270,20 @@ class HomeScreen extends StatelessWidget {
     Color messageColor = Colors.black;
 
     if (streak == 0) {
-      message =
-          'Start your routine today to begin your glowing skin streak! 🔥';
+      message = l10n.startRoutineMotivation;
       bgColor = isDark ? Colors.grey.shade900 : Colors.grey.shade100;
       messageColor = isDark ? Colors.white : Colors.black;
     } else if (streak >= 30) {
-      message = '👑 30+ Day Milestone! Skincare Master status unlocked!';
+      message = l10n.milestone30Motivation;
       bgColor = const Color(0xFFE040FB);
     } else if (streak >= 14) {
-      message = '🌟 14 Day Milestone! Your skin barrier is thanking you!';
+      message = l10n.milestone14Motivation;
       bgColor = const Color(0xFF64DD17);
     } else if (streak >= 7) {
-      message = '🏆 7 Day Milestone! You are building a solid skincare habit!';
+      message = l10n.milestone7Motivation;
       bgColor = const Color(0xFF29B6F6);
     } else {
-      message = '✨ Keep it up! Consistency is the key to glowing skin.';
+      message = l10n.keepItUpMotivation;
       bgColor = const Color(0xFFFF8A80);
     }
 

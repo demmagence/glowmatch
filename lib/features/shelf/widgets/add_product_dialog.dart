@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
+import '../../../l10n/app_localizations.dart';
 import '../shelf_viewmodel.dart';
 
 void showAddProductDialog(
@@ -36,6 +37,7 @@ void showAddProductDialog(
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setDialogState) {
+          final l10n = AppLocalizations.of(context)!;
           Future<void> pickImage(ImageSource source) async {
             try {
               final XFile? image = await picker.pickImage(
@@ -61,7 +63,7 @@ void showAddProductDialog(
               side: BorderSide(color: borderColor, width: 2),
             ),
             title: Text(
-              'Add Skincare Product',
+              l10n.addSkincareProduct,
               style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
             ),
             content: SingleChildScrollView(
@@ -103,7 +105,7 @@ void showAddProductDialog(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Product Image',
+                              l10n.productImage,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -131,9 +133,9 @@ void showAddProductDialog(
                                   onPressed: () =>
                                       pickImage(ImageSource.camera),
                                   icon: const Icon(Icons.camera_alt, size: 12),
-                                  label: const Text(
-                                    'Camera',
-                                    style: TextStyle(fontSize: 10),
+                                  label: Text(
+                                    l10n.camera,
+                                    style: const TextStyle(fontSize: 10),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -158,9 +160,9 @@ void showAddProductDialog(
                                     Icons.photo_library,
                                     size: 12,
                                   ),
-                                  label: const Text(
-                                    'Gallery',
-                                    style: TextStyle(fontSize: 10),
+                                  label: Text(
+                                    l10n.gallery,
+                                    style: const TextStyle(fontSize: 10),
                                   ),
                                 ),
                               ],
@@ -175,8 +177,8 @@ void showAddProductDialog(
                     controller: nameController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Product Name',
-                      hintText: 'e.g. Moisture Surge Intense',
+                      labelText: l10n.productName,
+                      hintText: l10n.productNameHint,
                       hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
@@ -199,8 +201,8 @@ void showAddProductDialog(
                     controller: brandController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Brand',
-                      hintText: 'e.g. Clinique',
+                      labelText: l10n.brand,
+                      hintText: l10n.brandHint,
                       hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
@@ -227,8 +229,8 @@ void showAddProductDialog(
                       fontWeight: FontWeight.w600,
                     ),
                     decoration: InputDecoration(
-                      labelText: 'Category',
-                      hintText: 'Select a category',
+                      labelText: l10n.category,
+                      hintText: l10n.selectCategoryHint,
                       hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
@@ -275,8 +277,8 @@ void showAddProductDialog(
                     controller: priceController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Price (${currencyVm.selectedCurrency})',
-                      hintText: 'e.g. 150000',
+                      labelText: l10n.priceWithCurrency(currencyVm.selectedCurrency),
+                      hintText: l10n.priceHint,
                       hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
@@ -302,8 +304,8 @@ void showAddProductDialog(
                     controller: sizeController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Product Size',
-                      hintText: 'e.g. 30ml, 50g',
+                      labelText: l10n.productSize,
+                      hintText: l10n.productSizeHint,
                       hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
@@ -326,8 +328,8 @@ void showAddProductDialog(
                     controller: ingredientsController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Ingredients',
-                      hintText: 'e.g. Niacinamide, Hyaluronic Acid, Ceramide',
+                      labelText: l10n.ingredients,
+                      hintText: l10n.ingredientsHint,
                       hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
                       labelStyle: TextStyle(
                         color: isDark
@@ -353,7 +355,7 @@ void showAddProductDialog(
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Cancel',
+                  l10n.cancel,
                   style: TextStyle(
                     color: textColor,
                     fontWeight: FontWeight.bold,
@@ -405,9 +407,9 @@ void showAddProductDialog(
                     Navigator.pop(context);
                   }
                 },
-                child: const Text(
-                  'Add Product',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  l10n.addProduct,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],

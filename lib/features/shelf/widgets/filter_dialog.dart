@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../shelf_viewmodel.dart';
 
 void showFilterDialog(BuildContext context, ShelfViewModel vm) {
+  final l10n = AppLocalizations.of(context)!;
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
   final borderColor = isDark ? Colors.white : Colors.black;
@@ -21,11 +23,12 @@ void showFilterDialog(BuildContext context, ShelfViewModel vm) {
           side: BorderSide(color: borderColor, width: 2),
         ),
         title: Text(
-          'Filter by Category',
+          l10n.filterByCategory,
           style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
         ),
         children: categories.map((category) {
           final isSelected = vm.selectedCategoryFilter == category;
+          final displayText = category == 'All' ? l10n.all : category;
           return SimpleDialogOption(
             onPressed: () {
               vm.setFilter(category);
@@ -34,7 +37,7 @@ void showFilterDialog(BuildContext context, ShelfViewModel vm) {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 6.0),
               child: Text(
-                category,
+                displayText,
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../../../core/models/models.dart';
 import '../journal_viewmodel.dart';
 import 'photo_card.dart';
@@ -59,26 +60,24 @@ class PhotoGridWidget extends StatelessWidget {
     return now;
   }
 
-  String _getWeekLabel(DateTime entryDate, DateTime now) {
+  String _getWeekLabel(DateTime entryDate, DateTime now, AppLocalizations l10n) {
     final entryDay = DateTime(entryDate.year, entryDate.month, entryDate.day);
     final today = DateTime(now.year, now.month, now.day);
     final diffDays = today.difference(entryDay).inDays;
 
-    if (diffDays < 0) {
-      return 'This Week';
-    }
     if (diffDays < 7) {
-      return 'This Week';
+      return l10n.thisWeek;
     } else if (diffDays < 14) {
-      return 'Last Week';
+      return l10n.lastWeek;
     } else {
       final weeks = diffDays ~/ 7;
-      return '$weeks Weeks Ago';
+      return l10n.weeksAgo(weeks);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final List<Widget> rows = [];
     final now = DateTime.now();
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -86,7 +85,7 @@ class PhotoGridWidget extends StatelessWidget {
     final sections = <String, List<JournalEntry>>{};
     for (final entry in entries) {
       final entryDate = _parseLoggedDate(entry.loggedDate);
-      final label = _getWeekLabel(entryDate, now).toUpperCase();
+      final label = _getWeekLabel(entryDate, now, l10n);
       sections.putIfAbsent(label, () => []);
       sections[label]!.add(entry);
     }

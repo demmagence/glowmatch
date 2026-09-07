@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
+import '../../../l10n/app_localizations.dart';
 import '../shelf_viewmodel.dart';
 import 'product_image.dart';
 import 'edit_product_dialog.dart';
@@ -36,23 +38,9 @@ Widget buildDetailMetric(BuildContext context, String label, String value) {
   );
 }
 
-String _formatDate(DateTime? date) {
+String _formatDate(DateTime? date, String? locale) {
   if (date == null) return 'N/A';
-  final months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  return DateFormat.yMMMMd(locale).format(date);
 }
 
 void showProductDetailsBottomSheet(
@@ -60,6 +48,8 @@ void showProductDetailsBottomSheet(
   ShelfItem item,
   ShelfViewModel shelfVm,
 ) {
+  final l10n = AppLocalizations.of(context)!;
+  final localeName = Localizations.localeOf(context).toString();
   final currencyVm = Provider.of<CurrencyViewModel>(context, listen: false);
   final colorHex = item.indicatorColor;
   final dotColor = Color(int.parse(colorHex));
@@ -173,17 +163,17 @@ void showProductDetailsBottomSheet(
                 children: [
                   buildDetailMetric(
                     context,
-                    'PRICE',
+                    l10n.productDetailPrice,
                     currencyVm.formatPrice(price),
                   ),
                   buildDetailMetric(
                     context,
-                    'USES REMAINING',
+                    l10n.productDetailUsesRemaining,
                     '$remainingUses / $estimatedUses',
                   ),
                   buildDetailMetric(
                     context,
-                    'COST PER USE',
+                    l10n.productDetailCostPerUse,
                     currencyVm.formatPrice(costPerApply),
                   ),
                 ],
@@ -194,13 +184,13 @@ void showProductDetailsBottomSheet(
               children: [
                 buildDetailMetric(
                   context,
-                  'PRODUCT SIZE',
+                  l10n.productDetailSize,
                   item.productSize ?? 'N/A',
                 ),
                 buildDetailMetric(
                   context,
-                  'DATE ADDED',
-                  _formatDate(item.createdAt),
+                  l10n.productDetailDateAdded,
+                  _formatDate(item.createdAt, localeName),
                 ),
                 Visibility(
                   visible: false,
@@ -209,16 +199,16 @@ void showProductDetailsBottomSheet(
                   maintainState: true,
                   child: buildDetailMetric(
                     context,
-                    'COST PER USE',
+                    l10n.productDetailCostPerUse,
                     currencyVm.formatPrice(0.0),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            const Text(
-              'INGREDIENTS',
-              style: TextStyle(
+            Text(
+              l10n.productDetailIngredients,
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
@@ -228,7 +218,7 @@ void showProductDetailsBottomSheet(
             const SizedBox(height: 12),
             ingredients.isEmpty
                 ? Text(
-                    'No ingredients listed.',
+                    l10n.noIngredientsListed,
                     style: TextStyle(color: subtextColor, fontSize: 13),
                   )
                 : Wrap(
@@ -275,9 +265,9 @@ void showProductDetailsBottomSheet(
                       Navigator.pop(context);
                       showEditProductDialog(context, item, shelfVm);
                     },
-                    child: const Text(
-                      'EDIT PRODUCT',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      l10n.editProductUpper,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -296,9 +286,9 @@ void showProductDetailsBottomSheet(
                       Navigator.pop(context);
                       showDeleteConfirmation(context, item, shelfVm);
                     },
-                    child: const Text(
-                      'DELETE PRODUCT',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      l10n.deleteProductUpper,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

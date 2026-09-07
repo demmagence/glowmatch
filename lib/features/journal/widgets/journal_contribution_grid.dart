@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../../../core/models/models.dart';
 
 class JournalContributionGrid extends StatefulWidget {
@@ -49,12 +51,8 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
     return firstDay.weekday % 7;
   }
 
-  String _formatMonthYear(DateTime date) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return '${months[date.month - 1]} ${date.year}';
+  String _formatMonthYear(DateTime date, String locale) {
+    return DateFormat.yMMMM(locale).format(date);
   }
 
   String _toDateKey(DateTime date) {
@@ -90,6 +88,8 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -109,12 +109,11 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
     final offset = _firstDayWeekdayOffset(_focusedMonth);
     final totalGridItems = offset + totalDays;
 
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
-    final weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    final firstDayOfWeek = DateTime(2023, 1, 1); // Sunday
+    final weekdayLabels = List.generate(7, (i) {
+      final d = firstDayOfWeek.add(Duration(days: i));
+      return DateFormat.E(locale).format(d).substring(0, 1).toUpperCase();
+    });
 
     return Container(
       width: double.infinity,
@@ -149,7 +148,7 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Glow Activity',
+                  l10n.glowActivity,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -167,7 +166,7 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _formatMonthYear(_focusedMonth),
+                      _formatMonthYear(_focusedMonth, locale),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -225,9 +224,9 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                 final cellColor = _getCellColor(count, isDark);
                 final cellTextColor = _getCellTextColor(count, isDark);
 
-                final countText = count == 0 ? 'no entries' : (count == 1 ? '1 entry' : '$count entries');
-                final formattedDate = '${months[cellDate.month - 1]} ${cellDate.day}, ${cellDate.year}';
-                final tooltipMessage = '$countText on $formattedDate';
+                final countText = count == 0 ? '0' : '$count';
+                final formattedDate = DateFormat.yMMMd(locale).format(cellDate);
+                final tooltipMessage = '$countText ($formattedDate)';
 
                 return Tooltip(
                   message: tooltipMessage,
@@ -256,7 +255,7 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Text('Less', style: TextStyle(fontSize: 8, color: Colors.grey)),
+                Text(l10n.less, style: const TextStyle(fontSize: 8, color: Colors.grey)),
                 const SizedBox(width: 4),
                 _buildLegendCell(_getCellColor(0, isDark)),
                 const SizedBox(width: 2),
@@ -268,7 +267,7 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                 const SizedBox(width: 2),
                 _buildLegendCell(_getCellColor(4, isDark)),
                 const SizedBox(width: 4),
-                const Text('More', style: TextStyle(fontSize: 8, color: Colors.grey)),
+                Text(l10n.more, style: const TextStyle(fontSize: 8, color: Colors.grey)),
               ],
             ),
           ],

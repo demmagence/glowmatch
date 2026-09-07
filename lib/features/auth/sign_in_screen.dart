@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../main_layout.dart';
 import 'sign_up_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -77,6 +78,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -122,7 +124,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Sign in to resume your skincare progress.',
+                    l10n.signInSubtitle,
                     style: TextStyle(
                       fontSize: 16,
                       color: textColor.withValues(alpha: 0.7),
@@ -185,7 +187,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Email Address',
+                          l10n.emailLabel,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -222,17 +224,17 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter your email';
+                              return l10n.emailValidationError;
                             }
                             if (!_isValidEmail(value.trim())) {
-                              return 'Please enter a valid email address';
+                              return l10n.emailValidationError;
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Password',
+                          l10n.passwordLabel,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -246,7 +248,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           obscureText: _obscurePassword,
                           style: TextStyle(color: textColor),
                           decoration: InputDecoration(
-                            hintText: 'Enter your password',
+                            hintText: l10n.passwordHint,
                             hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
                             filled: true,
                             fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
@@ -280,7 +282,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
+                              return l10n.passwordLengthError;
                             }
                             return null;
                           },
@@ -319,9 +321,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                       strokeWidth: 3,
                                     ),
                                   )
-                                : const Text(
-                                    'Sign In',
-                                    style: TextStyle(
+                                : Text(
+                                    l10n.signInButton,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -349,9 +351,9 @@ class _SignInScreenState extends State<SignInScreen> {
                             MaterialPageRoute(builder: (_) => const SignUpScreen()),
                           );
                         },
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.signUpButton,
+                          style: const TextStyle(
                             color: Colors.pinkAccent,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
@@ -364,7 +366,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   TextButton(
                     onPressed: _handleGuestLogin,
                     child: Text(
-                      'Continue as Guest',
+                      l10n.continueAsGuest,
                       style: TextStyle(
                         color: textColor,
                         fontWeight: FontWeight.bold,

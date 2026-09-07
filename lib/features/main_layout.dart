@@ -9,6 +9,7 @@ import '../core/viewmodels/auth_viewmodel.dart';
 import 'home/routine_viewmodel.dart';
 import 'shelf/shelf_viewmodel.dart';
 import 'journal/journal_viewmodel.dart';
+import '../l10n/app_localizations.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -45,6 +46,8 @@ class _MainLayoutState extends State<MainLayout> {
     final navBarBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final borderColor = isDark ? Colors.white12 : Colors.grey.shade200;
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: scaffoldBg,
       body: SafeArea(
@@ -76,11 +79,11 @@ class _MainLayoutState extends State<MainLayout> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.grid_view_rounded, 'Home', 0),
-              _buildNavItem(Icons.account_balance_wallet_outlined, 'Budget', 1),
+              _buildNavItem(Icons.grid_view_rounded, l10n.navHome, 0),
+              _buildNavItem(Icons.account_balance_wallet_outlined, l10n.navBudget, 1),
               _buildCenterScanButton(),
-              _buildNavItem(Icons.assignment_outlined, 'Journal', 3),
-              _buildNavItem(Icons.inventory_2_outlined, 'Shelf', 4),
+              _buildNavItem(Icons.assignment_outlined, l10n.navJournal, 3),
+              _buildNavItem(Icons.inventory_2_outlined, l10n.navShelf, 4),
             ],
           ),
         ),

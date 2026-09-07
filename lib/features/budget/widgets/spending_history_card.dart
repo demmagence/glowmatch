@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
@@ -18,6 +20,8 @@ class SpendingHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
     final currencyVm = Provider.of<CurrencyViewModel>(context);
@@ -26,13 +30,19 @@ class SpendingHistoryCard extends StatelessWidget {
         .map((val) => currencyVm.convertFromIDR(val))
         .toList();
 
+    final now = DateTime.now();
+    final monthLabels = List.generate(6, (i) {
+      final targetDate = DateTime(now.year, now.month - (5 - i), 1);
+      return DateFormat.MMM(locale).format(targetDate);
+    });
+
     return NeobrutalistCard(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SPENDING HISTORY (LAST 6 MONTHS)',
+            l10n.spendingHistory,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -56,8 +66,7 @@ class SpendingHistoryCard extends StatelessWidget {
                         ? Colors.grey.shade900
                         : Colors.black,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final label =
-                          budgetVm.spendingHistoryLabels[group.x.toInt()];
+                      final label = monthLabels[group.x.toInt()];
                       final valInIDR = currencyVm.convertToIDR(rod.toY);
                       return BarTooltipItem(
                         '$label\n${currencyVm.formatPrice(valInIDR)}',
@@ -121,12 +130,11 @@ class SpendingHistoryCard extends StatelessWidget {
                       reservedSize: 24,
                       getTitlesWidget: (value, meta) {
                         final idx = value.toInt();
-                        if (idx >= 0 &&
-                            idx < budgetVm.spendingHistoryLabels.length) {
+                        if (idx >= 0 && idx < monthLabels.length) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Text(
-                              budgetVm.spendingHistoryLabels[idx],
+                              monthLabels[idx],
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,

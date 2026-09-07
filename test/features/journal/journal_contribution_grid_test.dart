@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glowmatch/core/models/models.dart';
 import 'package:glowmatch/features/journal/widgets/journal_contribution_grid.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 
 void main() {
   test('JournalEntry model support for createdAt', () {
@@ -56,6 +57,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
         home: Scaffold(
           body: SingleChildScrollView(
             child: JournalContributionGrid(entries: entries),

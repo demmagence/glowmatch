@@ -10,6 +10,7 @@ import '../journal/journal_viewmodel.dart';
 import '../home/routine_viewmodel.dart';
 import '../onboarding/onboarding_screen.dart';
 import 'profile_viewmodel.dart';
+import '../../l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -45,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       create: (_) => ProfileViewModel(authViewModel: authVm),
       child: Consumer<ProfileViewModel>(
         builder: (context, profileVm, child) {
+          final l10n = AppLocalizations.of(context)!;
           final isDark = themeVm.isDarkMode;
           final borderColor = isDark ? Colors.white : Colors.black;
           final shadowColor = isDark
@@ -54,9 +56,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text(
-                'Profile & Settings',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              title: Text(
+                l10n.profileAndSettings,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -104,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          authVm.isAnonymous ? 'Guest User' : 'Secured User',
+                          authVm.isAnonymous ? l10n.guestUser : l10n.securedUser,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
@@ -149,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Guest Account (Data is temporary)',
+                                  l10n.guestAccountWarning,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -167,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   if (authVm.isAnonymous) ...[
                     Text(
-                      'Secure Your Account',
+                      l10n.secureYourAccount,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -194,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Link an email and password to avoid losing your skincare shelf and routines.',
+                              l10n.secureAccountDesc,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: isDark
@@ -207,7 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
-                                labelText: 'Email Address',
+                                labelText: l10n.emailLabel,
                                 filled: true,
                                 fillColor: isDark
                                     ? Colors.black38
@@ -239,7 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 if (value == null ||
                                     value.isEmpty ||
                                     !value.contains('@')) {
-                                  return 'Enter a valid email address';
+                                  return l10n.emailValidationError;
                                 }
                                 return null;
                               },
@@ -249,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               controller: _passwordController,
                               obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                labelText: 'Password',
+                                labelText: l10n.passwordLabel,
                                 filled: true,
                                 fillColor: isDark
                                     ? Colors.black38
@@ -294,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               validator: (value) {
                                 if (value == null || value.length < 6) {
-                                  return 'Password must be at least 6 characters';
+                                  return l10n.passwordLengthError;
                                 }
                                 return null;
                               },
@@ -304,7 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               controller: _confirmPasswordController,
                               obscureText: _obscureConfirmPassword,
                               decoration: InputDecoration(
-                                labelText: 'Confirm Password',
+                                labelText: l10n.confirmPasswordLabel,
                                 filled: true,
                                 fillColor: isDark
                                     ? Colors.black38
@@ -349,10 +351,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please confirm your password';
+                                  return l10n.confirmPasswordLabel;
                                 }
                                 if (value != _passwordController.text) {
-                                  return 'Passwords do not match';
+                                  return l10n.passwordsDoNotMatch;
                                 }
                                 return null;
                               },
@@ -400,9 +402,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             ScaffoldMessenger.of(
                                               context,
                                             ).showSnackBar(
-                                              const SnackBar(
+                                              SnackBar(
                                                 content: Text(
-                                                  'Account successfully secured!',
+                                                  l10n.accountSecuredSuccess,
                                                 ),
                                                 backgroundColor: Colors.green,
                                               ),
@@ -419,9 +421,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           strokeWidth: 2.0,
                                         ),
                                       )
-                                    : const Text(
-                                        'Link Email Account',
-                                        style: TextStyle(
+                                    : Text(
+                                        l10n.linkEmailAccount,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -435,7 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
 
                   Text(
-                    'App Settings',
+                    l10n.appSettings,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -463,14 +465,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         SwitchListTile(
                           title: Text(
-                            'Dark Mode',
+                            l10n.darkMode,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                           subtitle: Text(
-                            'Toggle app-wide dark theme',
+                            l10n.darkModeDesc,
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey.shade400
@@ -503,7 +505,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Language',
+                                l10n.language,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.white : Colors.black,
@@ -511,7 +513,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Choose your preferred language',
+                                l10n.languageDesc,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark
@@ -556,18 +558,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
-                                items: const [
+                                items: [
                                   DropdownMenuItem(
                                     value: null,
-                                    child: Text('System Default'),
+                                    child: Text(l10n.systemDefault),
                                   ),
                                   DropdownMenuItem(
                                     value: 'en',
-                                    child: Text('English'),
+                                    child: Text(l10n.english),
                                   ),
                                   DropdownMenuItem(
                                     value: 'id',
-                                    child: Text('Bahasa Indonesia'),
+                                    child: Text(l10n.indonesian),
                                   ),
                                 ],
                                 onChanged: (val) {
@@ -593,7 +595,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Preferred Currency',
+                                l10n.preferredCurrency,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.white : Colors.black,
@@ -601,7 +603,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Choose your display and budget currency',
+                                l10n.preferredCurrencyDesc,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark
@@ -697,7 +699,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // ── Notifications section ──────────────────────────────
                   Text(
-                    'Notifications',
+                    l10n.notifications,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -726,14 +728,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Master toggle
                         SwitchListTile(
                           title: Text(
-                            'Routine Reminders',
+                            l10n.routineReminders,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                           subtitle: Text(
-                            'Enable AM & PM routine notifications',
+                            l10n.routineRemindersDesc,
                             style: TextStyle(
                               color: isDark
                                   ? Colors.grey.shade400
@@ -769,7 +771,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: SwitchListTile(
                                     contentPadding: EdgeInsets.zero,
                                     title: Text(
-                                      '🌅  AM Reminder',
+                                      l10n.amReminder,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: isDark
@@ -778,7 +780,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                     subtitle: Text(
-                                      'Morning routine alert',
+                                      l10n.amReminderDesc,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: isDark
@@ -868,7 +870,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   child: SwitchListTile(
                                     contentPadding: EdgeInsets.zero,
                                     title: Text(
-                                      '🌙  PM Reminder',
+                                      l10n.pmReminder,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: isDark
@@ -877,7 +879,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                     subtitle: Text(
-                                      'Evening routine alert',
+                                      l10n.pmReminderDesc,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: isDark
@@ -970,14 +972,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         foregroundColor: Colors.red,
                       ),
                       onPressed: () => _showSignOutDialog(context, authVm),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.logout),
-                          SizedBox(width: 8),
+                          const Icon(Icons.logout),
+                          const SizedBox(width: 8),
                           Text(
-                            'Sign Out',
-                            style: TextStyle(
+                            l10n.signOut,
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -1014,6 +1016,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isAnonymous = authVm.isAnonymous;
     final themeVm = Provider.of<ThemeViewModel>(context, listen: false);
     final borderColor = themeVm.isDarkMode ? Colors.white : Colors.black;
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
@@ -1027,7 +1030,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? const Color(0xFF1E1E1E)
               : Colors.white,
           title: Text(
-            'Confirm Sign Out',
+            l10n.confirmSignOut,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: themeVm.isDarkMode ? Colors.white : Colors.black,
@@ -1035,8 +1038,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           content: Text(
             isAnonymous
-                ? 'Warning: You are currently using a Guest account. Signing out will permanently delete your skincare shelf and routines. Are you sure you want to sign out?'
-                : 'Are you sure you want to sign out of your account?',
+                ? l10n.confirmSignOutGuest
+                : l10n.confirmSignOutUser,
             style: TextStyle(
               color: themeVm.isDarkMode ? Colors.grey.shade300 : Colors.black87,
             ),
@@ -1045,7 +1048,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
-                'Cancel',
+                l10n.cancel,
                 style: TextStyle(
                   color: themeVm.isDarkMode ? Colors.white70 : Colors.black87,
                   fontWeight: FontWeight.bold,
@@ -1088,9 +1091,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   (route) => false,
                 );
               },
-              child: const Text(
-                'Sign Out',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                l10n.signOut,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],

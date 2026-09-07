@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show DeviceOrientation;
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import 'scanner_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:math' show min;
@@ -103,7 +104,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         debugPrint('No cameras available.');
         setState(() {
           _cameraState = CameraState.error;
-          _cameraErrorMessage = 'Kamera Tidak Tersedia';
+          _cameraErrorMessage = null;
         });
         return;
       }
@@ -140,7 +141,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           _cameraState = CameraState.permissionDenied;
         } else {
           _cameraState = CameraState.error;
-          _cameraErrorMessage = 'Kabel/kamera bermasalah atau tidak tersedia';
+          _cameraErrorMessage = null;
         }
       });
     }
@@ -333,6 +334,7 @@ class _ScannerScreenState extends State<ScannerScreen>
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<ScannerViewModel>(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -421,15 +423,15 @@ class _ScannerScreenState extends State<ScannerScreen>
           if (vm.isProcessing)
             Container(
               color: Colors.black54,
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: Colors.white),
-                    SizedBox(height: 16),
+                    const CircularProgressIndicator(color: Colors.white),
+                    const SizedBox(height: 16),
                     Text(
-                      'Analyzing ingredients...',
-                      style: TextStyle(
+                      l10n.analyzingIngredients,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -473,7 +475,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Text(
-                          _pickedImage != null ? 'IMAGE SCANNER' : 'GLOWMATCH',
+                          _pickedImage != null ? l10n.imageScanner : 'GLOWMATCH',
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
@@ -494,8 +496,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                             const SizedBox(width: 8),
                           ],
                           _circleBtn(
-                            icon: Icons.photo_library,
-                            onTap: _pickImageFromGallery,
+                              icon: Icons.photo_library,
+                              onTap: _pickImageFromGallery,
                           ),
                           const SizedBox(width: 8),
                           _circleBtn(
@@ -532,11 +534,11 @@ class _ScannerScreenState extends State<ScannerScreen>
                       child: Text(
                         _pickedImage != null
                             ? (_uploadedImageBlocks.isNotEmpty
-                                ? '${_uploadedImageBlocks.length} blok teks terdeteksi — TAP untuk analisis'
-                                : 'Mendeteksi teks...')
+                                ? l10n.textBlocksDetectedTap(_uploadedImageBlocks.length)
+                                : l10n.detectingText)
                             : (vm.detectedBlocks.isNotEmpty
-                                ? '${vm.detectedBlocks.length} blok teks terdeteksi — TAP untuk analisis'
-                                : 'Arahkan kamera ke daftar ingredients'),
+                                ? l10n.textBlocksDetectedTap(vm.detectedBlocks.length)
+                                : l10n.alignIngredientsInFrame),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -572,18 +574,19 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Widget _buildCameraStateView(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_cameraState == CameraState.loading) {
       return Container(
         color: Colors.black,
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: Colors.white),
-              SizedBox(height: 16),
+              const CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 16),
               Text(
-                'Menginisialisasi Kamera...',
-                style: TextStyle(
+                l10n.cameraInitializing,
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -619,9 +622,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                       size: 48,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Izin Kamera Ditolak',
-                      style: TextStyle(
+                    Text(
+                      l10n.cameraPermissionRequired,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -629,7 +632,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'GlowMatch memerlukan akses kamera untuk memindai bahan kosmetik secara langsung. Silakan berikan izin kamera di pengaturan perangkat Anda.',
+                      l10n.cameraPermissionDesc,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.grey.shade400,
@@ -654,9 +657,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                     ),
                   ),
                   onPressed: _initializeCamera,
-                  child: const Text(
-                    'COBA LAGI',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n.retry.toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -690,7 +693,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _cameraErrorMessage ?? 'Kamera Tidak Tersedia',
+                    _cameraErrorMessage ?? l10n.noCameraAvailable,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -699,7 +702,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'GlowMatch tidak dapat mendeteksi kamera fisik pada perangkat atau simulator ini.',
+                    l10n.noCameraDesc,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey.shade400,
@@ -724,9 +727,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ),
                 ),
                 onPressed: _initializeCamera,
-                child: const Text(
-                  'COBA LAGI',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  l10n.retry.toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -744,6 +747,7 @@ class _ScannerScreenState extends State<ScannerScreen>
     Color bgColor,
     Color borderColor,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Drawer(
       backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       child: Column(
@@ -763,7 +767,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Scan History',
+                      l10n.scanHistoryUpper,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -772,7 +776,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Past product scans',
+                      l10n.pastProductScans,
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark
@@ -788,30 +792,30 @@ class _ScannerScreenState extends State<ScannerScreen>
                       Icons.delete_sweep_outlined,
                       color: Colors.red,
                     ),
-                    tooltip: 'Clear history',
+                    tooltip: l10n.clearHistoryButton,
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
                           backgroundColor: bgColor,
                           title: Text(
-                            'Clear History?',
+                            l10n.clearAllScanHistoryTitle,
                             style: TextStyle(color: textColor),
                           ),
                           content: Text(
-                            'Hapus semua riwayat scan?',
+                            l10n.clearAllScanHistoryDesc,
                             style: TextStyle(color: textColor),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Batal'),
+                              child: Text(l10n.cancel),
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: const Text(
-                                'Hapus',
-                                style: TextStyle(color: Colors.red),
+                              child: Text(
+                                l10n.delete,
+                                style: const TextStyle(color: Colors.red),
                               ),
                             ),
                           ],
@@ -829,7 +833,7 @@ class _ScannerScreenState extends State<ScannerScreen>
             child: vm.scanHistory.isEmpty
                 ? Center(
                     child: Text(
-                      'Belum ada scan',
+                      l10n.noScanHistoryTitle,
                       style: TextStyle(
                         color: isDark
                             ? Colors.grey.shade600
@@ -857,7 +861,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                           ),
                         ),
                         subtitle: Text(
-                          'Score: $score/100 | ${item.safetyRating}',
+                          '${l10n.safetyScore(score)} | ${item.safetyRating}',
                           style: const TextStyle(fontSize: 12),
                         ),
                         trailing: Container(
@@ -896,6 +900,7 @@ class _ScannerScreenState extends State<ScannerScreen>
     ScanAnalysisResult result,
     ScannerViewModel vm,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black;
@@ -935,9 +940,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'SCAN ANALYSIS',
-                          style: TextStyle(
+                        Text(
+                          l10n.scanAnalysisUpper,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
@@ -953,26 +958,13 @@ class _ScannerScreenState extends State<ScannerScreen>
                             border: Border.all(color: scoreColor, width: 2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Score: ',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: textColor,
-                                ),
-                              ),
-                              Text(
-                                '$score/100',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: scoreColor,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            l10n.safetyScore(score),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: scoreColor,
+                            ),
                           ),
                         ),
                       ],
@@ -988,14 +980,14 @@ class _ScannerScreenState extends State<ScannerScreen>
                           border: Border.all(color: Colors.amber, width: 1.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.search_off, color: Colors.amber),
-                            SizedBox(width: 12),
+                            const Icon(Icons.search_off, color: Colors.amber),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Tidak ada ingredients ditemukan.\nCoba tap blok teks yang berisi daftar ingredients.',
-                                style: TextStyle(
+                                l10n.noIngredientsFoundMessage,
+                                style: const TextStyle(
                                   fontSize: 13,
                                   color: Colors.amber,
                                   height: 1.4,
@@ -1022,16 +1014,16 @@ class _ScannerScreenState extends State<ScannerScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.warning_amber_rounded,
                                   color: Colors.red,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
-                                  'INTERAKSI INGREDIENTS',
-                                  style: TextStyle(
+                                  l10n.ingredientInteractionsUpper,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                     color: Colors.red,
@@ -1064,9 +1056,9 @@ class _ScannerScreenState extends State<ScannerScreen>
 
                     // ── Detected ingredients chips ────────────────
                     if (result.detectedIngredients.isNotEmpty) ...[
-                      const Text(
-                        'Ingredients Terdeteksi:',
-                        style: TextStyle(
+                      Text(
+                        l10n.detectedIngredientsCount(result.detectedIngredients.length),
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold,
@@ -1121,9 +1113,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                       const SizedBox(height: 20),
 
                       // ── Per-ingredient detail cards ─────────────
-                      const Text(
-                        'Safety & Deskripsi Ingredient:',
-                        style: TextStyle(
+                      Text(
+                        l10n.safetyAndDescription,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold,
@@ -1134,7 +1126,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                         final level =
                             result.ingredientSafetyLevels[ing] ?? 'Safe';
                         final detail = result.ingredientDetails[ing] ??
-                            'Tidak ada detail tersedia.';
+                            l10n.noDetailAvailable;
                         final detailColor = level == 'Avoid'
                             ? Colors.red
                             : (level == 'Caution'
@@ -1162,7 +1154,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                               ),
                             ),
                             subtitle: Text(
-                              'Status: $level',
+                              l10n.statusLevel(level),
                               style: TextStyle(
                                 color: detailColor,
                                 fontSize: 12,
@@ -1194,9 +1186,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                       const SizedBox(height: 16),
 
                       // ── Skin suitability & recommendations ───────
-                      const Text(
-                        'Kesesuaian Kulit:',
-                        style: TextStyle(
+                      Text(
+                        l10n.skinSuitability,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold,
@@ -1212,9 +1204,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                       ),
                       const SizedBox(height: 16),
 
-                      const Text(
-                        'Rekomendasi:',
-                        style: TextStyle(
+                      Text(
+                        l10n.recommendations,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                           fontWeight: FontWeight.bold,
@@ -1254,9 +1246,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                           vm.clearScan();
                           Navigator.pop(context);
                         },
-                        child: const Text(
-                          'SCAN LAGI',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text(
+                          l10n.scanAgain,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

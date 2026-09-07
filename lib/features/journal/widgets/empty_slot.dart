@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../journal_viewmodel.dart';
 
 class EmptySlot extends StatelessWidget {
@@ -15,6 +16,7 @@ class EmptySlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => onShowPhotoSourceSheet(context, userId, vm),
@@ -38,7 +40,7 @@ class EmptySlot extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Add Photo',
+              l10n.addPhoto,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

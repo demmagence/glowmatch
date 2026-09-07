@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
@@ -56,6 +57,7 @@ class _JournalScreenState extends State<JournalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final journalVm = Provider.of<JournalViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -105,7 +107,7 @@ class _JournalScreenState extends State<JournalScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: LoadingOverlay(
         isLoading: journalVm.isUploading,
-        message: 'Uploading your glow...',
+        message: l10n.uploadingGlow,
         child: RefreshIndicator(
           onRefresh: () => journalVm.fetchJournal(authVm.userId),
           child: SingleChildScrollView(
@@ -137,7 +139,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   )
                 else ...[
                   Text(
-                    'Journal',
+                    l10n.journal,
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
@@ -147,7 +149,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Track your glow progress.',
+                    l10n.journalSubtitle,
                     style: TextStyle(
                       fontSize: 14,
                       color: subtextColor,
@@ -174,11 +176,11 @@ class _JournalScreenState extends State<JournalScreen> {
                             _selectedEntryIds.add(id);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'You can only select up to 2 entries for comparison.',
+                                  l10n.compareMaxLimitError,
                                 ),
-                                duration: Duration(milliseconds: 1500),
+                                duration: const Duration(milliseconds: 1500),
                               ),
                             );
                           }
@@ -201,7 +203,7 @@ class _JournalScreenState extends State<JournalScreen> {
               backgroundColor: isDark ? Colors.white : Colors.black,
               foregroundColor: isDark ? Colors.black : Colors.white,
               shape: const CircleBorder(),
-              tooltip: _isCompareMode ? 'Cancel Compare' : 'Compare Mode',
+              tooltip: _isCompareMode ? l10n.cancelCompareTooltip : l10n.compareModeTooltip,
               onPressed: () {
                 setState(() {
                   _isCompareMode = !_isCompareMode;
@@ -233,7 +235,7 @@ class _JournalScreenState extends State<JournalScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Selected: ${_selectedEntryIds.length}/2 entries',
+                    l10n.selectedComparisonCount(_selectedEntryIds.length),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -279,9 +281,9 @@ class _JournalScreenState extends State<JournalScreen> {
                             }
                           }
                         : null,
-                    child: const Text(
-                      'Compare',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: Text(
+                      l10n.compare,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

@@ -8,6 +8,8 @@ import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
 import 'package:glowmatch/core/models/models.dart';
 import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
 
+import 'package:glowmatch/l10n/app_localizations.dart';
+
 Widget _buildShelf(ShelfViewModel shelfVm) {
   return MultiProvider(
     providers: [
@@ -15,7 +17,12 @@ Widget _buildShelf(ShelfViewModel shelfVm) {
       ChangeNotifierProvider<ShelfViewModel>.value(value: shelfVm),
       ChangeNotifierProvider<CurrencyViewModel>(create: (_) => CurrencyViewModel()),
     ],
-    child: const MaterialApp(home: ShelfScreen()),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const ShelfScreen(),
+    ),
   );
 }
 
@@ -26,7 +33,13 @@ Widget _buildShelfDark(ShelfViewModel shelfVm) {
       ChangeNotifierProvider<ShelfViewModel>.value(value: shelfVm),
       ChangeNotifierProvider<CurrencyViewModel>(create: (_) => CurrencyViewModel()),
     ],
-    child: MaterialApp(theme: ThemeData.dark(), home: const ShelfScreen()),
+    child: MaterialApp(
+      theme: ThemeData.dark(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const ShelfScreen(),
+    ),
   );
 }
 
@@ -46,7 +59,7 @@ void main() {
       expect(find.text('FILTER'), findsOneWidget);
     });
 
-    testWidgets('add card with "tekan untuk tambah" text is present', (
+    testWidgets('add card with "tap to add" text is present', (
       tester,
     ) async {
       final vm = ShelfViewModel();
@@ -54,7 +67,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(
-        find.textContaining('tekan untuk tambah skincare baru'),
+        find.textContaining('tap to add new skincare'),
         findsOneWidget,
       );
     });
