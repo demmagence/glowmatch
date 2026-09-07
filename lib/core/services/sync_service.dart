@@ -126,9 +126,17 @@ class SyncService {
           .select()
           .eq('user_id', userId);
 
-      var remoteItems = (response as List)
-          .map((x) => ShelfItem.fromJson(x as Map<String, dynamic>))
-          .toList();
+      var remoteItems = await Future.wait(
+        (response as List).map((x) async {
+          final item = ShelfItem.fromJson(x as Map<String, dynamic>);
+          return item.copyWith(
+            imageUrl: await _refreshStorageUrl(
+              item.imageUrl,
+              AppConstants.bucketProductPhotos,
+            ),
+          );
+        }),
+      );
 
       remoteItems = await _mergePendingShelfChanges(userId, remoteItems);
 
@@ -154,9 +162,17 @@ class SyncService {
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
 
-      var remoteEntries = (response as List)
-          .map((x) => JournalEntry.fromJson(x as Map<String, dynamic>))
-          .toList();
+      var remoteEntries = await Future.wait(
+        (response as List).map((x) async {
+          final entry = JournalEntry.fromJson(x as Map<String, dynamic>);
+          return entry.copyWith(
+            photoPath: await _refreshStorageUrl(
+              entry.photoPath,
+              AppConstants.bucketJournalPhotos,
+            ),
+          );
+        }),
+      );
 
       remoteEntries = await _mergePendingJournalChanges(userId, remoteEntries);
 
@@ -226,5 +242,29 @@ class SyncService {
         str.contains('handshake') ||
         str.contains('timeout') ||
         str.contains('connection failed');
+  }
+
+  Future<String?> _refreshStorageUrl(String? value, String bucket) async {
+    if (value == null || value.isEmpty || !value.startsWith('http')) {
+      return value;
+    }
+
+    final uri = Uri.tryParse(value);
+    if (uri == null) return value;
+
+    final bucketIndex = uri.pathSegments.indexOf(bucket);
+    if (bucketIndex < 0 || bucketIndex + 1 >= uri.pathSegments.length) {
+      return value;
+    }
+
+    final objectPath = uri.pathSegments.sublist(bucketIndex + 1).join('/');
+    try {
+      return await Supabase.instance.client.storage
+          .from(bucket)
+          .createSignedUrl(objectPath, 60 * 60 * 24 * 7);
+    } catch (e) {
+      debugPrint('SyncService: unable to refresh signed storage URL: $e');
+      return value;
+    }
   }
 }
