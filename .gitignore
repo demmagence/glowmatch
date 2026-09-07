@@ -53,6 +53,17 @@ keys.json
 *.pem
 *.key
 
+# Release signing and certificates
+*.keystore
+*.jks
+**/android/key.properties
+key.properties
+local.properties
+*.mobileprovision
+*.p12
+*.cer
+ExportOptions.plist
+
 # Agent related
 .agents/
 .openspec/
