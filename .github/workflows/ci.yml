@@ -36,7 +36,9 @@ jobs:
         run: flutter pub get
 
       - name: Verify Code Formatting
-        run: dart format --output=none --set-exit-if-changed lib test integration_test
+        run: |
+          dart format lib test integration_test
+          git diff --exit-code
 
       - name: Verify Localization Generation
         run: |
