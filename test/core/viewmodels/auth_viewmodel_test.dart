@@ -89,9 +89,9 @@ void main() {
       () async {
         final authVm = AuthViewModel();
         await Future.delayed(const Duration(milliseconds: 50));
+        final result = await authVm.signUp('new@glowmatch.com', 'password123');
 
-        await authVm.signUp('new@glowmatch.com', 'password123');
-
+        expect(result, SignUpResult.signedIn);
         expect(authVm.currentUser, isNotNull);
         expect(authVm.currentUser!.email, equals('new@glowmatch.com'));
         expect(authVm.isGuest, isFalse);
@@ -99,6 +99,38 @@ void main() {
 
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getString('mock_user_email'), equals('new@glowmatch.com'));
+        expect(prefs.getBool('guest_data_migrated_to_mock-user-new'), isTrue);
+      },
+    );
+
+    test('signUp waits for confirmation when no session is created', () async {
+      final authVm = AuthViewModel(simulateEmailConfirmation: true);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final result = await authVm.signUp(
+        'confirm@glowmatch.com',
+        'password123',
+      );
+
+      expect(result, SignUpResult.emailConfirmationRequired);
+      expect(authVm.currentUser, isNull);
+      expect(authVm.pendingConfirmationEmail, 'confirm@glowmatch.com');
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('pending_guest_migration_id'), isNotNull);
+    });
+
+    test(
+      'password reset request and update complete in offline mode',
+      () async {
+        final authVm = AuthViewModel();
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        await authVm.requestPasswordReset('user@glowmatch.com');
+        await authVm.updatePassword('new-password-123');
+
+        expect(authVm.isLoading, isFalse);
+        expect(authVm.isPasswordRecovery, isFalse);
+        expect(authVm.errorMessage, isNull);
       },
     );
 

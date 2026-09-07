@@ -11,7 +11,9 @@ class DatabaseHelper {
 
   factory DatabaseHelper() => _mockInstance ?? _instance;
 
-  bool useInMemoryFallback = false;
+  bool _useInMemoryFallback = false;
+  bool get useInMemoryFallback => _useInMemoryFallback;
+  set useInMemoryFallback(bool value) => _useInMemoryFallback = value;
   final List<Map<String, dynamic>> _fallbackShelf = [];
   final List<Map<String, dynamic>> _fallbackJournal = [];
   final List<Map<String, dynamic>> _fallbackSyncQueue = [];
@@ -20,11 +22,11 @@ class DatabaseHelper {
   DatabaseHelper._internal() {
     try {
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        useInMemoryFallback = true;
+        _useInMemoryFallback = true;
         _seedFallbackData();
       }
     } catch (_) {
-      useInMemoryFallback = true;
+      _useInMemoryFallback = true;
       _seedFallbackData();
     }
   }
@@ -145,12 +147,12 @@ class DatabaseHelper {
       _database = await _initDatabase();
       return _database!;
     } catch (e) {
-      if (!useInMemoryFallback) {
+      if (!_useInMemoryFallback) {
         debugPrint(
           'DatabaseHelper: database initialization failed, enabling in-memory fallback: $e',
         );
       }
-      useInMemoryFallback = true;
+      _useInMemoryFallback = true;
       _seedFallbackData();
       rethrow;
     }
@@ -160,7 +162,12 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final pathString = join(dbPath, 'glowmatch_cache.db');
 
-    return await openDatabase(pathString, version: 1, onCreate: _onCreate);
+    return await openDatabase(
+      pathString,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -202,15 +209,38 @@ class DatabaseHelper {
         item_id TEXT NOT NULL,
         serialized_data TEXT,
         created_at TEXT NOT NULL,
-        user_id TEXT NOT NULL
+        user_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        retry_count INTEGER NOT NULL DEFAULT 0,
+        last_attempt_at TEXT,
+        next_attempt_at TEXT,
+        last_error TEXT
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        "ALTER TABLE sync_queue ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'",
+      );
+      await db.execute(
+        'ALTER TABLE sync_queue ADD COLUMN retry_count INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute(
+        'ALTER TABLE sync_queue ADD COLUMN last_attempt_at TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE sync_queue ADD COLUMN next_attempt_at TEXT',
+      );
+      await db.execute('ALTER TABLE sync_queue ADD COLUMN last_error TEXT');
+    }
   }
 
   // --- Shelf Items CRUD ---
 
   Future<List<ShelfItem>> getShelfItems(String userId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       final list = _fallbackShelf.where((x) => x['user_id'] == userId).toList();
       return List.generate(list.length, (i) {
         final map = list[i];
@@ -280,7 +310,7 @@ class DatabaseHelper {
   }
 
   Future<void> saveShelfItems(String userId, List<ShelfItem> items) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackShelf.removeWhere((x) => x['user_id'] == userId);
       for (final item in items) {
         _fallbackShelf.add({
@@ -331,7 +361,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertShelfItem(String userId, ShelfItem item) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackShelf.removeWhere(
         (x) => x['id'] == item.id && x['user_id'] == userId,
       );
@@ -372,7 +402,7 @@ class DatabaseHelper {
   }
 
   Future<void> updateShelfItem(String userId, ShelfItem item) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       final idx = _fallbackShelf.indexWhere(
         (x) => x['id'] == item.id && x['user_id'] == userId,
       );
@@ -418,7 +448,7 @@ class DatabaseHelper {
   }
 
   Future<void> deleteShelfItem(String userId, String itemId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackShelf.removeWhere(
         (x) => x['id'] == itemId && x['user_id'] == userId,
       );
@@ -434,7 +464,7 @@ class DatabaseHelper {
   }
 
   Future<ShelfItem?> getShelfItemById(String itemId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       final list = _fallbackShelf.where((x) => x['id'] == itemId).toList();
       if (list.isEmpty) return null;
       final map = list.first;
@@ -501,7 +531,7 @@ class DatabaseHelper {
   }
 
   Future<String?> getShelfItemUserId(String itemId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       final list = _fallbackShelf.where((x) => x['id'] == itemId).toList();
       if (list.isEmpty) return null;
       return list.first['user_id'] as String?;
@@ -518,7 +548,7 @@ class DatabaseHelper {
   }
 
   Future<String?> getJournalEntryUserId(String entryId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       final list = _fallbackJournal.where((x) => x['id'] == entryId).toList();
       if (list.isEmpty) return null;
       return list.first['user_id'] as String?;
@@ -537,7 +567,7 @@ class DatabaseHelper {
   // --- Journal Entries CRUD ---
 
   Future<List<JournalEntry>> getJournalEntries(String userId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       final list = _fallbackJournal
           .where((x) => x['user_id'] == userId)
           .toList();
@@ -587,7 +617,7 @@ class DatabaseHelper {
     String userId,
     List<JournalEntry> entries,
   ) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackJournal.removeWhere((x) => x['user_id'] == userId);
       for (final entry in entries) {
         _fallbackJournal.add({
@@ -626,7 +656,7 @@ class DatabaseHelper {
   }
 
   Future<void> insertJournalEntry(String userId, JournalEntry entry) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackJournal.removeWhere(
         (x) => x['id'] == entry.id && x['user_id'] == userId,
       );
@@ -655,7 +685,7 @@ class DatabaseHelper {
   }
 
   Future<void> deleteJournalEntry(String userId, String entryId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackJournal.removeWhere(
         (x) => x['id'] == entryId && x['user_id'] == userId,
       );
@@ -681,7 +711,7 @@ class DatabaseHelper {
   }) async {
     if (userId == 'offline-guest-user') return;
 
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       if (operation == 'DELETE') {
         _fallbackSyncQueue.removeWhere(
           (x) =>
@@ -698,6 +728,8 @@ class DatabaseHelper {
           'serialized_data': null,
           'created_at': DateTime.now().toIso8601String(),
           'user_id': userId,
+          ..._newSyncMetadata,
+          ..._newSyncMetadata,
         });
         return;
       }
@@ -727,6 +759,7 @@ class DatabaseHelper {
         'serialized_data': data != null ? jsonEncode(data) : null,
         'created_at': DateTime.now().toIso8601String(),
         'user_id': userId,
+        ..._newSyncMetadata,
       });
       return;
     }
@@ -775,25 +808,124 @@ class DatabaseHelper {
       'serialized_data': data != null ? jsonEncode(data) : null,
       'created_at': DateTime.now().toIso8601String(),
       'user_id': userId,
+      ..._newSyncMetadata,
     });
   }
 
+  Map<String, dynamic> get _newSyncMetadata => {
+    'status': 'pending',
+    'retry_count': 0,
+    'last_attempt_at': null,
+    'next_attempt_at': null,
+    'last_error': null,
+  };
+
   Future<List<Map<String, dynamic>>> getPendingSyncTasks(String userId) async {
-    if (useInMemoryFallback) {
-      return _fallbackSyncQueue.where((x) => x['user_id'] == userId).toList();
+    if (_useInMemoryFallback) {
+      final now = DateTime.now();
+      return _fallbackSyncQueue.where((x) {
+        if (x['user_id'] != userId || x['status'] == 'failed') return false;
+        final next = DateTime.tryParse(x['next_attempt_at'] as String? ?? '');
+        return next == null || !next.isAfter(now);
+      }).toList();
     }
 
     final db = await database;
     return await db.query(
       'sync_queue',
-      where: 'user_id = ?',
+      where:
+          "user_id = ? AND status != 'failed' AND "
+          '(next_attempt_at IS NULL OR next_attempt_at <= ?)',
       orderBy: 'id ASC',
+      whereArgs: [userId, DateTime.now().toIso8601String()],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getSyncTasks(String userId) async {
+    if (_useInMemoryFallback) {
+      return _fallbackSyncQueue.where((x) => x['user_id'] == userId).toList();
+    }
+    final db = await database;
+    return db.query(
+      'sync_queue',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'id ASC',
+    );
+  }
+
+  Future<void> markSyncTaskFailed(
+    int taskId, {
+    required String error,
+    required bool retryable,
+  }) async {
+    final task = _useInMemoryFallback
+        ? _fallbackSyncQueue.cast<Map<String, dynamic>?>().firstWhere(
+            (x) => x?['id'] == taskId,
+            orElse: () => null,
+          )
+        : null;
+    final retryCount = _useInMemoryFallback
+        ? ((task?['retry_count'] as int?) ?? 0) + 1
+        : await _nextRetryCount(taskId);
+    final now = DateTime.now();
+    final delaySeconds = retryable
+        ? (1 << (retryCount.clamp(1, 8) - 1)) * 30
+        : 0;
+    final values = <String, dynamic>{
+      'status': retryable ? 'pending' : 'failed',
+      'retry_count': retryCount,
+      'last_attempt_at': now.toIso8601String(),
+      'next_attempt_at': retryable
+          ? now.add(Duration(seconds: delaySeconds)).toIso8601String()
+          : null,
+      'last_error': error,
+    };
+    if (_useInMemoryFallback) {
+      task?.addAll(values);
+      return;
+    }
+    final db = await database;
+    await db.update('sync_queue', values, where: 'id = ?', whereArgs: [taskId]);
+  }
+
+  Future<int> _nextRetryCount(int taskId) async {
+    final db = await database;
+    final rows = await db.query(
+      'sync_queue',
+      columns: ['retry_count'],
+      where: 'id = ?',
+      whereArgs: [taskId],
+      limit: 1,
+    );
+    return ((rows.isEmpty ? null : rows.first['retry_count'] as int?) ?? 0) + 1;
+  }
+
+  Future<void> retryFailedSyncTasks(String userId) async {
+    const values = <String, dynamic>{
+      'status': 'pending',
+      'next_attempt_at': null,
+      'last_error': null,
+    };
+    if (_useInMemoryFallback) {
+      for (final task in _fallbackSyncQueue) {
+        if (task['user_id'] == userId && task['status'] == 'failed') {
+          task.addAll(values);
+        }
+      }
+      return;
+    }
+    final db = await database;
+    await db.update(
+      'sync_queue',
+      values,
+      where: "user_id = ? AND status = 'failed'",
       whereArgs: [userId],
     );
   }
 
   Future<void> deleteSyncTask(int taskId) async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackSyncQueue.removeWhere((x) => x['id'] == taskId);
       return;
     }
@@ -807,7 +939,7 @@ class DatabaseHelper {
   Future<void> migrateGuestData(String oldUserId, String newUserId) async {
     if (oldUserId == newUserId) return;
 
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       // 1. Fetch all local guest shelf items
       final guestShelfMap = _fallbackShelf
           .where((x) => x['user_id'] == oldUserId)
@@ -945,7 +1077,7 @@ class DatabaseHelper {
 
   @visibleForTesting
   Future<void> clearAllTables() async {
-    if (useInMemoryFallback) {
+    if (_useInMemoryFallback) {
       _fallbackShelf.clear();
       _fallbackJournal.clear();
       _fallbackSyncQueue.clear();

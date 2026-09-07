@@ -91,8 +91,4 @@ flutter build apk --release
 ```
 
 ### 3.1 Caching Strategy
-The workflow utilizes `subosito/flutter-action@v2` with built-in caching keyed by OS, channel, version, architecture, and lockfile hash:
-```yaml
-cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
-```
-This ensures cached dependencies never cross incompatible Flutter environments or corrupt the runner build cache.
+The workflow utilizes `subosito/flutter-action@v2` with `cache: true`. The action manages cache isolation internally by runner operating system, Flutter channel, Flutter version, architecture, and lockfile hash (`flutter-:os:-:channel:-:version:-:arch:-:hash:`). This ensures cached SDK and pub dependencies never cross incompatible Flutter environments or corrupt the runner build cache.

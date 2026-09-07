@@ -1084,12 +1084,12 @@ class SupabaseService {
             ),
           );
 
-      final publicUrl = Supabase.instance.client.storage
+      final signedUrl = await Supabase.instance.client.storage
           .from(bucketName)
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 60 * 60 * 24 * 7);
 
-      debugPrint('SupabaseService: Photo uploaded → $publicUrl');
-      return publicUrl;
+      debugPrint('SupabaseService: Journal photo uploaded successfully.');
+      return signedUrl;
     } on StorageException catch (e) {
       _handleStorageException('uploadJournalPhoto', e);
       return localFilePath;
@@ -1126,12 +1126,12 @@ class SupabaseService {
             ),
           );
 
-      final publicUrl = Supabase.instance.client.storage
+      final signedUrl = await Supabase.instance.client.storage
           .from(bucketName)
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 60 * 60 * 24 * 7);
 
-      debugPrint('SupabaseService: Product photo uploaded → $publicUrl');
-      return publicUrl;
+      debugPrint('SupabaseService: Product photo uploaded successfully.');
+      return signedUrl;
     } on StorageException catch (e) {
       _handleStorageException('uploadProductPhoto', e);
       return localFilePath;

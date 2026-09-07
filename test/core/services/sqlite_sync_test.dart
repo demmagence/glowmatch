@@ -159,4 +159,95 @@ void main() {
       verify(mockDbHelper.migrateGuestData('old-id', 'new-id')).called(1);
     });
   });
+
+  group('durable sync queue', () {
+    Map<String, dynamic> task({int id = 1}) => {
+      'id': id,
+      'table_name': 'skincare_shelf',
+      'operation': 'INSERT',
+      'item_id': 'item-$id',
+      'serialized_data': '{}',
+    };
+
+    test('keeps a network failure queued with retry metadata', () async {
+      when(
+        mockDbHelper.getPendingSyncTasks('user-123'),
+      ).thenAnswer((_) async => [task()]);
+      when(
+        mockDbHelper.markSyncTaskFailed(
+          1,
+          error: anyNamed('error'),
+          retryable: anyNamed('retryable'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final service = SyncService.forTesting(
+        databaseHelper: mockDbHelper,
+        taskExecutor: (_, userId) async =>
+            throw Exception('SocketException: offline for $userId'),
+      );
+      await service.syncQueue('user-123');
+
+      verify(
+        mockDbHelper.markSyncTaskFailed(
+          1,
+          error: anyNamed('error'),
+          retryable: true,
+        ),
+      ).called(1);
+      verifyNever(mockDbHelper.deleteSyncTask(1));
+    });
+
+    test('marks invalid tasks failed without discarding later work', () async {
+      when(
+        mockDbHelper.getPendingSyncTasks('user-123'),
+      ).thenAnswer((_) async => [task(), task(id: 2)]);
+      when(
+        mockDbHelper.markSyncTaskFailed(
+          1,
+          error: anyNamed('error'),
+          retryable: false,
+        ),
+      ).thenAnswer((_) async {});
+      when(mockDbHelper.deleteSyncTask(2)).thenAnswer((_) async {});
+
+      final service = SyncService.forTesting(
+        databaseHelper: mockDbHelper,
+        taskExecutor: (value, _) async {
+          if (value['id'] == 1) throw const FormatException('invalid payload');
+        },
+      );
+      await service.syncQueue('user-123');
+
+      verify(
+        mockDbHelper.markSyncTaskFailed(
+          1,
+          error: anyNamed('error'),
+          retryable: false,
+        ),
+      ).called(1);
+      verify(mockDbHelper.deleteSyncTask(2)).called(1);
+      verifyNever(mockDbHelper.deleteSyncTask(1));
+    });
+
+    test('manual retry reactivates failed tasks before syncing', () async {
+      when(
+        mockDbHelper.retryFailedSyncTasks('user-123'),
+      ).thenAnswer((_) async {});
+      when(
+        mockDbHelper.getPendingSyncTasks('user-123'),
+      ).thenAnswer((_) async => []);
+      final service = SyncService.forTesting(
+        databaseHelper: mockDbHelper,
+        taskExecutor: (_, userId) async {},
+      );
+
+      await service.retryFailed('user-123');
+
+      verifyInOrder([
+        mockDbHelper.retryFailedSyncTasks('user-123'),
+        mockDbHelper.getPendingSyncTasks('user-123'),
+      ]);
+    });
+  });
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../main_layout.dart';
 import 'sign_in_screen.dart';
+import 'confirmation_pending_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -43,14 +44,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
     try {
-      await authVm.signUp(
+      final result = await authVm.signUp(
         _emailController.text.trim(),
         _passwordController.text,
       );
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const MainLayout()),
+          MaterialPageRoute(
+            builder: (_) => result == SignUpResult.emailConfirmationRequired
+                ? ConfirmationPendingScreen(email: _emailController.text.trim())
+                : const MainLayout(),
+          ),
         );
       }
     } catch (e) {

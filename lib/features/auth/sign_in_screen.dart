@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../main_layout.dart';
 import 'sign_up_screen.dart';
+import 'forgot_password_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -334,6 +335,19 @@ class _SignInScreenState extends State<SignInScreen> {
                             }
                             return null;
                           },
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            key: const Key('forgotPasswordButton'),
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            ),
+                            child: const Text('Forgot password?'),
+                          ),
                         ),
                       ],
                     ),
