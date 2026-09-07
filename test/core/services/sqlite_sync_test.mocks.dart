@@ -194,6 +194,42 @@ class MockDatabaseHelper extends _i1.Mock implements _i3.DatabaseHelper {
           as _i4.Future<List<Map<String, dynamic>>>);
 
   @override
+  _i4.Future<List<Map<String, dynamic>>> getSyncTasks(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSyncTasks, [userId]),
+            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i4.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i4.Future<void> markSyncTaskFailed(
+    int? taskId, {
+    required String? error,
+    required bool? retryable,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #markSyncTaskFailed,
+              [taskId],
+              {#error: error, #retryable: retryable},
+            ),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> retryFailedSyncTasks(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#retryFailedSyncTasks, [userId]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
   _i4.Future<void> deleteSyncTask(int? taskId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteSyncTask, [taskId]),
@@ -238,6 +274,15 @@ class MockSyncService extends _i1.Mock implements _i6.SyncService {
   _i4.Future<void> syncQueue(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#syncQueue, [userId]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> retryFailed(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#retryFailed, [userId]),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

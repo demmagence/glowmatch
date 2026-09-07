@@ -321,6 +321,12 @@ Both buckets are private and enforce per-user folder isolation through RLS on `s
 
 GlowMatch is designed to function without any external services. When Supabase credentials are absent or invalid, `SupabaseService` operates with in-memory mock data that is pre-seeded with sample products, routines, and journal entries. When the Gemini API key is absent, the ingredient scanner uses a local dictionary-based analysis engine.
 
+### Sync recovery and conflicts
+
+Authenticated changes are stored in a durable SQLite queue before upload. Network and transient server failures use bounded exponential retry delays. Permission, validation, and constraint failures remain available with their error details until `SyncService.retryFailed(userId)` is invoked after the underlying problem is corrected.
+
+Conflict resolution is deterministic: a queued local insert, update, or delete takes precedence over a newly fetched Supabase row until that operation succeeds. Inserts use an idempotent upsert so reconnects and application restarts do not create duplicates.
+
 ---
 
 ## Contributing

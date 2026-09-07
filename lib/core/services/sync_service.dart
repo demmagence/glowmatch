@@ -10,12 +10,20 @@ class SyncService {
   static SyncService? _mockInstance;
 
   factory SyncService() => _mockInstance ?? _instance;
-  SyncService._internal();
+  SyncService._internal() : _dbHelper = DatabaseHelper(), _taskExecutor = null;
+
+  @visibleForTesting
+  SyncService.forTesting({
+    required DatabaseHelper databaseHelper,
+    required Future<void> Function(Map<String, dynamic>, String) taskExecutor,
+  }) : _dbHelper = databaseHelper,
+       _taskExecutor = taskExecutor;
 
   @visibleForTesting
   static set mockInstance(SyncService? mock) => _mockInstance = mock;
 
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final DatabaseHelper _dbHelper;
+  final Future<void> Function(Map<String, dynamic>, String)? _taskExecutor;
 
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
@@ -29,64 +37,78 @@ class SyncService {
       final tasks = await _dbHelper.getPendingSyncTasks(userId);
       if (tasks.isEmpty) return;
 
-      final client = Supabase.instance.client;
-
       for (final task in tasks) {
         final int taskId = task['id'] as int;
-        final String tableName = task['table_name'] as String;
-        final String operation = task['operation'] as String;
-        final String itemId = task['item_id'] as String;
-        final String? serializedData = task['serialized_data'] as String?;
-
         try {
-          if (operation == 'DELETE') {
-            await client.from(tableName).delete().eq('id', itemId);
+          if (_taskExecutor != null) {
+            await _taskExecutor(task, userId);
           } else {
-            final Map<String, dynamic> data =
-                jsonDecode(serializedData!) as Map<String, dynamic>;
-            data['user_id'] = userId;
-
-            // Convert ingredients list back to a Postgres array format for insertion
-            if (data.containsKey('ingredients') &&
-                data['ingredients'] is List) {
-              data['ingredients'] = List<String>.from(
-                data['ingredients'] as Iterable,
-              );
-            }
-
-            if (operation == 'INSERT') {
-              await client.from(tableName).insert(data);
-            } else if (operation == 'UPDATE') {
-              await client.from(tableName).update(data).eq('id', itemId);
-            }
+            await _executeTask(Supabase.instance.client, task, userId);
           }
           await _dbHelper.deleteSyncTask(taskId);
         } on PostgrestException catch (e) {
           debugPrint(
             'SyncService: PostgrestException syncing task $taskId: ${e.message} (code: ${e.code})',
           );
-          if (e.code == '42501') {
-            // RLS/Permission error - could be configuration or guest account insert blocked.
-            // Discard the task to avoid blocking the queue permanently.
-            await _dbHelper.deleteSyncTask(taskId);
-          } else if (_isNetworkError(e)) {
-            // Stop syncing remaining tasks if we hit a network issue
+          final retryable = _isNetworkError(e) || _isRetryableServerError(e);
+          await _dbHelper.markSyncTaskFailed(
+            taskId,
+            error: '${e.code ?? 'postgres'}: ${e.message}',
+            retryable: retryable,
+          );
+          if (retryable) {
             break;
-          } else {
-            // Other Postgres/constraint violations: log and skip so it doesn't block the queue
-            await _dbHelper.deleteSyncTask(taskId);
           }
         } catch (e) {
           debugPrint('SyncService: Error syncing task $taskId: $e');
-          if (_isNetworkError(e)) {
+          final retryable = _isNetworkError(e);
+          await _dbHelper.markSyncTaskFailed(
+            taskId,
+            error: e.toString(),
+            retryable: retryable,
+          );
+          if (retryable) {
             break;
           }
-          // Discard corrupt/un-processable tasks
-          await _dbHelper.deleteSyncTask(taskId);
         }
       }
     } finally {
       _isSyncing = false;
+    }
+  }
+
+  Future<void> retryFailed(String userId) async {
+    await _dbHelper.retryFailedSyncTasks(userId);
+    await syncQueue(userId);
+  }
+
+  Future<void> _executeTask(
+    SupabaseClient client,
+    Map<String, dynamic> task,
+    String userId,
+  ) async {
+    final tableName = task['table_name'] as String;
+    final operation = task['operation'] as String;
+    final itemId = task['item_id'] as String;
+    if (operation == 'DELETE') {
+      await client.from(tableName).delete().eq('id', itemId);
+      return;
+    }
+    final serializedData = task['serialized_data'] as String?;
+    if (serializedData == null) {
+      throw const FormatException('Missing task data');
+    }
+    final data = jsonDecode(serializedData) as Map<String, dynamic>;
+    data['user_id'] = userId;
+    if (data['ingredients'] is List) {
+      data['ingredients'] = List<String>.from(data['ingredients'] as Iterable);
+    }
+    if (operation == 'INSERT') {
+      await client.from(tableName).upsert(data);
+    } else if (operation == 'UPDATE') {
+      await client.from(tableName).update(data).eq('id', itemId);
+    } else {
+      throw FormatException('Unsupported sync operation: $operation');
     }
   }
 
@@ -104,7 +126,7 @@ class SyncService {
           .select()
           .eq('user_id', userId);
 
-      final List<ShelfItem> remoteItems = await Future.wait(
+      var remoteItems = await Future.wait(
         (response as List).map((x) async {
           final item = ShelfItem.fromJson(x as Map<String, dynamic>);
           return item.copyWith(
@@ -115,6 +137,8 @@ class SyncService {
           );
         }),
       );
+
+      remoteItems = await _mergePendingShelfChanges(userId, remoteItems);
 
       // 3. Save remote items to local SQLite database cache
       await _dbHelper.saveShelfItems(userId, remoteItems);
@@ -138,7 +162,7 @@ class SyncService {
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
 
-      final List<JournalEntry> remoteEntries = await Future.wait(
+      var remoteEntries = await Future.wait(
         (response as List).map((x) async {
           final entry = JournalEntry.fromJson(x as Map<String, dynamic>);
           return entry.copyWith(
@@ -150,11 +174,63 @@ class SyncService {
         }),
       );
 
+      remoteEntries = await _mergePendingJournalChanges(userId, remoteEntries);
+
       // 3. Save remote entries to local SQLite database cache
       await _dbHelper.saveJournalEntries(userId, remoteEntries);
     } catch (e) {
       debugPrint('SyncService: syncAndFetchJournal error fetching remote: $e');
     }
+  }
+
+  Future<List<ShelfItem>> _mergePendingShelfChanges(
+    String userId,
+    List<ShelfItem> remote,
+  ) async {
+    final tasks = (await _dbHelper.getSyncTasks(
+      userId,
+    )).where((task) => task['table_name'] == AppConstants.tableSkincareShelf);
+    final local = {
+      for (final item in await _dbHelper.getShelfItems(userId)) item.id: item,
+    };
+    final merged = {for (final item in remote) item.id: item};
+    for (final task in tasks) {
+      final id = task['item_id'] as String;
+      if (task['operation'] == 'DELETE') {
+        merged.remove(id);
+      } else if (local[id] != null) {
+        merged[id] = local[id]!;
+      }
+    }
+    return merged.values.toList();
+  }
+
+  Future<List<JournalEntry>> _mergePendingJournalChanges(
+    String userId,
+    List<JournalEntry> remote,
+  ) async {
+    final tasks = (await _dbHelper.getSyncTasks(
+      userId,
+    )).where((task) => task['table_name'] == AppConstants.tableJournalEntries);
+    final local = {
+      for (final entry in await _dbHelper.getJournalEntries(userId))
+        entry.id: entry,
+    };
+    final merged = {for (final entry in remote) entry.id: entry};
+    for (final task in tasks) {
+      final id = task['item_id'] as String;
+      if (task['operation'] == 'DELETE') {
+        merged.remove(id);
+      } else if (local[id] != null) {
+        merged[id] = local[id]!;
+      }
+    }
+    return merged.values.toList();
+  }
+
+  bool _isRetryableServerError(PostgrestException error) {
+    final code = error.code ?? '';
+    return code.startsWith('08') || code.startsWith('53') || code == '57014';
   }
 
   bool _isNetworkError(dynamic e) {
