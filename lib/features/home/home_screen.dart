@@ -198,6 +198,7 @@ class HomeScreen extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     buildDefaultDragHandles: false,
                     itemCount: routineVm.currentSteps.length,
+                    // ignore: deprecated_member_use
                     onReorder: (oldIndex, newIndex) {
                       routineVm.reorderStepsDirect(
                         authVm.userId,
