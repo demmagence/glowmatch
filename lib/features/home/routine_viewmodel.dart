@@ -20,7 +20,7 @@ class RoutineViewModel extends ChangeNotifier {
   String _activeRoutine = 'AM';
   bool _isLoading = false;
   String? _errorMessage;
-  WeatherData? _weather;
+  WeatherResult? _weatherResult;
   StreakData? _streakData;
   List<DateTime> _dailyCompletionLogs = [];
 
@@ -30,7 +30,8 @@ class RoutineViewModel extends ChangeNotifier {
   String get activeRoutine => _activeRoutine;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  WeatherData? get weather => _weather;
+  WeatherResult? get weatherResult => _weatherResult;
+  WeatherData? get weather => _weatherResult?.data;
   StreakData? get streakData => _streakData;
   List<DateTime> get dailyCompletionLogs => _dailyCompletionLogs;
 
@@ -144,9 +145,10 @@ class RoutineViewModel extends ChangeNotifier {
 
   Future<void> fetchWeather() async {
     try {
-      _weather = await _weatherService.fetchLocalWeather();
+      _weatherResult = await _weatherService.fetchLocalWeatherResult();
     } catch (e) {
       debugPrint('Error fetching weather: $e');
+      _weatherResult = WeatherResult.error(e.toString());
     }
     notifyListeners();
   }
@@ -358,7 +360,7 @@ class RoutineViewModel extends ChangeNotifier {
     _activeRoutine = 'AM';
     _isLoading = false;
     _errorMessage = null;
-    _weather = null;
+    _weatherResult = null;
     _streakData = null;
     notifyListeners();
   }

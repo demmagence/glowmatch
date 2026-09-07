@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
-import '../constants.dart';
 
 class WeatherData {
   final String locationName;
@@ -17,31 +16,79 @@ class WeatherData {
   });
 }
 
+enum WeatherStatus {
+  success,
+  locationDisabled,
+  permissionDenied,
+  permissionPermanentlyDenied,
+  error,
+}
+
+class WeatherResult {
+  final WeatherData? data;
+  final WeatherStatus status;
+  final String? message;
+
+  const WeatherResult({
+    this.data,
+    required this.status,
+    this.message,
+  });
+
+  bool get isSuccess => status == WeatherStatus.success && data != null;
+
+  factory WeatherResult.success(WeatherData data) =>
+      WeatherResult(data: data, status: WeatherStatus.success);
+
+  factory WeatherResult.locationDisabled([String? message]) =>
+      WeatherResult(
+        status: WeatherStatus.locationDisabled,
+        message: message ?? 'Location services are disabled on your device.',
+      );
+
+  factory WeatherResult.permissionDenied([String? message]) =>
+      WeatherResult(
+        status: WeatherStatus.permissionDenied,
+        message:
+            message ?? 'Location permission is needed to show local weather.',
+      );
+
+  factory WeatherResult.permissionPermanentlyDenied([String? message]) =>
+      WeatherResult(
+        status: WeatherStatus.permissionPermanentlyDenied,
+        message: message ??
+            'Location permission is permanently denied. Enable it in Settings.',
+      );
+
+  factory WeatherResult.error(String message) =>
+      WeatherResult(status: WeatherStatus.error, message: message);
+}
+
 class WeatherService {
-  static final WeatherService _instance = WeatherService._internal();
-  factory WeatherService() => _instance;
-  WeatherService._internal();
+  @visibleForTesting
+  WeatherService.internal();
 
-  Future<WeatherData> fetchLocalWeather() async {
+  static WeatherService instance = WeatherService.internal();
+
+  factory WeatherService() => instance;
+
+  Future<WeatherResult> fetchLocalWeatherResult() async {
     try {
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        return _mockFallback('Location Services Disabled');
+        return WeatherResult.locationDisabled();
       }
 
-      permission = await Geolocator.checkPermission();
+      var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          return _mockFallback('Permission Denied');
+          return WeatherResult.permissionDenied();
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        return _mockFallback('Permission Permanently Denied');
+        return WeatherResult.permissionPermanentlyDenied();
       }
 
       final Position position = await Geolocator.getCurrentPosition(
@@ -53,7 +100,8 @@ class WeatherService {
         'https://api.open-meteo.com/v1/forecast?latitude=${position.latitude}&longitude=${position.longitude}&current=temperature_2m,weather_code',
       );
 
-      final response = await http.get(url).timeout(const Duration(seconds: 4));
+      final response =
+          await http.get(url).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -85,10 +133,12 @@ class WeatherService {
             } else if (pm.locality != null && pm.locality!.isNotEmpty) {
               parts.add(pm.locality!);
             }
-            if (pm.subAdministrativeArea != null && pm.subAdministrativeArea!.isNotEmpty) {
+            if (pm.subAdministrativeArea != null &&
+                pm.subAdministrativeArea!.isNotEmpty) {
               parts.add(pm.subAdministrativeArea!);
             }
-            if (pm.administrativeArea != null && pm.administrativeArea!.isNotEmpty) {
+            if (pm.administrativeArea != null &&
+                pm.administrativeArea!.isNotEmpty) {
               parts.add(pm.administrativeArea!);
             }
             if (parts.isNotEmpty) {
@@ -99,26 +149,28 @@ class WeatherService {
           debugPrint('Geocoding failed: $e');
         }
 
-        return WeatherData(
-          locationName:
-              '$address (${position.latitude.toStringAsFixed(1)}°, ${position.longitude.toStringAsFixed(1)}°)',
-          temperature: temp,
-          condition: condition,
+        return WeatherResult.success(
+          WeatherData(
+            locationName:
+                '$address (${position.latitude.toStringAsFixed(1)}°, ${position.longitude.toStringAsFixed(1)}°)',
+            temperature: temp,
+            condition: condition,
+          ),
         );
       } else {
-        return _mockFallback('API Error');
+        return WeatherResult.error(
+          'Weather API returned status ${response.statusCode}',
+        );
       }
     } catch (e) {
-      debugPrint('Weather fetch error: $e. Using fallback.');
-      return _mockFallback('Offline / Timeout');
+      debugPrint('Weather fetch error: $e');
+      return WeatherResult.error(e.toString());
     }
   }
 
-  WeatherData _mockFallback(String status) {
-    return WeatherData(
-      locationName: AppConstants.defaultMockLocation,
-      temperature: AppConstants.defaultMockTemperature,
-      condition: 'Sunny',
-    );
+  /// Backward-compatible method returning nullable WeatherData (null if permission denied or error)
+  Future<WeatherData?> fetchLocalWeather() async {
+    final result = await fetchLocalWeatherResult();
+    return result.data;
   }
 }

@@ -28,6 +28,7 @@ dependencies:
   sqflite: ^2.3.0
   path: ^1.9.0
   geocoding: ^4.0.0
+  permission_handler: ^13.0.2
 
 dev_dependencies:
   flutter_test:

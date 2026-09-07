@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/models/models.dart';
+import '../../core/services/permission_service.dart';
+import '../../core/widgets/permission_rationale_dialog.dart';
 import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/loading_overlay.dart';
 import '../../core/widgets/error_state_widget.dart';
@@ -30,7 +33,60 @@ class _JournalScreenState extends State<JournalScreen> {
     JournalViewModel vm,
     ImageSource source,
   ) async {
+    final isCamera = source == ImageSource.camera;
+    final permType = isCamera ? AppPermissionType.camera : AppPermissionType.photos;
+
     try {
+      if (isCamera) {
+        final status = await PermissionService.instance.checkCameraPermission();
+        if (status == AppPermissionStatus.permanentlyDenied) {
+          if (context.mounted) {
+            await PermissionRationaleDialog.show(
+              context,
+              permissionType: permType,
+              status: status,
+            );
+          }
+          return;
+        } else if (status == AppPermissionStatus.denied) {
+          final reqStatus = await PermissionService.instance.requestCameraPermission();
+          if (reqStatus != AppPermissionStatus.granted) {
+            if (context.mounted) {
+              await PermissionRationaleDialog.show(
+                context,
+                permissionType: permType,
+                status: reqStatus,
+              );
+            }
+            return;
+          }
+        }
+      } else {
+        final status = await PermissionService.instance.checkPhotosPermission();
+        if (status == AppPermissionStatus.permanentlyDenied) {
+          if (context.mounted) {
+            await PermissionRationaleDialog.show(
+              context,
+              permissionType: permType,
+              status: status,
+            );
+          }
+          return;
+        } else if (status == AppPermissionStatus.denied) {
+          final reqStatus = await PermissionService.instance.requestPhotosPermission();
+          if (reqStatus != AppPermissionStatus.granted) {
+            if (context.mounted) {
+              await PermissionRationaleDialog.show(
+                context,
+                permissionType: permType,
+                status: reqStatus,
+              );
+            }
+            return;
+          }
+        }
+      }
+
       final picker = ImagePicker();
       final picked = await picker.pickImage(
         source: source,
@@ -49,6 +105,21 @@ class _JournalScreenState extends State<JournalScreen> {
         vm: vm,
         pickedPath: picked.path,
       );
+    } on PlatformException catch (e) {
+      debugPrint('Error picking image platform exception: $e');
+      if (!context.mounted) return;
+      final msg = (e.message ?? '').toLowerCase();
+      final code = e.code.toLowerCase();
+      if (code.contains('denied') ||
+          code.contains('access') ||
+          msg.contains('permission') ||
+          msg.contains('access')) {
+        await PermissionRationaleDialog.show(
+          context,
+          permissionType: permType,
+          status: AppPermissionStatus.permanentlyDenied,
+        );
+      }
     } catch (e) {
       debugPrint('Error picking image: $e');
     }

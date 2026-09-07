@@ -1,18 +1,21 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart' show WriteBuffer;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show DeviceOrientation;
+import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'scanner_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:math' show min;
+import '../../core/services/permission_service.dart';
+import '../../core/widgets/permission_rationale_dialog.dart';
 
 enum CameraState {
   loading,
   initialized,
   permissionDenied,
+  permanentlyDenied,
+  unavailable,
   error,
 }
 
@@ -77,6 +80,26 @@ class _ScannerScreenState extends State<ScannerScreen>
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_cameraState == CameraState.permissionDenied ||
+          _cameraState == CameraState.permanentlyDenied) {
+        _initializeCamera();
+      } else if (_cameraState == CameraState.initialized &&
+          _cameraController != null &&
+          !_cameraController!.value.isInitialized) {
+        _initializeCamera();
+      }
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      if (_isStreaming) {
+        _cameraController?.stopImageStream().catchError((_) {});
+        _isStreaming = false;
+      }
+    }
+  }
+
   /// Auto-computes correct rotation for ML Kit:
   /// Android: (sensorOrientation - deviceAngle + 360) % 360
   /// iOS:     (sensorOrientation + deviceAngle) % 360
@@ -96,16 +119,48 @@ class _ScannerScreenState extends State<ScannerScreen>
   Future<void> _initializeCamera() async {
     setState(() {
       _cameraState = CameraState.loading;
+      _cameraErrorMessage = null;
     });
     try {
+      final camStatus = await PermissionService.instance.checkCameraPermission();
+      if (camStatus == AppPermissionStatus.permanentlyDenied) {
+        if (!mounted) return;
+        setState(() {
+          _cameraState = CameraState.permanentlyDenied;
+        });
+        return;
+      }
+
+      if (camStatus == AppPermissionStatus.denied) {
+        final reqStatus = await PermissionService.instance.requestCameraPermission();
+        if (!mounted) return;
+        if (reqStatus == AppPermissionStatus.permanentlyDenied) {
+          setState(() {
+            _cameraState = CameraState.permanentlyDenied;
+          });
+          return;
+        } else if (reqStatus != AppPermissionStatus.granted) {
+          setState(() {
+            _cameraState = CameraState.permissionDenied;
+          });
+          return;
+        }
+      }
+
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         debugPrint('No cameras available.');
+        if (!mounted) return;
         setState(() {
-          _cameraState = CameraState.error;
+          _cameraState = CameraState.unavailable;
           _cameraErrorMessage = 'Kamera Tidak Tersedia';
         });
         return;
+      }
+
+      if (_cameraController != null) {
+        await _cameraController!.dispose().catchError((_) {});
+        _cameraController = null;
       }
 
       _camera = cameras.first;
@@ -133,16 +188,24 @@ class _ScannerScreenState extends State<ScannerScreen>
     } catch (e) {
       debugPrint('Camera initialization error: $e');
       if (!mounted) return;
-      setState(() {
-        if (e is CameraException &&
-            (e.code == 'CameraAccessDenied' ||
-             e.code == 'CameraAccessDeniedWithoutPrompt')) {
-          _cameraState = CameraState.permissionDenied;
-        } else {
+      if (e is CameraException &&
+          (e.code == 'CameraAccessDenied' ||
+           e.code == 'CameraAccessDeniedWithoutPrompt')) {
+        final status = await PermissionService.instance.checkCameraPermission();
+        if (!mounted) return;
+        setState(() {
+          if (status == AppPermissionStatus.permanentlyDenied) {
+            _cameraState = CameraState.permanentlyDenied;
+          } else {
+            _cameraState = CameraState.permissionDenied;
+          }
+        });
+      } else {
+        setState(() {
           _cameraState = CameraState.error;
           _cameraErrorMessage = 'Kabel/kamera bermasalah atau tidak tersedia';
-        }
-      });
+        });
+      }
     }
   }
 
@@ -207,33 +270,76 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _pickImageFromGallery() async {
-    final vm = Provider.of<ScannerViewModel>(context, listen: false);
-    final ImagePicker picker = ImagePicker();
-    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
-    if (file == null) return;
+    try {
+      final photoStatus = await PermissionService.instance.checkPhotosPermission();
+      if (photoStatus == AppPermissionStatus.permanentlyDenied) {
+        if (!mounted) return;
+        await PermissionRationaleDialog.show(
+          context,
+          permissionType: AppPermissionType.photos,
+          status: photoStatus,
+        );
+        return;
+      } else if (photoStatus == AppPermissionStatus.denied) {
+        final reqStatus = await PermissionService.instance.requestPhotosPermission();
+        if (reqStatus == AppPermissionStatus.permanentlyDenied ||
+            reqStatus == AppPermissionStatus.denied) {
+          if (!mounted) return;
+          await PermissionRationaleDialog.show(
+            context,
+            permissionType: AppPermissionType.photos,
+            status: reqStatus,
+          );
+          return;
+        }
+      }
 
-    final File imageFile = File(file.path);
-    final Size size = await _getImageSize(imageFile);
+      final ImagePicker picker = ImagePicker();
+      final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+      if (file == null) return;
 
-    // Stop live camera stream while displaying static image
-    if (_isStreaming) {
-      await _cameraController?.stopImageStream().catchError((_) {});
+      final File imageFile = File(file.path);
+      final Size size = await _getImageSize(imageFile);
+
+      // Stop live camera stream while displaying static image
+      if (_isStreaming) {
+        await _cameraController?.stopImageStream().catchError((_) {});
+        setState(() {
+          _isStreaming = false;
+        });
+      }
+
       setState(() {
-        _isStreaming = false;
+        _pickedImage = imageFile;
+        _uploadedImageSize = size;
+        _uploadedImageBlocks = [];
       });
-    }
 
-    setState(() {
-      _pickedImage = imageFile;
-      _uploadedImageSize = size;
-      _uploadedImageBlocks = [];
-    });
-
-    final blocks = await vm.detectBlocksInImage(file.path);
-    if (mounted) {
-      setState(() {
-        _uploadedImageBlocks = blocks;
-      });
+      if (!mounted) return;
+      final vm = Provider.of<ScannerViewModel>(context, listen: false);
+      final blocks = await vm.detectBlocksInImage(file.path);
+      if (mounted) {
+        setState(() {
+          _uploadedImageBlocks = blocks;
+        });
+      }
+    } on PlatformException catch (e) {
+      debugPrint('Gallery pick platform error: $e');
+      if (!mounted) return;
+      final msg = (e.message ?? '').toLowerCase();
+      final code = e.code.toLowerCase();
+      if (code.contains('denied') ||
+          code.contains('access') ||
+          msg.contains('permission') ||
+          msg.contains('access')) {
+        await PermissionRationaleDialog.show(
+          context,
+          permissionType: AppPermissionType.photos,
+          status: AppPermissionStatus.permanentlyDenied,
+        );
+      }
+    } catch (e) {
+      debugPrint('Gallery pick unexpected error: $e');
     }
   }
 
@@ -607,15 +713,15 @@ class _ScannerScreenState extends State<ScannerScreen>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  border: Border.all(color: Colors.red, width: 2),
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.amber, width: 2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   children: [
                     const Icon(
                       Icons.videocam_off_outlined,
-                      color: Colors.red,
+                      color: Colors.amber,
                       size: 48,
                     ),
                     const SizedBox(height: 16),
@@ -629,7 +735,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'GlowMatch memerlukan akses kamera untuk memindai bahan kosmetik secara langsung. Silakan berikan izin kamera di pengaturan perangkat Anda.',
+                      'GlowMatch memerlukan akses kamera untuk memindai bahan kosmetik secara langsung. Anda dapat mencoba lagi, membuka pengaturan, atau memilih foto dari galeri.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.grey.shade400,
@@ -640,7 +746,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -651,6 +757,221 @@ class _ScannerScreenState extends State<ScannerScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                       side: const BorderSide(color: Colors.white, width: 2),
+                    ),
+                  ),
+                  onPressed: _initializeCamera,
+                  child: const Text(
+                    'COBA LAGI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  onPressed: () => PermissionService.instance.openAppSettings(),
+                  child: const Text(
+                    'BUKA PENGATURAN',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text(
+                    'PILIH DARI GALERI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: _pickImageFromGallery,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_cameraState == CameraState.permanentlyDenied) {
+      return Container(
+        color: Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.red, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.no_photography_outlined,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Izin Kamera Diblokir Permanen',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Akses kamera diblokir secara permanen di tingkat sistem. Buka Pengaturan aplikasi untuk memberikan izin kamera, atau pindai produk melalui foto galeri.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: const BorderSide(color: Colors.white, width: 2),
+                    ),
+                  ),
+                  onPressed: () => PermissionService.instance.openAppSettings(),
+                  child: const Text(
+                    'BUKA PENGATURAN',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text(
+                    'PILIH DARI GALERI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: _pickImageFromGallery,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_cameraState == CameraState.unavailable) {
+      return Container(
+        color: Colors.black,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  border: Border.all(color: Colors.white30, width: 1.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.no_photography_outlined,
+                      color: Colors.white54,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Kamera Tidak Tersedia',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'GlowMatch tidak dapat mendeteksi sensor kamera fisik pada perangkat atau simulator ini. Anda masih dapat menganalisis produk dengan memilih foto dari galeri.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      side: const BorderSide(color: Colors.white, width: 2),
+                    ),
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text(
+                    'PILIH DARI GALERI',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: _pickImageFromGallery,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                   onPressed: _initializeCamera,
@@ -684,13 +1005,13 @@ class _ScannerScreenState extends State<ScannerScreen>
               child: Column(
                 children: [
                   const Icon(
-                    Icons.no_photography_outlined,
+                    Icons.error_outline,
                     color: Colors.white54,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _cameraErrorMessage ?? 'Kamera Tidak Tersedia',
+                    _cameraErrorMessage ?? 'Kamera Bermasalah',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -699,7 +1020,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'GlowMatch tidak dapat mendeteksi kamera fisik pada perangkat atau simulator ini.',
+                    'Terjadi kendala saat menginisialisasi kamera. Anda dapat mencoba lagi atau memilih foto dari galeri.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey.shade400,
@@ -710,7 +1031,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -728,6 +1049,26 @@ class _ScannerScreenState extends State<ScannerScreen>
                   'COBA LAGI',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white, width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                icon: const Icon(Icons.photo_library_outlined),
+                label: const Text(
+                  'PILIH DARI GALERI',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: _pickImageFromGallery,
               ),
             ),
           ],

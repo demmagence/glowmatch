@@ -8,6 +8,8 @@ import '../../core/models/models.dart';
 import '../shelf/shelf_viewmodel.dart';
 import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/error_state_widget.dart';
+import '../../core/services/weather_service.dart';
+import '../../core/services/permission_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -87,23 +89,64 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(
-                    Icons.wb_sunny_outlined,
+                  Icon(
+                    weather != null
+                        ? Icons.wb_sunny_outlined
+                        : (routineVm.weatherResult?.status ==
+                                    WeatherStatus.permissionPermanentlyDenied ||
+                                routineVm.weatherResult?.status ==
+                                    WeatherStatus.permissionDenied
+                            ? Icons.location_off_outlined
+                            : (routineVm.weatherResult?.status ==
+                                    WeatherStatus.locationDisabled
+                                ? Icons.gps_off_outlined
+                                : Icons.cloud_outlined)),
                     size: 16,
                     color: Colors.grey,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text(
-                      weather != null
-                          ? weather.locationName
-                          : 'Los Angeles, CA',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: subtextColor,
-                        fontWeight: FontWeight.w500,
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (weather == null) {
+                          final status = routineVm.weatherResult?.status;
+                          if (status ==
+                              WeatherStatus.permissionPermanentlyDenied) {
+                            await PermissionService.instance.openAppSettings();
+                          } else if (status == WeatherStatus.locationDisabled) {
+                            await PermissionService.instance
+                                .openLocationSettings();
+                          } else {
+                            await routineVm.fetchWeather();
+                          }
+                        }
+                      },
+                      child: Text(
+                        weather != null
+                            ? weather.locationName
+                            : (routineVm.weatherResult?.status ==
+                                    WeatherStatus.locationDisabled
+                                ? 'Location disabled • Tap to turn on'
+                                : (routineVm.weatherResult?.status ==
+                                        WeatherStatus.permissionDenied
+                                    ? 'Enable location for local weather'
+                                    : (routineVm.weatherResult?.status ==
+                                            WeatherStatus
+                                                .permissionPermanentlyDenied
+                                        ? 'Location blocked • Tap for Settings'
+                                        : (routineVm.weatherResult?.status ==
+                                                WeatherStatus.error
+                                            ? 'Weather unavailable • Tap to retry'
+                                            : 'Checking weather...')))),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: subtextColor,
+                          fontWeight: FontWeight.w500,
+                          decoration:
+                              weather == null ? TextDecoration.underline : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
