@@ -52,4 +52,3 @@ CREATE POLICY "Allow update access to owned categories" ON public.skincare_categ
 UPDATE storage.buckets
 SET public = false
 WHERE id IN ('journal-photos', 'product-photos');
-

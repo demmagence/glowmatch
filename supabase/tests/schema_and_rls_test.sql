@@ -41,4 +41,3 @@ SELECT is((SELECT public FROM storage.buckets WHERE id = 'product-photos'), fals
 
 SELECT * FROM finish();
 ROLLBACK;
-
