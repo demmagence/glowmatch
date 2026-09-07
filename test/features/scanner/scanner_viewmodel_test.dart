@@ -20,20 +20,16 @@ void main() {
   });
 
   group('ScannerViewModel – runOfflineFallbackAnalysis', () {
-    test(
-      'detects Niacinamide in ingredient text',
-      () async {
-        await vm.runOfflineFallbackAnalysis(
-          'Water, Niacinamide, Glycerin, Panthenol',
-        );
-        expect(vm.analysisResult, isNotNull);
-        expect(
-          vm.analysisResult!.detectedIngredients.contains('Niacinamide'),
-          isTrue,
-        );
-      },
-      timeout: const Timeout(Duration(seconds: 10)),
-    );
+    test('detects Niacinamide in ingredient text', () async {
+      await vm.runOfflineFallbackAnalysis(
+        'Water, Niacinamide, Glycerin, Panthenol',
+      );
+      expect(vm.analysisResult, isNotNull);
+      expect(
+        vm.analysisResult!.detectedIngredients.contains('Niacinamide'),
+        isTrue,
+      );
+    });
 
     test(
       'detects Hyaluronic Acid when "hyaluronic" and "acid" present',
@@ -46,20 +42,15 @@ void main() {
           isTrue,
         );
       },
-      timeout: const Timeout(Duration(seconds: 10)),
     );
 
-    test(
-      'detects Retinol in ingredient text',
-      () async {
-        await vm.runOfflineFallbackAnalysis('Retinol 0.1%, Squalane, Glycerin');
-        expect(
-          vm.analysisResult!.detectedIngredients.contains('Retinol'),
-          isTrue,
-        );
-      },
-      timeout: const Timeout(Duration(seconds: 10)),
-    );
+    test('detects Retinol in ingredient text', () async {
+      await vm.runOfflineFallbackAnalysis('Retinol 0.1%, Squalane, Glycerin');
+      expect(
+        vm.analysisResult!.detectedIngredients.contains('Retinol'),
+        isTrue,
+      );
+    });
 
     test(
       'Paraben → safetyRating is "Moderate Risk" and isSafe is false',
@@ -71,7 +62,6 @@ void main() {
         expect(vm.analysisResult!.isSafe, isFalse);
         expect(vm.analysisResult!.safetyRating, contains('Moderate Risk'));
       },
-      timeout: const Timeout(Duration(seconds: 10)),
     );
 
     test(
@@ -81,7 +71,6 @@ void main() {
         expect(vm.analysisResult!.isSafe, isTrue);
         expect(vm.analysisResult!.safetyRating, contains('Highly Safe'));
       },
-      timeout: const Timeout(Duration(seconds: 10)),
     );
 
     test(
@@ -93,20 +82,15 @@ void main() {
             'No skincare ingredients detected. Try scanning an ingredient list on a product label.';
         expect(vm.analysisResult!.recommendations, contains(expectedMsg));
       },
-      timeout: const Timeout(Duration(seconds: 10)),
     );
 
-    test(
-      'clearScan resets analysisResult and scannedText',
-      () async {
-        await vm.runOfflineFallbackAnalysis('Niacinamide, Glycerin');
-        expect(vm.analysisResult, isNotNull);
-        vm.clearScan();
-        expect(vm.analysisResult, isNull);
-        expect(vm.scannedText, isEmpty);
-      },
-      timeout: const Timeout(Duration(seconds: 10)),
-    );
+    test('clearScan resets analysisResult and scannedText', () async {
+      await vm.runOfflineFallbackAnalysis('Niacinamide, Glycerin');
+      expect(vm.analysisResult, isNotNull);
+      vm.clearScan();
+      expect(vm.analysisResult, isNull);
+      expect(vm.scannedText, isEmpty);
+    });
 
     test('detectBlocksInImage processes image and returns blocks', () async {
       final mockRecognizer = MockTextRecognizer();
