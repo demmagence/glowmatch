@@ -16,33 +16,39 @@ void main() {
   });
 
   group('AuthViewModel Tests', () {
-    test('initSession sets currentUser to null when no credentials cached', () async {
-      final authVm = AuthViewModel();
-      
-      // Wait for async initSession to complete
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      'initSession sets currentUser to null when no credentials cached',
+      () async {
+        final authVm = AuthViewModel();
 
-      expect(authVm.currentUser, isNull);
-      expect(authVm.isGuest, isTrue);
-      expect(authVm.isAnonymous, isTrue);
-      expect(authVm.isLoading, isFalse);
-    });
+        // Wait for async initSession to complete
+        await Future.delayed(const Duration(milliseconds: 50));
 
-    test('initSession restores currentUser from cached mock credentials', () async {
-      SharedPreferences.setMockInitialValues({
-        'mock_user_id': 'mock-id-123',
-        'mock_user_email': 'test@example.com',
-      });
+        expect(authVm.currentUser, isNull);
+        expect(authVm.isGuest, isTrue);
+        expect(authVm.isAnonymous, isTrue);
+        expect(authVm.isLoading, isFalse);
+      },
+    );
 
-      final authVm = AuthViewModel();
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      'initSession restores currentUser from cached mock credentials',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'mock_user_id': 'mock-id-123',
+          'mock_user_email': 'test@example.com',
+        });
 
-      expect(authVm.currentUser, isNotNull);
-      expect(authVm.currentUser!.id, equals('mock-id-123'));
-      expect(authVm.currentUser!.email, equals('test@example.com'));
-      expect(authVm.isGuest, isFalse);
-      expect(authVm.isAnonymous, isFalse);
-    });
+        final authVm = AuthViewModel();
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(authVm.currentUser, isNotNull);
+        expect(authVm.currentUser!.id, equals('mock-id-123'));
+        expect(authVm.currentUser!.email, equals('test@example.com'));
+        expect(authVm.isGuest, isFalse);
+        expect(authVm.isAnonymous, isFalse);
+      },
+    );
 
     test('loginAnonymously logs in as anonymous guest and persists', () async {
       final authVm = AuthViewModel();
@@ -78,20 +84,23 @@ void main() {
       expect(prefs.getString('mock_user_email'), equals('user@glowmatch.com'));
     });
 
-    test('signUp creates user account with email/password and persists', () async {
-      final authVm = AuthViewModel();
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      'signUp creates user account with email/password and persists',
+      () async {
+        final authVm = AuthViewModel();
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      await authVm.signUp('new@glowmatch.com', 'password123');
+        await authVm.signUp('new@glowmatch.com', 'password123');
 
-      expect(authVm.currentUser, isNotNull);
-      expect(authVm.currentUser!.email, equals('new@glowmatch.com'));
-      expect(authVm.isGuest, isFalse);
-      expect(authVm.isAnonymous, isFalse);
+        expect(authVm.currentUser, isNotNull);
+        expect(authVm.currentUser!.email, equals('new@glowmatch.com'));
+        expect(authVm.isGuest, isFalse);
+        expect(authVm.isAnonymous, isFalse);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('mock_user_email'), equals('new@glowmatch.com'));
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('mock_user_email'), equals('new@glowmatch.com'));
+      },
+    );
 
     test('signOut clears currentUser and removes cached credentials', () async {
       SharedPreferences.setMockInitialValues({
@@ -114,21 +123,27 @@ void main() {
       expect(prefs.getString('mock_user_email'), isNull);
     });
 
-    test('linkEmailAccount upgrades/links credentials and updates local user', () async {
-      final authVm = AuthViewModel();
-      await Future.delayed(const Duration(milliseconds: 50));
+    test(
+      'linkEmailAccount upgrades/links credentials and updates local user',
+      () async {
+        final authVm = AuthViewModel();
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      await authVm.loginAnonymously();
-      expect(authVm.isAnonymous, isTrue);
+        await authVm.loginAnonymously();
+        expect(authVm.isAnonymous, isTrue);
 
-      await authVm.linkEmailAccount('linked@glowmatch.com', 'password123');
+        await authVm.linkEmailAccount('linked@glowmatch.com', 'password123');
 
-      expect(authVm.currentUser, isNotNull);
-      expect(authVm.currentUser!.email, equals('linked@glowmatch.com'));
-      expect(authVm.isAnonymous, isFalse);
+        expect(authVm.currentUser, isNotNull);
+        expect(authVm.currentUser!.email, equals('linked@glowmatch.com'));
+        expect(authVm.isAnonymous, isFalse);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('mock_user_email'), equals('linked@glowmatch.com'));
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(
+          prefs.getString('mock_user_email'),
+          equals('linked@glowmatch.com'),
+        );
+      },
+    );
   });
 }

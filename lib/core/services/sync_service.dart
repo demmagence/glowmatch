@@ -42,12 +42,16 @@ class SyncService {
           if (operation == 'DELETE') {
             await client.from(tableName).delete().eq('id', itemId);
           } else {
-            final Map<String, dynamic> data = jsonDecode(serializedData!) as Map<String, dynamic>;
+            final Map<String, dynamic> data =
+                jsonDecode(serializedData!) as Map<String, dynamic>;
             data['user_id'] = userId;
-            
+
             // Convert ingredients list back to a Postgres array format for insertion
-            if (data.containsKey('ingredients') && data['ingredients'] is List) {
-              data['ingredients'] = List<String>.from(data['ingredients'] as Iterable);
+            if (data.containsKey('ingredients') &&
+                data['ingredients'] is List) {
+              data['ingredients'] = List<String>.from(
+                data['ingredients'] as Iterable,
+              );
             }
 
             if (operation == 'INSERT') {
@@ -58,7 +62,9 @@ class SyncService {
           }
           await _dbHelper.deleteSyncTask(taskId);
         } on PostgrestException catch (e) {
-          debugPrint('SyncService: PostgrestException syncing task $taskId: ${e.message} (code: ${e.code})');
+          debugPrint(
+            'SyncService: PostgrestException syncing task $taskId: ${e.message} (code: ${e.code})',
+          );
           if (e.code == '42501') {
             // RLS/Permission error - could be configuration or guest account insert blocked.
             // Discard the task to avoid blocking the queue permanently.

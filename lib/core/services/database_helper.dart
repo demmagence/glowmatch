@@ -11,7 +11,7 @@ class DatabaseHelper {
 
   factory DatabaseHelper() => _mockInstance ?? _instance;
 
-  bool _useInMemoryFallback = false;
+  bool useInMemoryFallback = false;
   final List<Map<String, dynamic>> _fallbackShelf = [];
   final List<Map<String, dynamic>> _fallbackJournal = [];
   final List<Map<String, dynamic>> _fallbackSyncQueue = [];
@@ -20,11 +20,11 @@ class DatabaseHelper {
   DatabaseHelper._internal() {
     try {
       if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        _useInMemoryFallback = true;
+        useInMemoryFallback = true;
         _seedFallbackData();
       }
     } catch (_) {
-      _useInMemoryFallback = true;
+      useInMemoryFallback = true;
       _seedFallbackData();
     }
   }
@@ -42,9 +42,15 @@ class DatabaseHelper {
           'remaining_uses': 45,
           'indicator_color': '0xFFE040FB',
           'image_url': 'https://placehold.co/150/pink/white?text=GlowBomb',
-          'ingredients': jsonEncode(['Hyaluronic Acid', 'Niacinamide', 'Watermelon Extract']),
+          'ingredients': jsonEncode([
+            'Hyaluronic Acid',
+            'Niacinamide',
+            'Watermelon Extract',
+          ]),
           'product_size': '50 ml',
-          'created_at': DateTime.now().subtract(const Duration(days: 14)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 14))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
         {
@@ -56,10 +62,17 @@ class DatabaseHelper {
           'estimated_uses': 50,
           'remaining_uses': 32,
           'indicator_color': '0xFF64DD17',
-          'image_url': 'https://placehold.co/150/lightgreen/white?text=Skin1004',
-          'ingredients': jsonEncode(['Centella Asiatica', 'Zinc Oxide', 'Titanium Dioxide']),
+          'image_url':
+              'https://placehold.co/150/lightgreen/white?text=Skin1004',
+          'ingredients': jsonEncode([
+            'Centella Asiatica',
+            'Zinc Oxide',
+            'Titanium Dioxide',
+          ]),
           'product_size': '50 ml',
-          'created_at': DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 30))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
         {
@@ -74,7 +87,9 @@ class DatabaseHelper {
           'image_url': 'https://placehold.co/150/purple/white?text=Panthenol',
           'ingredients': jsonEncode(['Panthenol', 'Squalane', 'Ceramide NP']),
           'product_size': '80 ml',
-          'created_at': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 5))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
       ]);
@@ -87,7 +102,8 @@ class DatabaseHelper {
           'logged_date': 'Today',
           'skin_score': 84,
           'photo_path': 'assets/skin_today.png',
-          'notes': 'Skin barrier feels extremely strong today. Redness has completely gone.',
+          'notes':
+              'Skin barrier feels extremely strong today. Redness has completely gone.',
           'created_at': DateTime.now().toIso8601String(),
           'user_id': 'test-user',
         },
@@ -96,8 +112,11 @@ class DatabaseHelper {
           'logged_date': 'Oct 24',
           'skin_score': 80,
           'photo_path': 'assets/skin_oct24.png',
-          'notes': 'Slight irritation around the cheeks. Increased moisturizer.',
-          'created_at': DateTime.now().subtract(const Duration(days: 4)).toIso8601String(),
+          'notes':
+              'Slight irritation around the cheeks. Increased moisturizer.',
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 4))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
         {
@@ -106,7 +125,9 @@ class DatabaseHelper {
           'skin_score': 76,
           'photo_path': 'assets/skin_oct17.png',
           'notes': 'Started new routine steps.',
-          'created_at': DateTime.now().subtract(const Duration(days: 9)).toIso8601String(),
+          'created_at': DateTime.now()
+              .subtract(const Duration(days: 9))
+              .toIso8601String(),
           'user_id': 'test-user',
         },
       ]);
@@ -124,8 +145,12 @@ class DatabaseHelper {
       _database = await _initDatabase();
       return _database!;
     } catch (e) {
-      debugPrint('DatabaseHelper: database initialization failed, enabling in-memory fallback: $e');
-      _useInMemoryFallback = true;
+      if (!useInMemoryFallback) {
+        debugPrint(
+          'DatabaseHelper: database initialization failed, enabling in-memory fallback: $e',
+        );
+      }
+      useInMemoryFallback = true;
       _seedFallbackData();
       rethrow;
     }
@@ -135,11 +160,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final pathString = join(dbPath, 'glowmatch_cache.db');
 
-    return await openDatabase(
-      pathString,
-      version: 1,
-      onCreate: _onCreate,
-    );
+    return await openDatabase(pathString, version: 1, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -189,14 +210,16 @@ class DatabaseHelper {
   // --- Shelf Items CRUD ---
 
   Future<List<ShelfItem>> getShelfItems(String userId) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       final list = _fallbackShelf.where((x) => x['user_id'] == userId).toList();
       return List.generate(list.length, (i) {
         final map = list[i];
         List<String> ingredients = [];
         if (map['ingredients'] != null && map['ingredients'] is String) {
           try {
-            ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+            ingredients = List<String>.from(
+              jsonDecode(map['ingredients'] as String) as Iterable,
+            );
           } catch (_) {}
         }
         return ShelfItem(
@@ -211,7 +234,9 @@ class DatabaseHelper {
           imageUrl: map['image_url'] as String?,
           ingredients: ingredients,
           productSize: map['product_size'] as String?,
-          createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+          createdAt: map['created_at'] != null
+              ? DateTime.tryParse(map['created_at'] as String)
+              : null,
         );
       });
     }
@@ -228,7 +253,9 @@ class DatabaseHelper {
       List<String> ingredients = [];
       if (map['ingredients'] != null && map['ingredients'] is String) {
         try {
-          ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+          ingredients = List<String>.from(
+            jsonDecode(map['ingredients'] as String) as Iterable,
+          );
         } catch (_) {
           ingredients = [];
         }
@@ -253,7 +280,7 @@ class DatabaseHelper {
   }
 
   Future<void> saveShelfItems(String userId, List<ShelfItem> items) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       _fallbackShelf.removeWhere((x) => x['user_id'] == userId);
       for (final item in items) {
         _fallbackShelf.add({
@@ -284,32 +311,30 @@ class DatabaseHelper {
       );
 
       for (final item in items) {
-        await txn.insert(
-          'shelf_items',
-          {
-            'id': item.id,
-            'name': item.name,
-            'brand': item.brand,
-            'category': item.category,
-            'price': item.price,
-            'estimated_uses': item.estimatedUses,
-            'remaining_uses': item.remainingUses,
-            'indicator_color': item.indicatorColor,
-            'image_url': item.imageUrl,
-            'ingredients': jsonEncode(item.ingredients),
-            'product_size': item.productSize,
-            'created_at': item.createdAt?.toIso8601String(),
-            'user_id': userId,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert('shelf_items', {
+          'id': item.id,
+          'name': item.name,
+          'brand': item.brand,
+          'category': item.category,
+          'price': item.price,
+          'estimated_uses': item.estimatedUses,
+          'remaining_uses': item.remainingUses,
+          'indicator_color': item.indicatorColor,
+          'image_url': item.imageUrl,
+          'ingredients': jsonEncode(item.ingredients),
+          'product_size': item.productSize,
+          'created_at': item.createdAt?.toIso8601String(),
+          'user_id': userId,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
   Future<void> insertShelfItem(String userId, ShelfItem item) async {
-    if (_useInMemoryFallback) {
-      _fallbackShelf.removeWhere((x) => x['id'] == item.id && x['user_id'] == userId);
+    if (useInMemoryFallback) {
+      _fallbackShelf.removeWhere(
+        (x) => x['id'] == item.id && x['user_id'] == userId,
+      );
       _fallbackShelf.add({
         'id': item.id,
         'name': item.name,
@@ -329,30 +354,28 @@ class DatabaseHelper {
     }
 
     final db = await database;
-    await db.insert(
-      'shelf_items',
-      {
-        'id': item.id,
-        'name': item.name,
-        'brand': item.brand,
-        'category': item.category,
-        'price': item.price,
-        'estimated_uses': item.estimatedUses,
-        'remaining_uses': item.remainingUses,
-        'indicator_color': item.indicatorColor,
-        'image_url': item.imageUrl,
-        'ingredients': jsonEncode(item.ingredients),
-        'product_size': item.productSize,
-        'created_at': item.createdAt?.toIso8601String(),
-        'user_id': userId,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('shelf_items', {
+      'id': item.id,
+      'name': item.name,
+      'brand': item.brand,
+      'category': item.category,
+      'price': item.price,
+      'estimated_uses': item.estimatedUses,
+      'remaining_uses': item.remainingUses,
+      'indicator_color': item.indicatorColor,
+      'image_url': item.imageUrl,
+      'ingredients': jsonEncode(item.ingredients),
+      'product_size': item.productSize,
+      'created_at': item.createdAt?.toIso8601String(),
+      'user_id': userId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateShelfItem(String userId, ShelfItem item) async {
-    if (_useInMemoryFallback) {
-      final idx = _fallbackShelf.indexWhere((x) => x['id'] == item.id && x['user_id'] == userId);
+    if (useInMemoryFallback) {
+      final idx = _fallbackShelf.indexWhere(
+        (x) => x['id'] == item.id && x['user_id'] == userId,
+      );
       if (idx != -1) {
         _fallbackShelf[idx] = {
           'id': item.id,
@@ -395,8 +418,10 @@ class DatabaseHelper {
   }
 
   Future<void> deleteShelfItem(String userId, String itemId) async {
-    if (_useInMemoryFallback) {
-      _fallbackShelf.removeWhere((x) => x['id'] == itemId && x['user_id'] == userId);
+    if (useInMemoryFallback) {
+      _fallbackShelf.removeWhere(
+        (x) => x['id'] == itemId && x['user_id'] == userId,
+      );
       return;
     }
 
@@ -409,14 +434,16 @@ class DatabaseHelper {
   }
 
   Future<ShelfItem?> getShelfItemById(String itemId) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       final list = _fallbackShelf.where((x) => x['id'] == itemId).toList();
       if (list.isEmpty) return null;
       final map = list.first;
       List<String> ingredients = [];
       if (map['ingredients'] != null && map['ingredients'] is String) {
         try {
-          ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+          ingredients = List<String>.from(
+            jsonDecode(map['ingredients'] as String) as Iterable,
+          );
         } catch (_) {}
       }
       return ShelfItem(
@@ -431,7 +458,9 @@ class DatabaseHelper {
         imageUrl: map['image_url'] as String?,
         ingredients: ingredients,
         productSize: map['product_size'] as String?,
-        createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+        createdAt: map['created_at'] != null
+            ? DateTime.tryParse(map['created_at'] as String)
+            : null,
       );
     }
 
@@ -446,7 +475,9 @@ class DatabaseHelper {
     List<String> ingredients = [];
     if (map['ingredients'] != null && map['ingredients'] is String) {
       try {
-        ingredients = List<String>.from(jsonDecode(map['ingredients'] as String) as Iterable);
+        ingredients = List<String>.from(
+          jsonDecode(map['ingredients'] as String) as Iterable,
+        );
       } catch (_) {
         ingredients = [];
       }
@@ -470,7 +501,7 @@ class DatabaseHelper {
   }
 
   Future<String?> getShelfItemUserId(String itemId) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       final list = _fallbackShelf.where((x) => x['id'] == itemId).toList();
       if (list.isEmpty) return null;
       return list.first['user_id'] as String?;
@@ -487,7 +518,7 @@ class DatabaseHelper {
   }
 
   Future<String?> getJournalEntryUserId(String entryId) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       final list = _fallbackJournal.where((x) => x['id'] == entryId).toList();
       if (list.isEmpty) return null;
       return list.first['user_id'] as String?;
@@ -506,9 +537,14 @@ class DatabaseHelper {
   // --- Journal Entries CRUD ---
 
   Future<List<JournalEntry>> getJournalEntries(String userId) async {
-    if (_useInMemoryFallback) {
-      final list = _fallbackJournal.where((x) => x['user_id'] == userId).toList();
-      list.sort((a, b) => (b['created_at'] as String).compareTo(a['created_at'] as String));
+    if (useInMemoryFallback) {
+      final list = _fallbackJournal
+          .where((x) => x['user_id'] == userId)
+          .toList();
+      list.sort(
+        (a, b) =>
+            (b['created_at'] as String).compareTo(a['created_at'] as String),
+      );
       return List.generate(list.length, (i) {
         final map = list[i];
         return JournalEntry(
@@ -517,7 +553,9 @@ class DatabaseHelper {
           skinScore: map['skin_score'] as int? ?? 80,
           photoPath: map['photo_path'] as String?,
           notes: map['notes'] as String?,
-          createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+          createdAt: map['created_at'] != null
+              ? DateTime.tryParse(map['created_at'] as String)
+              : null,
         );
       });
     }
@@ -545,8 +583,11 @@ class DatabaseHelper {
     });
   }
 
-  Future<void> saveJournalEntries(String userId, List<JournalEntry> entries) async {
-    if (_useInMemoryFallback) {
+  Future<void> saveJournalEntries(
+    String userId,
+    List<JournalEntry> entries,
+  ) async {
+    if (useInMemoryFallback) {
       _fallbackJournal.removeWhere((x) => x['user_id'] == userId);
       for (final entry in entries) {
         _fallbackJournal.add({
@@ -571,26 +612,24 @@ class DatabaseHelper {
       );
 
       for (final entry in entries) {
-        await txn.insert(
-          'journal_entries',
-          {
-            'id': entry.id,
-            'logged_date': entry.loggedDate,
-            'skin_score': entry.skinScore,
-            'photo_path': entry.photoPath,
-            'notes': entry.notes,
-            'created_at': entry.createdAt?.toIso8601String(),
-            'user_id': userId,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert('journal_entries', {
+          'id': entry.id,
+          'logged_date': entry.loggedDate,
+          'skin_score': entry.skinScore,
+          'photo_path': entry.photoPath,
+          'notes': entry.notes,
+          'created_at': entry.createdAt?.toIso8601String(),
+          'user_id': userId,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
   Future<void> insertJournalEntry(String userId, JournalEntry entry) async {
-    if (_useInMemoryFallback) {
-      _fallbackJournal.removeWhere((x) => x['id'] == entry.id && x['user_id'] == userId);
+    if (useInMemoryFallback) {
+      _fallbackJournal.removeWhere(
+        (x) => x['id'] == entry.id && x['user_id'] == userId,
+      );
       _fallbackJournal.add({
         'id': entry.id,
         'logged_date': entry.loggedDate,
@@ -604,24 +643,22 @@ class DatabaseHelper {
     }
 
     final db = await database;
-    await db.insert(
-      'journal_entries',
-      {
-        'id': entry.id,
-        'logged_date': entry.loggedDate,
-        'skin_score': entry.skinScore,
-        'photo_path': entry.photoPath,
-        'notes': entry.notes,
-        'created_at': entry.createdAt?.toIso8601String(),
-        'user_id': userId,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('journal_entries', {
+      'id': entry.id,
+      'logged_date': entry.loggedDate,
+      'skin_score': entry.skinScore,
+      'photo_path': entry.photoPath,
+      'notes': entry.notes,
+      'created_at': entry.createdAt?.toIso8601String(),
+      'user_id': userId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deleteJournalEntry(String userId, String entryId) async {
-    if (_useInMemoryFallback) {
-      _fallbackJournal.removeWhere((x) => x['id'] == entryId && x['user_id'] == userId);
+    if (useInMemoryFallback) {
+      _fallbackJournal.removeWhere(
+        (x) => x['id'] == entryId && x['user_id'] == userId,
+      );
       return;
     }
 
@@ -644,9 +681,14 @@ class DatabaseHelper {
   }) async {
     if (userId == 'offline-guest-user') return;
 
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       if (operation == 'DELETE') {
-        _fallbackSyncQueue.removeWhere((x) => x['item_id'] == itemId && x['user_id'] == userId && x['table_name'] == tableName);
+        _fallbackSyncQueue.removeWhere(
+          (x) =>
+              x['item_id'] == itemId &&
+              x['user_id'] == userId &&
+              x['table_name'] == tableName,
+        );
         _syncQueueIdCounter++;
         _fallbackSyncQueue.add({
           'id': _syncQueueIdCounter,
@@ -661,13 +703,17 @@ class DatabaseHelper {
       }
 
       if (operation == 'UPDATE') {
-        final idx = _fallbackSyncQueue.indexWhere((x) =>
-            x['item_id'] == itemId &&
-            x['user_id'] == userId &&
-            x['table_name'] == tableName &&
-            x['operation'] == 'INSERT');
+        final idx = _fallbackSyncQueue.indexWhere(
+          (x) =>
+              x['item_id'] == itemId &&
+              x['user_id'] == userId &&
+              x['table_name'] == tableName &&
+              x['operation'] == 'INSERT',
+        );
         if (idx != -1) {
-          _fallbackSyncQueue[idx]['serialized_data'] = data != null ? jsonEncode(data) : null;
+          _fallbackSyncQueue[idx]['serialized_data'] = data != null
+              ? jsonEncode(data)
+              : null;
           return;
         }
       }
@@ -693,24 +739,22 @@ class DatabaseHelper {
         where: 'item_id = ? AND user_id = ? AND table_name = ?',
         whereArgs: [itemId, userId, tableName],
       );
-      await db.insert(
-        'sync_queue',
-        {
-          'table_name': tableName,
-          'operation': 'DELETE',
-          'item_id': itemId,
-          'serialized_data': null,
-          'created_at': DateTime.now().toIso8601String(),
-          'user_id': userId,
-        },
-      );
+      await db.insert('sync_queue', {
+        'table_name': tableName,
+        'operation': 'DELETE',
+        'item_id': itemId,
+        'serialized_data': null,
+        'created_at': DateTime.now().toIso8601String(),
+        'user_id': userId,
+      });
       return;
     }
 
     if (operation == 'UPDATE') {
       final List<Map<String, dynamic>> pendingInserts = await db.query(
         'sync_queue',
-        where: 'item_id = ? AND user_id = ? AND table_name = ? AND operation = ?',
+        where:
+            'item_id = ? AND user_id = ? AND table_name = ? AND operation = ?',
         whereArgs: [itemId, userId, tableName, 'INSERT'],
       );
       if (pendingInserts.isNotEmpty) {
@@ -724,21 +768,18 @@ class DatabaseHelper {
       }
     }
 
-    await db.insert(
-      'sync_queue',
-      {
-        'table_name': tableName,
-        'operation': operation,
-        'item_id': itemId,
-        'serialized_data': data != null ? jsonEncode(data) : null,
-        'created_at': DateTime.now().toIso8601String(),
-        'user_id': userId,
-      },
-    );
+    await db.insert('sync_queue', {
+      'table_name': tableName,
+      'operation': operation,
+      'item_id': itemId,
+      'serialized_data': data != null ? jsonEncode(data) : null,
+      'created_at': DateTime.now().toIso8601String(),
+      'user_id': userId,
+    });
   }
 
   Future<List<Map<String, dynamic>>> getPendingSyncTasks(String userId) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       return _fallbackSyncQueue.where((x) => x['user_id'] == userId).toList();
     }
 
@@ -752,17 +793,13 @@ class DatabaseHelper {
   }
 
   Future<void> deleteSyncTask(int taskId) async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       _fallbackSyncQueue.removeWhere((x) => x['id'] == taskId);
       return;
     }
 
     final db = await database;
-    await db.delete(
-      'sync_queue',
-      where: 'id = ?',
-      whereArgs: [taskId],
-    );
+    await db.delete('sync_queue', where: 'id = ?', whereArgs: [taskId]);
   }
 
   // --- Migration: Guest User -> Registered User ---
@@ -770,12 +807,16 @@ class DatabaseHelper {
   Future<void> migrateGuestData(String oldUserId, String newUserId) async {
     if (oldUserId == newUserId) return;
 
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       // 1. Fetch all local guest shelf items
-      final guestShelfMap = _fallbackShelf.where((x) => x['user_id'] == oldUserId).toList();
+      final guestShelfMap = _fallbackShelf
+          .where((x) => x['user_id'] == oldUserId)
+          .toList();
 
       // 2. Fetch all local guest journal entries
-      final guestJournalMap = _fallbackJournal.where((x) => x['user_id'] == oldUserId).toList();
+      final guestJournalMap = _fallbackJournal
+          .where((x) => x['user_id'] == oldUserId)
+          .toList();
 
       // 3. Update user_id
       for (final item in _fallbackShelf) {
@@ -864,17 +905,14 @@ class DatabaseHelper {
         final Map<String, dynamic> data = Map.from(row);
         data['user_id'] = newUserId;
 
-        await txn.insert(
-          'sync_queue',
-          {
-            'table_name': 'skincare_shelf',
-            'operation': 'INSERT',
-            'item_id': itemId,
-            'serialized_data': jsonEncode(data),
-            'created_at': DateTime.now().toIso8601String(),
-            'user_id': newUserId,
-          },
-        );
+        await txn.insert('sync_queue', {
+          'table_name': 'skincare_shelf',
+          'operation': 'INSERT',
+          'item_id': itemId,
+          'serialized_data': jsonEncode(data),
+          'created_at': DateTime.now().toIso8601String(),
+          'user_id': newUserId,
+        });
       }
 
       for (final row in guestJournalMap) {
@@ -882,17 +920,14 @@ class DatabaseHelper {
         final Map<String, dynamic> data = Map.from(row);
         data['user_id'] = newUserId;
 
-        await txn.insert(
-          'sync_queue',
-          {
-            'table_name': 'journal_entries',
-            'operation': 'INSERT',
-            'item_id': entryId,
-            'serialized_data': jsonEncode(data),
-            'created_at': DateTime.now().toIso8601String(),
-            'user_id': newUserId,
-          },
-        );
+        await txn.insert('sync_queue', {
+          'table_name': 'journal_entries',
+          'operation': 'INSERT',
+          'item_id': entryId,
+          'serialized_data': jsonEncode(data),
+          'created_at': DateTime.now().toIso8601String(),
+          'user_id': newUserId,
+        });
       }
 
       await txn.delete(
@@ -910,7 +945,7 @@ class DatabaseHelper {
 
   @visibleForTesting
   Future<void> clearAllTables() async {
-    if (_useInMemoryFallback) {
+    if (useInMemoryFallback) {
       _fallbackShelf.clear();
       _fallbackJournal.clear();
       _fallbackSyncQueue.clear();

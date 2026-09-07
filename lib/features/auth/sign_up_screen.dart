@@ -43,7 +43,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
     try {
-      await authVm.signUp(_emailController.text.trim(), _passwordController.text);
+      await authVm.signUp(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -52,7 +55,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     } catch (e) {
       setState(() {
-        _localError = authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
+        _localError =
+            authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
       });
     }
   }
@@ -73,7 +77,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     } catch (e) {
       setState(() {
-        _localError = authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
+        _localError =
+            authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
       });
     }
   }
@@ -83,7 +88,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
     final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
@@ -91,7 +98,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
@@ -141,7 +151,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFCDD2),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.shade900, width: 3),
+                        border: Border.all(
+                          color: Colors.red.shade900,
+                          width: 3,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: shadowColor,
@@ -152,7 +165,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: Color(0xFFC62828)),
+                          const Icon(
+                            Icons.error_outline,
+                            color: Color(0xFFC62828),
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -203,24 +219,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: 'e.g. skin@glowmatch.com',
-                            hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
+                            hintStyle: TextStyle(
+                              color: textColor.withValues(alpha: 0.4),
+                            ),
                             filled: true,
-                            fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
+                            fillColor: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade50,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor.withValues(alpha: 0.5), width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor, width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
@@ -250,28 +282,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: 'Minimum 6 characters',
-                            hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
+                            hintStyle: TextStyle(
+                              color: textColor.withValues(alpha: 0.4),
+                            ),
                             filled: true,
-                            fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
+                            fillColor: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade50,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor.withValues(alpha: 0.5), width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor, width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
                                 color: textColor,
                               ),
                               onPressed: () {
@@ -308,33 +358,52 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: 'Repeat your password',
-                            hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
+                            hintStyle: TextStyle(
+                              color: textColor.withValues(alpha: 0.4),
+                            ),
                             filled: true,
-                            fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
+                            fillColor: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade50,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor.withValues(alpha: 0.5), width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor, width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
                                 color: textColor,
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _obscureConfirmPassword = !_obscureConfirmPassword;
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
                                 });
                               },
                             ),
@@ -404,13 +473,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: [
                       Text(
                         "Already have an account? ",
-                        style: TextStyle(color: textColor.withValues(alpha: 0.7)),
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.7),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (_) => const SignInScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const SignInScreen(),
+                            ),
                           );
                         },
                         child: const Text(

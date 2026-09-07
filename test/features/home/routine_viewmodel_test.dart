@@ -17,18 +17,20 @@ void main() {
     shelfVm = ShelfViewModel();
   });
 
-
   group('RoutineViewModel – toggleStep', () {
     test('toggleStep adds stepId to completedStepIds', () {
       vm.toggleStep('step-1', shelfVm);
       expect(vm.completedStepIds.contains('step-1'), isTrue);
     });
 
-    test('toggleStep does not remove stepId when already completed (no unchecking)', () {
-      vm.toggleStep('step-1', shelfVm);
-      vm.toggleStep('step-1', shelfVm);
-      expect(vm.completedStepIds.contains('step-1'), isTrue);
-    });
+    test(
+      'toggleStep does not remove stepId when already completed (no unchecking)',
+      () {
+        vm.toggleStep('step-1', shelfVm);
+        vm.toggleStep('step-1', shelfVm);
+        expect(vm.completedStepIds.contains('step-1'), isTrue);
+      },
+    );
 
     test('toggling multiple steps tracks each independently', () {
       vm.toggleStep('step-a', shelfVm);

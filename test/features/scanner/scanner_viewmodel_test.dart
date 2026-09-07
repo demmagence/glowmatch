@@ -91,7 +91,9 @@ void main() {
         expect(vm.analysisResult!.detectedIngredients, isEmpty);
         expect(
           vm.analysisResult!.recommendations,
-          contains('No skincare ingredients detected. Try scanning an ingredient list on a product label.'),
+          contains(
+            'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
+          ),
         );
       },
       timeout: const Timeout(Duration(seconds: 10)),
@@ -109,30 +111,34 @@ void main() {
       timeout: const Timeout(Duration(seconds: 10)),
     );
 
-    test('detectBlocksInImage processes image file path and returns blocks', () async {
-      final mockRecognizer = MockTextRecognizer();
-      final vmWithMock = ScannerViewModel(textRecognizer: mockRecognizer);
+    test(
+      'detectBlocksInImage processes image file path and returns blocks',
+      () async {
+        final mockRecognizer = MockTextRecognizer();
+        final vmWithMock = ScannerViewModel(textRecognizer: mockRecognizer);
 
-      final textBlock = TextBlock(
-        text: 'Niacinamide, Glycerin',
-        lines: const [],
-        boundingBox: const Rect.fromLTWH(0, 0, 100, 50),
-        recognizedLanguages: const [],
-        cornerPoints: const [],
-      );
-      final recognizedText = RecognizedText(
-        text: 'Niacinamide, Glycerin',
-        blocks: [textBlock],
-      );
+        final textBlock = TextBlock(
+          text: 'Niacinamide, Glycerin',
+          lines: const [],
+          boundingBox: const Rect.fromLTWH(0, 0, 100, 50),
+          recognizedLanguages: const [],
+          cornerPoints: const [],
+        );
+        final recognizedText = RecognizedText(
+          text: 'Niacinamide, Glycerin',
+          blocks: [textBlock],
+        );
 
-      when(mockRecognizer.processImage(any))
-          .thenAnswer((_) async => recognizedText);
+        when(
+          mockRecognizer.processImage(any),
+        ).thenAnswer((_) async => recognizedText);
 
-      final result = await vmWithMock.detectBlocksInImage('dummy_path.png');
+        final result = await vmWithMock.detectBlocksInImage('dummy_path.png');
 
-      expect(result, isNotEmpty);
-      expect(result.first.text, equals('Niacinamide, Glycerin'));
-      verify(mockRecognizer.processImage(any)).called(1);
-    });
+        expect(result, isNotEmpty);
+        expect(result.first.text, equals('Niacinamide, Glycerin'));
+        verify(mockRecognizer.processImage(any)).called(1);
+      },
+    );
   });
 }

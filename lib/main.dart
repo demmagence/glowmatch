@@ -39,7 +39,7 @@ void main() async {
 
 class GlowMatchApp extends StatelessWidget {
   final CurrencyViewModel? currencyViewModel;
-  
+
   const GlowMatchApp({super.key, this.currencyViewModel});
 
   @override

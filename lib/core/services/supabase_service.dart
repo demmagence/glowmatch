@@ -26,17 +26,17 @@ class SupabaseService {
   final List<Map<String, dynamic>> _mockDailyCompletionLogs = [];
   final List<Map<String, dynamic>> _mockRoutineStepCompletions = [];
 
-
-
   Future<void> initialize({
     required String url,
     required String anonKey,
   }) async {
-    // Initialize SQLite database cache first
-    try {
-      await DatabaseHelper().database;
-    } catch (e) {
-      debugPrint('Failed to initialize SQLite database cache: $e');
+    // Initialize SQLite database cache first if not using in-memory fallback
+    if (!DatabaseHelper().useInMemoryFallback) {
+      try {
+        await DatabaseHelper().database;
+      } catch (e) {
+        debugPrint('Failed to initialize SQLite database cache: $e');
+      }
     }
 
     if (url.isEmpty ||
@@ -87,14 +87,54 @@ class SupabaseService {
   void _seedMockData() {
     if (_mockCategories.isEmpty) {
       _mockCategories.addAll([
-        SkincareCategory(id: 'cat-1', name: 'Serum', color: '0xFFE040FB', isDefault: true),
-        SkincareCategory(id: 'cat-2', name: 'Sunscreen', color: '0xFF64DD17', isDefault: true),
-        SkincareCategory(id: 'cat-3', name: 'Moisturizer', color: '0xFFD50000', isDefault: true),
-        SkincareCategory(id: 'cat-4', name: 'Cleanser', color: '0xFF29B6F6', isDefault: true),
-        SkincareCategory(id: 'cat-5', name: 'Toner', color: '0xFFFFD600', isDefault: true),
-        SkincareCategory(id: 'cat-6', name: 'Exfoliant', color: '0xFFFF6D00', isDefault: true),
-        SkincareCategory(id: 'cat-7', name: 'Mask', color: '0xFF00BFA5', isDefault: true),
-        SkincareCategory(id: 'cat-8', name: 'Eye Cream', color: '0xFFFF4081', isDefault: true),
+        SkincareCategory(
+          id: 'cat-1',
+          name: 'Serum',
+          color: '0xFFE040FB',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-2',
+          name: 'Sunscreen',
+          color: '0xFF64DD17',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-3',
+          name: 'Moisturizer',
+          color: '0xFFD50000',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-4',
+          name: 'Cleanser',
+          color: '0xFF29B6F6',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-5',
+          name: 'Toner',
+          color: '0xFFFFD600',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-6',
+          name: 'Exfoliant',
+          color: '0xFFFF6D00',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-7',
+          name: 'Mask',
+          color: '0xFF00BFA5',
+          isDefault: true,
+        ),
+        SkincareCategory(
+          id: 'cat-8',
+          name: 'Eye Cream',
+          color: '0xFFFF4081',
+          isDefault: true,
+        ),
       ]);
     }
 
@@ -244,7 +284,7 @@ class SupabaseService {
         now.subtract(const Duration(days: 2)),
         now.subtract(const Duration(days: 3)),
         now.subtract(const Duration(days: 4)),
-        
+
         // Seeding a past 15-day streak from day 7 to day 21
         now.subtract(const Duration(days: 7)),
         now.subtract(const Duration(days: 8)),
@@ -279,7 +319,6 @@ class SupabaseService {
       );
     }
   }
-
 
   void _handlePostgrestException(String operation, PostgrestException e) {
     if (e.code == '42501') {
@@ -320,10 +359,7 @@ class SupabaseService {
         ? DateTime.now().millisecondsSinceEpoch.toString()
         : item.id;
     final now = DateTime.now();
-    final newItem = item.copyWith(
-      id: id,
-      createdAt: item.createdAt ?? now,
-    );
+    final newItem = item.copyWith(id: id, createdAt: item.createdAt ?? now);
 
     // 1. Save to local SQLite cache
     await DatabaseHelper().insertShelfItem(userId, newItem);
@@ -369,7 +405,9 @@ class SupabaseService {
       final dataMap = {
         ...updatedItem.toJson(),
         'user_id': userId,
-        'created_at': updatedItem.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        'created_at':
+            updatedItem.createdAt?.toIso8601String() ??
+            DateTime.now().toIso8601String(),
       };
       await db.queueSyncTask(
         userId: userId,
@@ -409,7 +447,9 @@ class SupabaseService {
       final dataMap = {
         ...updatedItem.toJson(),
         'user_id': userId,
-        'created_at': updatedItem.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        'created_at':
+            updatedItem.createdAt?.toIso8601String() ??
+            DateTime.now().toIso8601String(),
       };
       await db.queueSyncTask(
         userId: userId,
@@ -490,10 +530,7 @@ class SupabaseService {
       userId: userId,
       isDefault: false,
     );
-    final newCategoryMap = {
-      ...newCategory.toJson(),
-      'user_id': userId,
-    };
+    final newCategoryMap = {...newCategory.toJson(), 'user_id': userId};
 
     if (_isOfflineMode) {
       _mockCategories.add(newCategory);
@@ -724,7 +761,9 @@ class SupabaseService {
     try {
       await SyncService().syncAndFetchJournal(userId);
     } catch (e) {
-      debugPrint('SupabaseService: getJournalEntries remote sync/fetch failed: $e');
+      debugPrint(
+        'SupabaseService: getJournalEntries remote sync/fetch failed: $e',
+      );
     }
     return await DatabaseHelper().getJournalEntries(userId);
   }
@@ -737,10 +776,7 @@ class SupabaseService {
         ? DateTime.now().millisecondsSinceEpoch.toString()
         : entry.id;
     final now = DateTime.now();
-    final newEntry = entry.copyWith(
-      id: id,
-      createdAt: entry.createdAt ?? now,
-    );
+    final newEntry = entry.copyWith(id: id, createdAt: entry.createdAt ?? now);
 
     // 1. Save to local SQLite cache
     await DatabaseHelper().insertJournalEntry(userId, newEntry);
@@ -810,7 +846,8 @@ class SupabaseService {
 
   Future<StreakData> getStreakData(String userId) async {
     if (_isOfflineMode || userId.isEmpty) {
-      final raw = _mockStreaks[userId] ??
+      final raw =
+          _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
       return _checkAndResetBrokenStreak(userId, raw);
     }
@@ -833,12 +870,14 @@ class SupabaseService {
       return _checkAndResetBrokenStreak(userId, raw);
     } on PostgrestException catch (e) {
       _handlePostgrestException('getStreakData', e);
-      final raw = _mockStreaks[userId] ??
+      final raw =
+          _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
       return _checkAndResetBrokenStreak(userId, raw);
     } catch (e) {
       _handleGenericException('getStreakData', e);
-      final raw = _mockStreaks[userId] ??
+      final raw =
+          _mockStreaks[userId] ??
           StreakData(currentStreak: 0, longestStreak: 0, totalCompletions: 0);
       return _checkAndResetBrokenStreak(userId, raw);
     }
@@ -915,10 +954,7 @@ class SupabaseService {
     }
 
     try {
-      final logMap = {
-        'user_id': userId,
-        'completion_date': completionDateStr,
-      };
+      final logMap = {'user_id': userId, 'completion_date': completionDateStr};
 
       await Supabase.instance.client
           .from(AppConstants.tableDailyCompletionLog)
@@ -1004,11 +1040,12 @@ class SupabaseService {
     }
   }
 
-
   bool _isSameDay(DateTime a, DateTime b) {
     final localA = a.toLocal();
     final localB = b.toLocal();
-    return localA.year == localB.year && localA.month == localB.month && localA.day == localB.day;
+    return localA.year == localB.year &&
+        localA.month == localB.month &&
+        localA.day == localB.day;
   }
 
   bool _isYesterday(DateTime lastDate, DateTime currentDate) {
@@ -1104,11 +1141,17 @@ class SupabaseService {
     }
   }
 
-  Future<List<String>> getRoutineStepCompletions(String userId, DateTime date) async {
+  Future<List<String>> getRoutineStepCompletions(
+    String userId,
+    DateTime date,
+  ) async {
     final dateStr = date.toIso8601String().split('T')[0];
     if (_isOfflineMode || userId.isEmpty) {
       return _mockRoutineStepCompletions
-          .where((row) => row['user_id'] == userId && row['completion_date'] == dateStr)
+          .where(
+            (row) =>
+                row['user_id'] == userId && row['completion_date'] == dateStr,
+          )
           .map((row) => row['step_id'] as String)
           .toList();
     }
@@ -1131,25 +1174,37 @@ class SupabaseService {
     } on PostgrestException catch (e) {
       _handlePostgrestException('getRoutineStepCompletions', e);
       return _mockRoutineStepCompletions
-          .where((row) => row['user_id'] == userId && row['completion_date'] == dateStr)
+          .where(
+            (row) =>
+                row['user_id'] == userId && row['completion_date'] == dateStr,
+          )
           .map((row) => row['step_id'] as String)
           .toList();
     } catch (e) {
       _handleGenericException('getRoutineStepCompletions', e);
       return _mockRoutineStepCompletions
-          .where((row) => row['user_id'] == userId && row['completion_date'] == dateStr)
+          .where(
+            (row) =>
+                row['user_id'] == userId && row['completion_date'] == dateStr,
+          )
           .map((row) => row['step_id'] as String)
           .toList();
     }
   }
 
-  Future<void> insertRoutineStepCompletion(String userId, String stepId, DateTime date) async {
+  Future<void> insertRoutineStepCompletion(
+    String userId,
+    String stepId,
+    DateTime date,
+  ) async {
     final dateStr = date.toIso8601String().split('T')[0];
     if (_isOfflineMode || userId.isEmpty) {
-      final exists = _mockRoutineStepCompletions.any((row) =>
-          row['user_id'] == userId &&
-          row['step_id'] == stepId &&
-          row['completion_date'] == dateStr);
+      final exists = _mockRoutineStepCompletions.any(
+        (row) =>
+            row['user_id'] == userId &&
+            row['step_id'] == stepId &&
+            row['completion_date'] == dateStr,
+      );
       if (!exists) {
         _mockRoutineStepCompletions.add({
           'user_id': userId,
@@ -1171,10 +1226,12 @@ class SupabaseService {
           .upsert(data, onConflict: 'user_id,step_id,completion_date');
     } on PostgrestException catch (e) {
       _handlePostgrestException('insertRoutineStepCompletion', e);
-      final exists = _mockRoutineStepCompletions.any((row) =>
-          row['user_id'] == userId &&
-          row['step_id'] == stepId &&
-          row['completion_date'] == dateStr);
+      final exists = _mockRoutineStepCompletions.any(
+        (row) =>
+            row['user_id'] == userId &&
+            row['step_id'] == stepId &&
+            row['completion_date'] == dateStr,
+      );
       if (!exists) {
         _mockRoutineStepCompletions.add({
           'user_id': userId,
@@ -1184,10 +1241,12 @@ class SupabaseService {
       }
     } catch (e) {
       _handleGenericException('insertRoutineStepCompletion', e);
-      final exists = _mockRoutineStepCompletions.any((row) =>
-          row['user_id'] == userId &&
-          row['step_id'] == stepId &&
-          row['completion_date'] == dateStr);
+      final exists = _mockRoutineStepCompletions.any(
+        (row) =>
+            row['user_id'] == userId &&
+            row['step_id'] == stepId &&
+            row['completion_date'] == dateStr,
+      );
       if (!exists) {
         _mockRoutineStepCompletions.add({
           'user_id': userId,
@@ -1198,13 +1257,19 @@ class SupabaseService {
     }
   }
 
-  Future<void> deleteRoutineStepCompletion(String userId, String stepId, DateTime date) async {
+  Future<void> deleteRoutineStepCompletion(
+    String userId,
+    String stepId,
+    DateTime date,
+  ) async {
     final dateStr = date.toIso8601String().split('T')[0];
     if (_isOfflineMode || userId.isEmpty) {
-      _mockRoutineStepCompletions.removeWhere((row) =>
-          row['user_id'] == userId &&
-          row['step_id'] == stepId &&
-          row['completion_date'] == dateStr);
+      _mockRoutineStepCompletions.removeWhere(
+        (row) =>
+            row['user_id'] == userId &&
+            row['step_id'] == stepId &&
+            row['completion_date'] == dateStr,
+      );
       return;
     }
 
@@ -1217,16 +1282,20 @@ class SupabaseService {
           .eq('completion_date', dateStr);
     } on PostgrestException catch (e) {
       _handlePostgrestException('deleteRoutineStepCompletion', e);
-      _mockRoutineStepCompletions.removeWhere((row) =>
-          row['user_id'] == userId &&
-          row['step_id'] == stepId &&
-          row['completion_date'] == dateStr);
+      _mockRoutineStepCompletions.removeWhere(
+        (row) =>
+            row['user_id'] == userId &&
+            row['step_id'] == stepId &&
+            row['completion_date'] == dateStr,
+      );
     } catch (e) {
       _handleGenericException('deleteRoutineStepCompletion', e);
-      _mockRoutineStepCompletions.removeWhere((row) =>
-          row['user_id'] == userId &&
-          row['step_id'] == stepId &&
-          row['completion_date'] == dateStr);
+      _mockRoutineStepCompletions.removeWhere(
+        (row) =>
+            row['user_id'] == userId &&
+            row['step_id'] == stepId &&
+            row['completion_date'] == dateStr,
+      );
     }
   }
 
@@ -1253,7 +1322,6 @@ class SupabaseService {
     _seedMockData();
   }
 
-
   @visibleForTesting
   void setMockStreak(String userId, StreakData streak) {
     _mockStreaks[userId] = streak;
@@ -1271,9 +1339,15 @@ class SupabaseService {
   }
 
   @visibleForTesting
-  void setMockRoutineStepCompletions(String userId, List<String> stepIds, DateTime date) {
+  void setMockRoutineStepCompletions(
+    String userId,
+    List<String> stepIds,
+    DateTime date,
+  ) {
     final dateStr = date.toIso8601String().split('T')[0];
-    _mockRoutineStepCompletions.removeWhere((row) => row['user_id'] == userId && row['completion_date'] == dateStr);
+    _mockRoutineStepCompletions.removeWhere(
+      (row) => row['user_id'] == userId && row['completion_date'] == dateStr,
+    );
     for (final stepId in stepIds) {
       _mockRoutineStepCompletions.add({
         'user_id': userId,

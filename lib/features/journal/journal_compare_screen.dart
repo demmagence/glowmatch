@@ -24,8 +24,18 @@ class JournalCompareScreen extends StatelessWidget {
       final day = int.tryParse(dayStr) ?? 1;
       int month = now.month;
       const months = [
-        'jan', 'feb', 'mar', 'apr', 'may', 'jun',
-        'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
+        'jan',
+        'feb',
+        'mar',
+        'apr',
+        'may',
+        'jun',
+        'jul',
+        'aug',
+        'sep',
+        'oct',
+        'nov',
+        'dec',
       ];
       final idx = months.indexOf(monthStr);
       if (idx != -1) month = idx + 1;
@@ -40,8 +50,9 @@ class JournalCompareScreen extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor =
-        isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
 
     final dateA = _parseLoggedDate(entryA.loggedDate);
     final dateB = _parseLoggedDate(entryB.loggedDate);
@@ -89,7 +100,11 @@ class JournalCompareScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       _buildCompareImageCard(
-                          earlier, isDark, borderColor, shadowColor),
+                        earlier,
+                        isDark,
+                        borderColor,
+                        shadowColor,
+                      ),
                     ],
                   ),
                 ),
@@ -108,7 +123,11 @@ class JournalCompareScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       _buildCompareImageCard(
-                          later, isDark, borderColor, shadowColor),
+                        later,
+                        isDark,
+                        borderColor,
+                        shadowColor,
+                      ),
                     ],
                   ),
                 ),
@@ -237,11 +256,7 @@ class JournalCompareScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             notes,
-            style: TextStyle(
-              fontSize: 13,
-              color: subtextColor,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 13, color: subtextColor, height: 1.4),
           ),
         ],
       ],

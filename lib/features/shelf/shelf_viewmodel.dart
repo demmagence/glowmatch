@@ -226,7 +226,10 @@ class ShelfViewModel extends ChangeNotifier {
       final oldName = _categories[idx].name;
       final updated = _categories[idx].copyWith(name: newName, color: colorHex);
       try {
-        final result = await _supabaseService.updateCategory(categoryId, updated);
+        final result = await _supabaseService.updateCategory(
+          categoryId,
+          updated,
+        );
         if (result != null) {
           _categories[idx] = result;
           for (var i = 0; i < _shelfItems.length; i++) {
@@ -235,7 +238,10 @@ class ShelfViewModel extends ChangeNotifier {
                 category: newName,
                 indicatorColor: colorHex,
               );
-              await _supabaseService.updateShelfItem(_shelfItems[i].id, productUpdates);
+              await _supabaseService.updateShelfItem(
+                _shelfItems[i].id,
+                productUpdates,
+              );
               _shelfItems[i] = productUpdates;
             }
           }
@@ -258,7 +264,10 @@ class ShelfViewModel extends ChangeNotifier {
           for (var i = 0; i < _shelfItems.length; i++) {
             if (_shelfItems[i].category == oldName) {
               final productUpdates = _shelfItems[i].copyWith(category: 'Serum');
-              await _supabaseService.updateShelfItem(_shelfItems[i].id, productUpdates);
+              await _supabaseService.updateShelfItem(
+                _shelfItems[i].id,
+                productUpdates,
+              );
               _shelfItems[i] = productUpdates;
             }
           }
