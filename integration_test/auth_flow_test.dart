@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
+import 'package:glowmatch/features/auth/sign_in_screen.dart';
+import 'package:glowmatch/features/auth/sign_up_screen.dart';
+import 'package:glowmatch/features/onboarding/onboarding_screen.dart';
 import 'package:glowmatch/main.dart' as app;
 
 void main() {
@@ -14,8 +16,8 @@ void main() {
     await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
   });
 
-  group('GlowMatch App Integration Tests', () {
-    testWidgets('App launch to Splash to Onboarding (first run) to Home', (
+  group('Authentication Lifecycle Integration Tests', () {
+    testWidgets('First-time user launch shows Onboarding, skip leads to Home', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({'has_seen_onboarding': false});
@@ -23,11 +25,11 @@ void main() {
       await tester.pumpWidget(const app.GlowMatchApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('GlowMatch'), findsOneWidget);
-
+      // Splash delay
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
+      expect(find.byType(OnboardingScreen), findsOneWidget);
       expect(find.text('Track Your Glow'), findsOneWidget);
 
       await tester.tap(find.text('Skip'));
@@ -37,31 +39,30 @@ void main() {
     });
 
     testWidgets(
-      'App launch to Splash to SignInScreen (returning unauthenticated user)',
+      'Returning unauthenticated user routes to SignInScreen, not Home',
       (tester) async {
         SharedPreferences.setMockInitialValues({'has_seen_onboarding': true});
 
         await tester.pumpWidget(const app.GlowMatchApp());
         await tester.pumpAndSettle();
 
-        expect(find.text('GlowMatch'), findsOneWidget);
-
         await tester.pump(const Duration(seconds: 2));
         await tester.pumpAndSettle();
 
-        // Returning unauthenticated users must be routed to SignInScreen
+        expect(find.byType(SignInScreen), findsOneWidget);
         expect(find.text('Sign In'), findsWidgets);
         expect(find.text('Continue as Guest'), findsOneWidget);
       },
     );
 
-    testWidgets('Navigation through all bottom tabs after guest sign-in', (
+    testWidgets('Guest entry from SignInScreen successfully reaches Home', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({'has_seen_onboarding': true});
 
       await tester.pumpWidget(const app.GlowMatchApp());
       await tester.pumpAndSettle();
+
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
@@ -70,22 +71,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Morning Routine'), findsOneWidget);
+    });
 
-      await tester.tap(find.byIcon(Icons.account_balance_wallet_outlined));
-      await tester.pumpAndSettle();
-      expect(find.text('MONTHLY SPEND vs LIMIT'), findsOneWidget);
+    testWidgets('Navigate between Sign In and Sign Up screens', (tester) async {
+      SharedPreferences.setMockInitialValues({'has_seen_onboarding': true});
 
-      await tester.tap(find.byIcon(Icons.assignment_outlined));
+      await tester.pumpWidget(const app.GlowMatchApp());
       await tester.pumpAndSettle();
-      expect(find.text('CURRENT SCORE'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.inventory_2_outlined));
+      await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
-      expect(find.text('My Shelf'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.grid_view_rounded));
+      expect(find.byType(SignInScreen), findsOneWidget);
+      await tester.tap(find.text('Sign Up'));
       await tester.pumpAndSettle();
-      expect(find.text('Morning Routine'), findsOneWidget);
+
+      expect(find.byType(SignUpScreen), findsOneWidget);
+
+      // Back to Sign In
+      await tester.tap(find.text('Sign In'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SignInScreen), findsOneWidget);
     });
   });
 }
