@@ -42,12 +42,16 @@ class SyncService {
           if (operation == 'DELETE') {
             await client.from(tableName).delete().eq('id', itemId);
           } else {
-            final Map<String, dynamic> data = jsonDecode(serializedData!) as Map<String, dynamic>;
+            final Map<String, dynamic> data =
+                jsonDecode(serializedData!) as Map<String, dynamic>;
             data['user_id'] = userId;
-            
+
             // Convert ingredients list back to a Postgres array format for insertion
-            if (data.containsKey('ingredients') && data['ingredients'] is List) {
-              data['ingredients'] = List<String>.from(data['ingredients'] as Iterable);
+            if (data.containsKey('ingredients') &&
+                data['ingredients'] is List) {
+              data['ingredients'] = List<String>.from(
+                data['ingredients'] as Iterable,
+              );
             }
 
             if (operation == 'INSERT') {
@@ -58,7 +62,9 @@ class SyncService {
           }
           await _dbHelper.deleteSyncTask(taskId);
         } on PostgrestException catch (e) {
-          debugPrint('SyncService: PostgrestException syncing task $taskId: ${e.message} (code: ${e.code})');
+          debugPrint(
+            'SyncService: PostgrestException syncing task $taskId: ${e.message} (code: ${e.code})',
+          );
           if (e.code == '42501') {
             // RLS/Permission error - could be configuration or guest account insert blocked.
             // Discard the task to avoid blocking the queue permanently.
@@ -98,9 +104,17 @@ class SyncService {
           .select()
           .eq('user_id', userId);
 
-      final List<ShelfItem> remoteItems = (response as List)
-          .map((x) => ShelfItem.fromJson(x as Map<String, dynamic>))
-          .toList();
+      final List<ShelfItem> remoteItems = await Future.wait(
+        (response as List).map((x) async {
+          final item = ShelfItem.fromJson(x as Map<String, dynamic>);
+          return item.copyWith(
+            imageUrl: await _refreshStorageUrl(
+              item.imageUrl,
+              AppConstants.bucketProductPhotos,
+            ),
+          );
+        }),
+      );
 
       // 3. Save remote items to local SQLite database cache
       await _dbHelper.saveShelfItems(userId, remoteItems);
@@ -124,9 +138,17 @@ class SyncService {
           .eq('user_id', userId)
           .order('logged_date', ascending: false);
 
-      final List<JournalEntry> remoteEntries = (response as List)
-          .map((x) => JournalEntry.fromJson(x as Map<String, dynamic>))
-          .toList();
+      final List<JournalEntry> remoteEntries = await Future.wait(
+        (response as List).map((x) async {
+          final entry = JournalEntry.fromJson(x as Map<String, dynamic>);
+          return entry.copyWith(
+            photoPath: await _refreshStorageUrl(
+              entry.photoPath,
+              AppConstants.bucketJournalPhotos,
+            ),
+          );
+        }),
+      );
 
       // 3. Save remote entries to local SQLite database cache
       await _dbHelper.saveJournalEntries(userId, remoteEntries);
@@ -144,5 +166,29 @@ class SyncService {
         str.contains('handshake') ||
         str.contains('timeout') ||
         str.contains('connection failed');
+  }
+
+  Future<String?> _refreshStorageUrl(String? value, String bucket) async {
+    if (value == null || value.isEmpty || !value.startsWith('http')) {
+      return value;
+    }
+
+    final uri = Uri.tryParse(value);
+    if (uri == null) return value;
+
+    final bucketIndex = uri.pathSegments.indexOf(bucket);
+    if (bucketIndex < 0 || bucketIndex + 1 >= uri.pathSegments.length) {
+      return value;
+    }
+
+    final objectPath = uri.pathSegments.sublist(bucketIndex + 1).join('/');
+    try {
+      return await Supabase.instance.client.storage
+          .from(bucket)
+          .createSignedUrl(objectPath, 60 * 60 * 24 * 7);
+    } catch (e) {
+      debugPrint('SyncService: unable to refresh signed storage URL: $e');
+      return value;
+    }
   }
 }
