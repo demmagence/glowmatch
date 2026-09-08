@@ -11,6 +11,7 @@ import 'features/budget/budget_viewmodel.dart';
 import 'features/scanner/scanner_viewmodel.dart';
 import 'features/journal/journal_viewmodel.dart';
 import 'features/splash/splash_screen.dart';
+import 'features/auth/reset_password_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'l10n/app_localizations.dart';
 
@@ -39,7 +40,7 @@ void main() async {
 
 class GlowMatchApp extends StatelessWidget {
   final CurrencyViewModel? currencyViewModel;
-  
+
   const GlowMatchApp({super.key, this.currencyViewModel});
 
   @override
@@ -69,6 +70,7 @@ class GlowMatchApp extends StatelessWidget {
       ],
       child: Consumer<ThemeViewModel>(
         builder: (context, themeVm, child) {
+          final authVm = context.watch<AuthViewModel>();
           return MaterialApp(
             title: 'GlowMatch',
             debugShowCheckedModeBanner: false,
@@ -126,6 +128,9 @@ class GlowMatchApp extends StatelessWidget {
                 centerTitle: true,
               ),
             ),
+            builder: (context, child) => authVm.isPasswordRecovery
+                ? const ResetPasswordScreen()
+                : child ?? const SizedBox.shrink(),
             home: const SplashScreen(),
           );
         },

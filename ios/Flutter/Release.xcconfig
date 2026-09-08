@@ -1,1 +1,7 @@
 #include "Generated.xcconfig"
+
+// Production iOS Distribution Signing Configuration
+// Set these values directly or supply via CI environment / Xcode build settings.
+// CODE_SIGN_IDENTITY = Apple Distribution
+// DEVELOPMENT_TEAM = [YOUR_DEVELOPMENT_TEAM_ID]
+// PROVISIONING_PROFILE_SPECIFIER = [YOUR_PROVISIONING_PROFILE]

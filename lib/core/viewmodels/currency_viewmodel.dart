@@ -38,7 +38,7 @@ class CurrencyViewModel extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _selectedCurrency = prefs.getString('preferred_currency') ?? 'USD';
-      
+
       // Initialize rates service
       await _currencyService.init();
       notifyListeners();
@@ -56,7 +56,7 @@ class CurrencyViewModel extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('preferred_currency', currencyCode);
-      
+
       // Refresh rates dynamically
       await _currencyService.fetchRates();
       notifyListeners();

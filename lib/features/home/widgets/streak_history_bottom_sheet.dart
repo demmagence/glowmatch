@@ -18,8 +18,18 @@ class StreakHistoryBottomSheet extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -33,9 +43,11 @@ class StreakHistoryBottomSheet extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
 
-
     final completedSet = routineVm.dailyCompletionLogs
-        .map((d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}')
+        .map(
+          (d) =>
+              '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}',
+        )
         .toSet();
 
     return Container(
@@ -100,7 +112,9 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                       color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black,
                           offset: const Offset(1.5, 1.5),
                           blurRadius: 0,
                         ),
@@ -151,12 +165,16 @@ class StreakHistoryBottomSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFFAFAFA),
+                color: isDark
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFFFAFAFA),
                 border: Border.all(color: borderColor, width: 1.5),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black,
                     offset: const Offset(2, 2),
                     blurRadius: 0,
                   ),
@@ -169,10 +187,16 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildLegendItem(const Color(0xFF64DD17), 'Completed', context),
+                      _buildLegendItem(
+                        const Color(0xFF64DD17),
+                        'Completed',
+                        context,
+                      ),
                       const SizedBox(width: 16),
                       _buildLegendItem(
-                        isDark ? const Color(0xFF424242) : const Color(0xFFE0E0E0),
+                        isDark
+                            ? const Color(0xFF424242)
+                            : const Color(0xFFE0E0E0),
                         'Missed',
                         context,
                       ),
@@ -206,7 +230,9 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                     style: BorderStyle.solid,
                   ),
                   borderRadius: BorderRadius.circular(8),
-                  color: isDark ? const Color(0xFF2B2B2B) : const Color(0xFFFAFAFA),
+                  color: isDark
+                      ? const Color(0xFF2B2B2B)
+                      : const Color(0xFFFAFAFA),
                 ),
                 child: Text(
                   'No streak history yet. Complete your first routine!',
@@ -227,21 +253,22 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                   final isMilestone = segment.length >= 7;
                   final badgeBg = isMilestone
                       ? const Color(0xFFFFD54F)
-                      : (isDark ? const Color(0xFF333333) : const Color(0xFFEEEEEE));
+                      : (isDark
+                            ? const Color(0xFF333333)
+                            : const Color(0xFFEEEEEE));
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-                      border: Border.all(
-                        color: borderColor,
-                        width: 1.5,
-                      ),
+                      border: Border.all(color: borderColor, width: 1.5),
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black,
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black,
                           offset: const Offset(2, 2),
                           blurRadius: 0,
                         ),
@@ -250,13 +277,13 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: badgeBg,
-                            border: Border.all(
-                              color: borderColor,
-                              width: 1.2,
-                            ),
+                            border: Border.all(color: borderColor, width: 1.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -287,11 +314,13 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                                   segment.length >= 30
                                       ? '👑 Skincare Master Milestone!'
                                       : segment.length >= 14
-                                          ? '🌟 Unstoppable barrier milestone!'
-                                          : '🏆 Solid habit milestone!',
+                                      ? '🌟 Unstoppable barrier milestone!'
+                                      : '🏆 Solid habit milestone!',
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
-                                    color: isDark ? const Color(0xFFFFD54F) : const Color(0xFFD3A200),
+                                    color: isDark
+                                        ? const Color(0xFFFFD54F)
+                                        : const Color(0xFFD3A200),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -310,7 +339,12 @@ class StreakHistoryBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String label, String value, String icon, BuildContext context) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    String icon,
+    BuildContext context,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white : Colors.black;
     final cardBg = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFFAFAFA);

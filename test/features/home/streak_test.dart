@@ -41,59 +41,68 @@ void main() {
   });
 
   group('Acceptance Criteria – Issue #75', () {
-    test('AC1: recordRoutineCompletion triggers exactly once per day', () async {
-      // First completion creates the streak
-      final first = await svc.recordRoutineCompletion('ac1-user');
-      expect(first.currentStreak, equals(1));
-      expect(first.totalCompletions, equals(1));
+    test(
+      'AC1: recordRoutineCompletion triggers exactly once per day',
+      () async {
+        // First completion creates the streak
+        final first = await svc.recordRoutineCompletion('ac1-user');
+        expect(first.currentStreak, equals(1));
+        expect(first.totalCompletions, equals(1));
 
-      // Second call on the same day is a no-op
-      final second = await svc.recordRoutineCompletion('ac1-user');
-      expect(second.currentStreak, equals(1));
-      expect(second.totalCompletions, equals(1));
+        // Second call on the same day is a no-op
+        final second = await svc.recordRoutineCompletion('ac1-user');
+        expect(second.currentStreak, equals(1));
+        expect(second.totalCompletions, equals(1));
 
-      // Third call on the same day is still a no-op
-      final third = await svc.recordRoutineCompletion('ac1-user');
-      expect(third.currentStreak, equals(1));
-      expect(third.totalCompletions, equals(1));
-    });
+        // Third call on the same day is still a no-op
+        final third = await svc.recordRoutineCompletion('ac1-user');
+        expect(third.currentStreak, equals(1));
+        expect(third.totalCompletions, equals(1));
+      },
+    );
 
-    test('AC2: streak data persists correctly across re-reads (simulating re-login)', () async {
-      // Complete the routine
-      final completed = await svc.recordRoutineCompletion('ac2-user');
-      expect(completed.currentStreak, equals(1));
-      expect(completed.totalCompletions, equals(1));
+    test(
+      'AC2: streak data persists correctly across re-reads (simulating re-login)',
+      () async {
+        // Complete the routine
+        final completed = await svc.recordRoutineCompletion('ac2-user');
+        expect(completed.currentStreak, equals(1));
+        expect(completed.totalCompletions, equals(1));
 
-      // Simulate re-login: re-read streak from service
-      final reloaded = await svc.getStreakData('ac2-user');
-      expect(reloaded.currentStreak, equals(1));
-      expect(reloaded.totalCompletions, equals(1));
-      expect(reloaded.lastCompletedDate, isNotNull);
+        // Simulate re-login: re-read streak from service
+        final reloaded = await svc.getStreakData('ac2-user');
+        expect(reloaded.currentStreak, equals(1));
+        expect(reloaded.totalCompletions, equals(1));
+        expect(reloaded.lastCompletedDate, isNotNull);
 
-      // Attempt to complete again on same day after re-read
-      final secondAttempt = await svc.recordRoutineCompletion('ac2-user');
-      expect(secondAttempt.currentStreak, equals(1));
-      expect(secondAttempt.totalCompletions, equals(1));
-    });
+        // Attempt to complete again on same day after re-read
+        final secondAttempt = await svc.recordRoutineCompletion('ac2-user');
+        expect(secondAttempt.currentStreak, equals(1));
+        expect(secondAttempt.totalCompletions, equals(1));
+      },
+    );
 
-    test('AC4: getStreakData returns persisted data after recordRoutineCompletion', () async {
-      // Record a completion
-      await svc.recordRoutineCompletion('ac4-user');
+    test(
+      'AC4: getStreakData returns persisted data after recordRoutineCompletion',
+      () async {
+        // Record a completion
+        await svc.recordRoutineCompletion('ac4-user');
 
-      // Fetch it back (simulates app start loading streak)
-      final loaded = await svc.getStreakData('ac4-user');
-      expect(loaded.currentStreak, equals(1));
-      expect(loaded.longestStreak, equals(1));
-      expect(loaded.totalCompletions, equals(1));
-      expect(loaded.lastCompletedDate, isNotNull);
+        // Fetch it back (simulates app start loading streak)
+        final loaded = await svc.getStreakData('ac4-user');
+        expect(loaded.currentStreak, equals(1));
+        expect(loaded.longestStreak, equals(1));
+        expect(loaded.totalCompletions, equals(1));
+        expect(loaded.lastCompletedDate, isNotNull);
 
-      // Verify the date is today (local time)
-      final now = DateTime.now();
-      final lastLocal = loaded.lastCompletedDate!.toLocal();
-      expect(lastLocal.year, equals(now.year));
-      expect(lastLocal.month, equals(now.month));
-      expect(lastLocal.day, equals(now.day));
-    });
+        // Verify the date is today (local time)
+        final now = DateTime.now();
+        final lastLocal = loaded.lastCompletedDate!.toLocal();
+        expect(lastLocal.year, equals(now.year));
+        expect(lastLocal.month, equals(now.month));
+        expect(lastLocal.day, equals(now.day));
+      },
+    );
 
     test('AC5: Streak breaks (resets to 0) when user misses a day', () async {
       // Seed a streak that completed 2 days ago
@@ -111,7 +120,10 @@ void main() {
       expect(loaded.currentStreak, equals(0));
       expect(loaded.longestStreak, equals(10)); // Longest streak is preserved
       expect(loaded.totalCompletions, equals(8));
-      expect(loaded.lastCompletedDate, equals(twoDaysAgo)); // Date remains the same
+      expect(
+        loaded.lastCompletedDate,
+        equals(twoDaysAgo),
+      ); // Date remains the same
     });
 
     test('AC6: Incomplete routine steps do not trigger completion', () async {
@@ -167,7 +179,7 @@ void main() {
       'completeRoutine called twice on same day does not double-increment',
       () async {
         await routineVm.init('user-double');
-        
+
         // Complete all steps first
         for (final step in routineVm.currentSteps) {
           await routineVm.toggleStep(step.id, shelfVm);
@@ -175,7 +187,7 @@ void main() {
 
         // Call completeRoutine manually
         await routineVm.completeRoutine('user-double');
-        
+
         expect(routineVm.streakData?.currentStreak, equals(1));
         expect(routineVm.streakData?.totalCompletions, equals(1));
 
@@ -190,7 +202,7 @@ void main() {
       'completeRoutine after simulated re-login (re-init) still prevents duplicate',
       () async {
         await routineVm.init('user-relogin');
-        
+
         // Complete all steps
         for (final step in routineVm.currentSteps) {
           await routineVm.toggleStep(step.id, shelfVm);
@@ -198,7 +210,7 @@ void main() {
 
         // Call completeRoutine manually
         await routineVm.completeRoutine('user-relogin');
-        
+
         expect(routineVm.completedToday, isTrue);
         expect(routineVm.streakData?.currentStreak, equals(1));
 

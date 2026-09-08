@@ -50,7 +50,7 @@ String _formatDate(DateTime? date) {
     'September',
     'October',
     'November',
-    'December'
+    'December',
   ];
   return '${months[date.month - 1]} ${date.day}, ${date.year}';
 }
@@ -152,42 +152,42 @@ void showProductDetailsBottomSheet(
                             child: Text(
                               item.category,
                               style: TextStyle(
-                                  fontSize: 12,
-                                  color: dotColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                fontSize: 12,
+                                color: dotColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buildDetailMetric(
-                    context,
-                    'PRICE',
-                    currencyVm.formatPrice(price),
-                  ),
-                  buildDetailMetric(
-                    context,
-                    'USES REMAINING',
-                    '$remainingUses / $estimatedUses',
-                  ),
-                  buildDetailMetric(
-                    context,
-                    'COST PER USE',
-                    currencyVm.formatPrice(costPerApply),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                buildDetailMetric(
+                  context,
+                  'PRICE',
+                  currencyVm.formatPrice(price),
+                ),
+                buildDetailMetric(
+                  context,
+                  'USES REMAINING',
+                  '$remainingUses / $estimatedUses',
+                ),
+                buildDetailMetric(
+                  context,
+                  'COST PER USE',
+                  currencyVm.formatPrice(costPerApply),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

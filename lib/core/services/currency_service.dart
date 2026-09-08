@@ -40,16 +40,16 @@ class CurrencyService {
   /// Fetches rates from the live API.
   Future<void> fetchRates() async {
     try {
-      final response = await http.get(Uri.parse(_apiUrl)).timeout(
-        const Duration(seconds: 10),
-      );
+      final response = await http
+          .get(Uri.parse(_apiUrl))
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data != null && data['rates'] != null) {
           final ratesMap = data['rates'] as Map<String, dynamic>;
           final Map<String, double> newRates = {};
-          
+
           // Ensure we extract double values safely
           ratesMap.forEach((key, value) {
             if (value is num) {
@@ -72,7 +72,9 @@ class CurrencyService {
         debugPrint('CurrencyService API error status: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('CurrencyService error fetching rates: $e. Using cache/fallbacks.');
+      debugPrint(
+        'CurrencyService error fetching rates: $e. Using cache/fallbacks.',
+      );
     }
   }
 
@@ -80,9 +82,9 @@ class CurrencyService {
   double convert(double amount, String from, String to) {
     final fromRate = _rates[from] ?? _fallbackRates[from] ?? 1.0;
     final toRate = _rates[to] ?? _fallbackRates[to] ?? 1.0;
-    
+
     if (fromRate == 0.0) return 0.0;
-    
+
     // Convert: fromCurrency -> USD -> toCurrency
     final amountUSD = amount / fromRate;
     return amountUSD * toRate;
@@ -122,7 +124,10 @@ class CurrencyService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_ratesCacheKey, json.encode(ratesMap));
-      await prefs.setInt(_timestampCacheKey, DateTime.now().millisecondsSinceEpoch);
+      await prefs.setInt(
+        _timestampCacheKey,
+        DateTime.now().millisecondsSinceEpoch,
+      );
     } catch (e) {
       debugPrint('CurrencyService error saving cache: $e');
     }

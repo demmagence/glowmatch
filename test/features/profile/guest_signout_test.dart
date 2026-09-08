@@ -15,20 +15,23 @@ void main() {
       await SupabaseService().initialize(url: '', anonKey: '');
     });
 
-    test('ShelfViewModel clearState clears all items and resets query/filters', () async {
-      final shelfVm = ShelfViewModel();
-      await shelfVm.fetchShelf('test-user');
+    test(
+      'ShelfViewModel clearState clears all items and resets query/filters',
+      () async {
+        final shelfVm = ShelfViewModel();
+        await shelfVm.fetchShelf('test-user');
 
-      expect(shelfVm.shelfItems, isNotEmpty);
+        expect(shelfVm.shelfItems, isNotEmpty);
 
-      shelfVm.setFilter('Moisturizer');
-      shelfVm.setSearchQuery('Glow');
-      shelfVm.clearState();
+        shelfVm.setFilter('Moisturizer');
+        shelfVm.setSearchQuery('Glow');
+        shelfVm.clearState();
 
-      expect(shelfVm.shelfItems, isEmpty);
-      expect(shelfVm.selectedCategoryFilter, equals('All'));
-      expect(shelfVm.searchQuery, isEmpty);
-    });
+        expect(shelfVm.shelfItems, isEmpty);
+        expect(shelfVm.selectedCategoryFilter, equals('All'));
+        expect(shelfVm.searchQuery, isEmpty);
+      },
+    );
 
     test('JournalViewModel clearState clears all entries', () async {
       final journalVm = JournalViewModel();
@@ -41,21 +44,24 @@ void main() {
       expect(journalVm.entries, isEmpty);
     });
 
-    test('RoutineViewModel clearState clears AM/PM steps and resets fields', () async {
-      final routineVm = RoutineViewModel();
-      await routineVm.init('test-user');
+    test(
+      'RoutineViewModel clearState clears AM/PM steps and resets fields',
+      () async {
+        final routineVm = RoutineViewModel();
+        await routineVm.init('test-user');
 
-      expect(routineVm.amSteps, isNotEmpty);
-      expect(routineVm.pmSteps, isNotEmpty);
+        expect(routineVm.amSteps, isNotEmpty);
+        expect(routineVm.pmSteps, isNotEmpty);
 
-      routineVm.clearState();
+        routineVm.clearState();
 
-      expect(routineVm.amSteps, isEmpty);
-      expect(routineVm.pmSteps, isEmpty);
-      expect(routineVm.completedStepIds, isEmpty);
-      expect(routineVm.activeRoutine, equals('AM'));
-      expect(routineVm.weather, isNull);
-      expect(routineVm.streakData, isNull);
-    });
+        expect(routineVm.amSteps, isEmpty);
+        expect(routineVm.pmSteps, isEmpty);
+        expect(routineVm.completedStepIds, isEmpty);
+        expect(routineVm.activeRoutine, equals('AM'));
+        expect(routineVm.weather, isNull);
+        expect(routineVm.streakData, isNull);
+      },
+    );
   });
 }
