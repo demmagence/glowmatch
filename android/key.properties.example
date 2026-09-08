@@ -1,0 +1,17 @@
+# Example Android Release Signing Properties
+# -------------------------------------------------------------
+# DO NOT COMMIT actual keystores, passwords, or key.properties to Git.
+#
+# To sign release builds locally:
+# 1. Copy this file to `android/key.properties`:
+#    cp android/key.properties.example android/key.properties
+# 2. Fill in the values below with your keystore information.
+#
+# On CI (e.g. GitHub Actions), you can either generate `android/key.properties`
+# dynamically from GitHub Secrets, or provide the environment variables:
+# KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
+# -------------------------------------------------------------
+storePassword=your_keystore_password
+keyPassword=your_key_password
+keyAlias=your_key_alias
+storeFile=upload-keystore.jks
