@@ -124,7 +124,9 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     l10n.currentStreak,
-                    l10n.streakDaysCount(routineVm.streakData?.currentStreak ?? 0),
+                    l10n.streakDaysCount(
+                      routineVm.streakData?.currentStreak ?? 0,
+                    ),
                     '🔥',
                     context,
                   ),
@@ -133,7 +135,9 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     l10n.longestStreak,
-                    l10n.streakDaysCount(routineVm.streakData?.longestStreak ?? 0),
+                    l10n.streakDaysCount(
+                      routineVm.streakData?.longestStreak ?? 0,
+                    ),
                     '👑',
                     context,
                   ),
@@ -304,8 +308,8 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                                   segment.length >= 30
                                       ? l10n.skincareMasterMilestone
                                       : segment.length >= 14
-                                          ? l10n.unstoppableBarrierMilestone
-                                          : l10n.solidHabitMilestone,
+                                      ? l10n.unstoppableBarrierMilestone
+                                      : l10n.solidHabitMilestone,
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: isDark

@@ -492,7 +492,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Text(
-                          _pickedImage != null ? l10n.imageScanner : 'GLOWMATCH',
+                          _pickedImage != null
+                              ? l10n.imageScanner
+                              : 'GLOWMATCH',
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
@@ -513,8 +515,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                             const SizedBox(width: 8),
                           ],
                           _circleBtn(
-                              icon: Icons.photo_library,
-                              onTap: _pickImageFromGallery,
+                            icon: Icons.photo_library,
+                            onTap: _pickImageFromGallery,
                           ),
                           const SizedBox(width: 8),
                           _circleBtn(
@@ -554,11 +556,15 @@ class _ScannerScreenState extends State<ScannerScreen>
                       child: Text(
                         _pickedImage != null
                             ? (_uploadedImageBlocks.isNotEmpty
-                                ? l10n.textBlocksDetectedTap(_uploadedImageBlocks.length)
-                                : l10n.detectingText)
+                                  ? l10n.textBlocksDetectedTap(
+                                      _uploadedImageBlocks.length,
+                                    )
+                                  : l10n.detectingText)
                             : (vm.detectedBlocks.isNotEmpty
-                                ? l10n.textBlocksDetectedTap(vm.detectedBlocks.length)
-                                : l10n.alignIngredientsInFrame),
+                                  ? l10n.textBlocksDetectedTap(
+                                      vm.detectedBlocks.length,
+                                    )
+                                  : l10n.alignIngredientsInFrame),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -1075,7 +1081,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                     // ── Detected ingredients chips ────────────────
                     if (result.detectedIngredients.isNotEmpty) ...[
                       Text(
-                        l10n.detectedIngredientsCount(result.detectedIngredients.length),
+                        l10n.detectedIngredientsCount(
+                          result.detectedIngredients.length,
+                        ),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -1146,7 +1154,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                       ...result.detectedIngredients.map((ing) {
                         final level =
                             result.ingredientSafetyLevels[ing] ?? 'Safe';
-                        final detail = result.ingredientDetails[ing] ??
+                        final detail =
+                            result.ingredientDetails[ing] ??
                             l10n.noDetailAvailable;
                         final detailColor = level == 'Avoid'
                             ? Colors.red

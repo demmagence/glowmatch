@@ -173,9 +173,7 @@ class _JournalScreenState extends State<JournalScreen> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  l10n.compareMaxLimitError,
-                                ),
+                                content: Text(l10n.compareMaxLimitError),
                                 duration: const Duration(milliseconds: 1500),
                               ),
                             );
@@ -199,7 +197,9 @@ class _JournalScreenState extends State<JournalScreen> {
               backgroundColor: isDark ? Colors.white : Colors.black,
               foregroundColor: isDark ? Colors.black : Colors.white,
               shape: const CircleBorder(),
-              tooltip: _isCompareMode ? l10n.cancelCompareTooltip : l10n.compareModeTooltip,
+              tooltip: _isCompareMode
+                  ? l10n.cancelCompareTooltip
+                  : l10n.compareModeTooltip,
               onPressed: () {
                 setState(() {
                   _isCompareMode = !_isCompareMode;

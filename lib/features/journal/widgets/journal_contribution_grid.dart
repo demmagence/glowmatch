@@ -263,7 +263,10 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(l10n.less, style: const TextStyle(fontSize: 8, color: Colors.grey)),
+                Text(
+                  l10n.less,
+                  style: const TextStyle(fontSize: 8, color: Colors.grey),
+                ),
                 const SizedBox(width: 4),
                 _buildLegendCell(_getCellColor(0, isDark)),
                 const SizedBox(width: 2),
@@ -275,7 +278,10 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                 const SizedBox(width: 2),
                 _buildLegendCell(_getCellColor(4, isDark)),
                 const SizedBox(width: 4),
-                Text(l10n.more, style: const TextStyle(fontSize: 8, color: Colors.grey)),
+                Text(
+                  l10n.more,
+                  style: const TextStyle(fontSize: 8, color: Colors.grey),
+                ),
               ],
             ),
           ],

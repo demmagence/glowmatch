@@ -285,7 +285,9 @@ void showAddProductDialog(
                     controller: priceController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: l10n.priceWithCurrency(currencyVm.selectedCurrency),
+                      labelText: l10n.priceWithCurrency(
+                        currencyVm.selectedCurrency,
+                      ),
                       hintText: l10n.priceHint,
                       hintStyle: TextStyle(
                         color: isDark ? Colors.white30 : Colors.black38,

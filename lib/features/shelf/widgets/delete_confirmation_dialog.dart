@@ -54,7 +54,10 @@ void showDeleteConfirmation(
             },
             child: Text(
               l10n.delete,
-              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

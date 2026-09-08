@@ -45,9 +45,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     );
     if (exists) {
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.categoryAlreadyExists)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.categoryAlreadyExists)));
       return;
     }
 
@@ -243,9 +243,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(
-                      l10n.categoryDeletedSnackbar(category.name),
-                    ),
+                    content: Text(l10n.categoryDeletedSnackbar(category.name)),
                   ),
                 );
               },

@@ -175,7 +175,10 @@ class HomeScreen extends StatelessWidget {
                           vertical: 2.0,
                         ),
                         child: Text(
-                          l10n.stepsCompleted(routineVm.completedCount, routineVm.totalCount),
+                          l10n.stepsCompleted(
+                            routineVm.completedCount,
+                            routineVm.totalCount,
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             color: stepBadgeText,
@@ -259,7 +262,9 @@ class HomeScreen extends StatelessWidget {
                                     ),
                                     content: Text(
                                       l10n.deleteStepMessage(
-                                        step.name.isEmpty ? l10n.customStep : step.name,
+                                        step.name.isEmpty
+                                            ? l10n.customStep
+                                            : step.name,
                                         routineVm.activeRoutine == 'AM'
                                             ? l10n.morningRoutine
                                             : l10n.eveningRoutine,

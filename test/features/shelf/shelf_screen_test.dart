@@ -63,17 +63,12 @@ void main() {
       expect(find.text('FILTER'), findsOneWidget);
     });
 
-    testWidgets('add card with "tap to add" text is present', (
-      tester,
-    ) async {
+    testWidgets('add card with "tap to add" text is present', (tester) async {
       final vm = ShelfViewModel();
       await tester.pumpWidget(_buildShelf(vm));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(
-        find.textContaining('tap to add new skincare'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('tap to add new skincare'), findsOneWidget);
     });
 
     testWidgets('product grid renders seeded items after fetchShelf', (

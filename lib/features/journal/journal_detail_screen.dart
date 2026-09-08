@@ -231,9 +231,7 @@ class JournalDetailScreen extends StatelessWidget {
             l10n.deleteEntryDialogTitle,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          content: Text(
-            l10n.deleteEntryConfirmMessage,
-          ),
+          content: Text(l10n.deleteEntryConfirmMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),

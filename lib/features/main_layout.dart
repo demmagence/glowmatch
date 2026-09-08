@@ -80,7 +80,11 @@ class _MainLayoutState extends State<MainLayout> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(Icons.grid_view_rounded, l10n.navHome, 0),
-              _buildNavItem(Icons.account_balance_wallet_outlined, l10n.navBudget, 1),
+              _buildNavItem(
+                Icons.account_balance_wallet_outlined,
+                l10n.navBudget,
+                1,
+              ),
               _buildCenterScanButton(),
               _buildNavItem(Icons.assignment_outlined, l10n.navJournal, 3),
               _buildNavItem(Icons.inventory_2_outlined, l10n.navShelf, 4),

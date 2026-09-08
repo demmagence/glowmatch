@@ -58,7 +58,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             appBar: AppBar(
               title: Text(
                 l10n.profileAndSettings,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -106,7 +109,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          authVm.isAnonymous ? l10n.guestUser : l10n.securedUser,
+                          authVm.isAnonymous
+                              ? l10n.guestUser
+                              : l10n.securedUser,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
@@ -1035,9 +1040,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           content: Text(
-            isAnonymous
-                ? l10n.confirmSignOutGuest
-                : l10n.confirmSignOutUser,
+            isAnonymous ? l10n.confirmSignOutGuest : l10n.confirmSignOutUser,
             style: TextStyle(
               color: themeVm.isDarkMode ? Colors.grey.shade300 : Colors.black87,
             ),

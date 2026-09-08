@@ -60,7 +60,11 @@ class PhotoGridWidget extends StatelessWidget {
     return now;
   }
 
-  String _getWeekLabel(DateTime entryDate, DateTime now, AppLocalizations l10n) {
+  String _getWeekLabel(
+    DateTime entryDate,
+    DateTime now,
+    AppLocalizations l10n,
+  ) {
     final entryDay = DateTime(entryDate.year, entryDate.month, entryDate.day);
     final today = DateTime(now.year, now.month, now.day);
     final diffDays = today.difference(entryDay).inDays;
