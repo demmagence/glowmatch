@@ -132,9 +132,18 @@ void main() {
         final remaining = await dbHelper.getPendingSyncTasks(testUserId);
         expect(remaining.length, lessThanOrEqualTo(1));
       } finally {
-        // Guaranteed teardown of disposable local data
+        // Targeted teardown of disposable local test data only.
+        // Preserves unrelated cached rows on connected devices/emulators.
         try {
-          await dbHelper.clearAllTables();
+          final tasks = await dbHelper.getSyncTasks(testUserId);
+          for (final task in tasks) {
+            final taskId = task['id'];
+            final itemId = task['item_id'];
+            if (taskId is int && itemId == testItemId) {
+              await dbHelper.deleteSyncTask(taskId);
+            }
+          }
+          await dbHelper.deleteShelfItem(testUserId, testItemId);
         } catch (_) {}
       }
     });

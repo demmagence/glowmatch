@@ -31,20 +31,45 @@ void main() {
 
   tearDownAll(() async {
     final client = Supabase.instance.client;
+    final dbHelper = DatabaseHelper();
 
-    // Guaranteed teardown of disposable staging data
+    // 1. Guaranteed teardown of disposable staging data on remote Supabase
     for (final itemId in createdItemIds) {
       try {
         await client.from('skincare_shelf').delete().eq('id', itemId);
       } catch (_) {}
     }
 
-    // Teardown local SQLite database tables
-    try {
-      await DatabaseHelper().clearAllTables();
-    } catch (_) {}
+    // 2. Targeted teardown of local SQLite database caches scoped strictly
+    // to the test user and disposable e2e_* items created by this suite.
+    // Preserves unrelated cached rows on connected devices/emulators.
+    if (authenticatedUserId != null) {
+      final userId = authenticatedUserId!;
 
-    // Sign out test session
+      // Remove only shelf items created by this suite
+      for (final itemId in createdItemIds) {
+        try {
+          await dbHelper.deleteShelfItem(userId, itemId);
+        } catch (_) {}
+      }
+
+      // Remove only sync queue entries created for this test user / e2e_* items
+      try {
+        final tasks = await dbHelper.getSyncTasks(userId);
+        for (final task in tasks) {
+          final taskId = task['id'];
+          final itemId = task['item_id'];
+          final isTestItem =
+              createdItemIds.contains(itemId) ||
+              (itemId is String && itemId.startsWith('e2e_'));
+          if (taskId is int && isTestItem) {
+            await dbHelper.deleteSyncTask(taskId);
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 3. Sign out test session
     try {
       await client.auth.signOut();
     } catch (_) {}
@@ -184,13 +209,16 @@ void main() {
         expect(syncedRemote['remaining_uses'], 40);
 
         // --- Step 4: DELETE (CRUD Cleanup) ---
+        // 4a. Remote deletion from Supabase staging
         await client.from('skincare_shelf').delete().eq('id', testItemId);
         final deletedCheck = await client
             .from('skincare_shelf')
             .select('id')
             .eq('id', testItemId);
         expect((deletedCheck as List).isEmpty, isTrue);
-        createdItemIds.remove(testItemId);
+
+        // 4b. Local targeted deletion for shelf item
+        await dbHelper.deleteShelfItem(userId, testItemId);
       },
     );
   });

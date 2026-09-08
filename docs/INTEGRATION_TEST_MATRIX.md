@@ -87,6 +87,6 @@ To isolate test runs from each other and prevent database clutter:
 - **Disposable Records**: All test rows in `skincare_shelf` use IDs prefixed with `e2e_shelf_<timestamp>`
 - **Teardown Lifecycle**: In `tearDownAll` and `try ... finally` blocks:
   - Created records are deleted from remote Supabase tables (`client.from('skincare_shelf').delete().eq('id', itemId)`)
-  - Local database caches are flushed via `DatabaseHelper().clearAllTables()`
+  - Local database caches undergo targeted cleanup scoped strictly to the test user and created `e2e_*` items (`DatabaseHelper.deleteShelfItem`, `DatabaseHelper.deleteSyncTask`), preserving all unrelated local cached rows on connected devices/emulators
   - Active Supabase auth sessions are terminated via `client.auth.signOut()`
 - **Optional Staging Credentials**: If the staging Supabase project enforces email confirmation or signup rate limits, supply `SUPABASE_TEST_EMAIL` and `SUPABASE_TEST_PASSWORD` in `secrets.json` or CI secrets to run tests using a pre-confirmed staging test user.
