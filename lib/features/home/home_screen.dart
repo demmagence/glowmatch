@@ -185,7 +185,6 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-
                 if (routineVm.currentSteps.isEmpty)
                   const ErrorStateWidget(
                     icon: Icons.event_note,
