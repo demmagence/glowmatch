@@ -45,7 +45,7 @@ class FakeFlutterLocalNotificationsPlugin extends Fake
     InitializationSettings initializationSettings, {
     void Function(NotificationResponse)? onDidReceiveNotificationResponse,
     void Function(NotificationResponse)?
-        onDidReceiveBackgroundNotificationResponse,
+    onDidReceiveBackgroundNotificationResponse,
   }) async {
     initialized = true;
     return true;
@@ -53,7 +53,8 @@ class FakeFlutterLocalNotificationsPlugin extends Fake
 
   @override
   T? resolvePlatformSpecificImplementation<
-      T extends FlutterLocalNotificationsPlatform>() {
+    T extends FlutterLocalNotificationsPlatform
+  >() {
     if (T == AndroidFlutterLocalNotificationsPlugin) {
       return fakeAndroid as T?;
     }
@@ -81,7 +82,7 @@ class FakeFlutterLocalNotificationsPlugin extends Fake
     NotificationDetails notificationDetails, {
     required AndroidScheduleMode androidScheduleMode,
     required UILocalNotificationDateInterpretation
-        uiLocalNotificationDateInterpretation,
+    uiLocalNotificationDateInterpretation,
     DateTimeComponents? matchDateTimeComponents,
     String? payload,
   }) async {
@@ -131,18 +132,24 @@ void main() {
       expect(tz.local.name, equals('America/New_York'));
     });
 
-    test('falls back gracefully to UTC on invalid timezone without crashing', () async {
-      await service.configureLocalTimeZone('Invalid/Unknown_Zone');
-      expect(service.currentTimeZone, equals('UTC'));
-      expect(tz.local.name, equals('UTC'));
-    });
+    test(
+      'falls back gracefully to UTC on invalid timezone without crashing',
+      () async {
+        await service.configureLocalTimeZone('Invalid/Unknown_Zone');
+        expect(service.currentTimeZone, equals('UTC'));
+        expect(tz.local.name, equals('UTC'));
+      },
+    );
 
-    test('init with ianaTimeZone sets local timezone and initializes plugin', () async {
-      await service.init(ianaTimeZone: 'Asia/Tokyo');
-      expect(service.currentTimeZone, equals('Asia/Tokyo'));
-      expect(service.isInitialized, isTrue);
-      expect(fakePlugin.initialized, isTrue);
-    });
+    test(
+      'init with ianaTimeZone sets local timezone and initializes plugin',
+      () async {
+        await service.init(ianaTimeZone: 'Asia/Tokyo');
+        expect(service.currentTimeZone, equals('Asia/Tokyo'));
+        expect(service.isInitialized, isTrue);
+        expect(fakePlugin.initialized, isTrue);
+      },
+    );
   });
 
   group('NotificationService – nextInstanceOfTime Calculation', () {
@@ -165,24 +172,27 @@ void main() {
       expect(next.isAfter(tz.TZDateTime.from(fromTime, loc)), isTrue);
     });
 
-    test('schedules for next day when target time has already passed today', () {
-      final loc = tz.getLocation('Asia/Jakarta');
-      final fromTime = DateTime.utc(2026, 9, 7, 3, 0); // 10:00 WIB
-      final targetTime = const TimeOfDay(hour: 7, minute: 0);
+    test(
+      'schedules for next day when target time has already passed today',
+      () {
+        final loc = tz.getLocation('Asia/Jakarta');
+        final fromTime = DateTime.utc(2026, 9, 7, 3, 0); // 10:00 WIB
+        final targetTime = const TimeOfDay(hour: 7, minute: 0);
 
-      final next = service.nextInstanceOfTime(
-        targetTime,
-        location: loc,
-        fromTime: fromTime,
-      );
+        final next = service.nextInstanceOfTime(
+          targetTime,
+          location: loc,
+          fromTime: fromTime,
+        );
 
-      expect(next.year, equals(2026));
-      expect(next.month, equals(9));
-      expect(next.day, equals(8)); // +1 day
-      expect(next.hour, equals(7));
-      expect(next.minute, equals(0));
-      expect(next.isAfter(tz.TZDateTime.from(fromTime, loc)), isTrue);
-    });
+        expect(next.year, equals(2026));
+        expect(next.month, equals(9));
+        expect(next.day, equals(8)); // +1 day
+        expect(next.hour, equals(7));
+        expect(next.minute, equals(0));
+        expect(next.isAfter(tz.TZDateTime.from(fromTime, loc)), isTrue);
+      },
+    );
 
     test('schedules for next day when target time is at exact same moment', () {
       final loc = tz.getLocation('Asia/Jakarta');
@@ -208,7 +218,10 @@ void main() {
 
       final targetTime = const TimeOfDay(hour: 7, minute: 0);
 
-      final jakartaNext = service.nextInstanceOfTime(targetTime, location: jakartaLoc);
+      final jakartaNext = service.nextInstanceOfTime(
+        targetTime,
+        location: jakartaLoc,
+      );
       final nyNext = service.nextInstanceOfTime(targetTime, location: nyLoc);
 
       expect(jakartaNext.hour, equals(7));
@@ -223,51 +236,95 @@ void main() {
       await service.configureLocalTimeZone('Asia/Jakarta');
     });
 
-    test('scheduleAmReminder cancels old AM reminder before scheduling new one', () async {
-      final res = await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
+    test(
+      'scheduleAmReminder cancels old AM reminder before scheduling new one',
+      () async {
+        final res = await service.scheduleAmReminder(
+          const TimeOfDay(hour: 7, minute: 0),
+        );
 
-      expect(res.success, isTrue);
-      expect(fakePlugin.canceledIds, contains(NotificationService.amNotificationId));
-      expect(fakePlugin.scheduledCalls.length, equals(1));
-      expect(fakePlugin.scheduledCalls.first['id'], equals(NotificationService.amNotificationId));
-      expect(fakePlugin.scheduledCalls.first['title'], contains('Morning Routine'));
-    });
+        expect(res.success, isTrue);
+        expect(
+          fakePlugin.canceledIds,
+          contains(NotificationService.amNotificationId),
+        );
+        expect(fakePlugin.scheduledCalls.length, equals(1));
+        expect(
+          fakePlugin.scheduledCalls.first['id'],
+          equals(NotificationService.amNotificationId),
+        );
+        expect(
+          fakePlugin.scheduledCalls.first['title'],
+          contains('Morning Routine'),
+        );
+      },
+    );
 
-    test('rescheduling AM reminder replaces previous schedule without duplicates', () async {
-      await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
-      await service.scheduleAmReminder(const TimeOfDay(hour: 8, minute: 0));
+    test(
+      'rescheduling AM reminder replaces previous schedule without duplicates',
+      () async {
+        await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
+        await service.scheduleAmReminder(const TimeOfDay(hour: 8, minute: 0));
 
-      expect(fakePlugin.canceledIds.where((id) => id == NotificationService.amNotificationId).length, equals(2));
-      final pending = await service.getPendingNotificationRequests();
-      expect(pending.where((p) => p.id == NotificationService.amNotificationId).length, equals(1));
-    });
+        expect(
+          fakePlugin.canceledIds
+              .where((id) => id == NotificationService.amNotificationId)
+              .length,
+          equals(2),
+        );
+        final pending = await service.getPendingNotificationRequests();
+        expect(
+          pending
+              .where((p) => p.id == NotificationService.amNotificationId)
+              .length,
+          equals(1),
+        );
+      },
+    );
 
-    test('schedulePmReminder cancels old PM reminder before scheduling new one', () async {
-      final res = await service.schedulePmReminder(const TimeOfDay(hour: 20, minute: 0));
+    test(
+      'schedulePmReminder cancels old PM reminder before scheduling new one',
+      () async {
+        final res = await service.schedulePmReminder(
+          const TimeOfDay(hour: 20, minute: 0),
+        );
 
-      expect(res.success, isTrue);
-      expect(fakePlugin.canceledIds, contains(NotificationService.pmNotificationId));
-      expect(fakePlugin.scheduledCalls.length, equals(1));
-      expect(fakePlugin.scheduledCalls.first['id'], equals(NotificationService.pmNotificationId));
-      expect(fakePlugin.scheduledCalls.first['title'], contains('Evening Routine'));
-    });
+        expect(res.success, isTrue);
+        expect(
+          fakePlugin.canceledIds,
+          contains(NotificationService.pmNotificationId),
+        );
+        expect(fakePlugin.scheduledCalls.length, equals(1));
+        expect(
+          fakePlugin.scheduledCalls.first['id'],
+          equals(NotificationService.pmNotificationId),
+        );
+        expect(
+          fakePlugin.scheduledCalls.first['title'],
+          contains('Evening Routine'),
+        );
+      },
+    );
 
-    test('AM and PM reminders are completely independent in cancelation', () async {
-      await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
-      await service.schedulePmReminder(const TimeOfDay(hour: 20, minute: 0));
+    test(
+      'AM and PM reminders are completely independent in cancelation',
+      () async {
+        await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
+        await service.schedulePmReminder(const TimeOfDay(hour: 20, minute: 0));
 
-      var pending = await service.getPendingNotificationRequests();
-      expect(pending.length, equals(2));
+        var pending = await service.getPendingNotificationRequests();
+        expect(pending.length, equals(2));
 
-      await service.cancelAmReminder();
-      pending = await service.getPendingNotificationRequests();
-      expect(pending.length, equals(1));
-      expect(pending.first.id, equals(NotificationService.pmNotificationId));
+        await service.cancelAmReminder();
+        pending = await service.getPendingNotificationRequests();
+        expect(pending.length, equals(1));
+        expect(pending.first.id, equals(NotificationService.pmNotificationId));
 
-      await service.cancelPmReminder();
-      pending = await service.getPendingNotificationRequests();
-      expect(pending.isEmpty, isTrue);
-    });
+        await service.cancelPmReminder();
+        pending = await service.getPendingNotificationRequests();
+        expect(pending.isEmpty, isTrue);
+      },
+    );
 
     test('cancelAllReminders cancels both AM and PM reminders', () async {
       await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
@@ -275,8 +332,14 @@ void main() {
 
       await service.cancelAllReminders();
 
-      expect(fakePlugin.canceledIds, contains(NotificationService.amNotificationId));
-      expect(fakePlugin.canceledIds, contains(NotificationService.pmNotificationId));
+      expect(
+        fakePlugin.canceledIds,
+        contains(NotificationService.amNotificationId),
+      );
+      expect(
+        fakePlugin.canceledIds,
+        contains(NotificationService.pmNotificationId),
+      );
       final pending = await service.getPendingNotificationRequests();
       expect(pending.isEmpty, isTrue);
     });
@@ -286,10 +349,15 @@ void main() {
     test('returns denied when notification permission is rejected', () async {
       fakePlugin.fakeAndroid.notificationPermissionGranted = false;
 
-      final res = await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
+      final res = await service.scheduleAmReminder(
+        const TimeOfDay(hour: 7, minute: 0),
+      );
 
       expect(res.success, isFalse);
-      expect(res.status, equals(NotificationPermissionStatus.notificationDenied));
+      expect(
+        res.status,
+        equals(NotificationPermissionStatus.notificationDenied),
+      );
       expect(res.errorMessage, contains('Notification permission is required'));
       expect(fakePlugin.scheduledCalls.isEmpty, isTrue);
     });
@@ -298,7 +366,9 @@ void main() {
       fakePlugin.fakeAndroid.notificationPermissionGranted = true;
       fakePlugin.fakeAndroid.canScheduleExact = false;
 
-      final res = await service.schedulePmReminder(const TimeOfDay(hour: 20, minute: 0));
+      final res = await service.schedulePmReminder(
+        const TimeOfDay(hour: 20, minute: 0),
+      );
 
       expect(res.success, isFalse);
       expect(res.status, equals(NotificationPermissionStatus.exactAlarmDenied));
@@ -309,7 +379,9 @@ void main() {
     test('surfaces error result when zonedSchedule throws exception', () async {
       fakePlugin.throwOnSchedule = true;
 
-      final res = await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
+      final res = await service.scheduleAmReminder(
+        const TimeOfDay(hour: 7, minute: 0),
+      );
 
       expect(res.success, isFalse);
       expect(res.status, equals(NotificationPermissionStatus.error));
@@ -318,24 +390,33 @@ void main() {
   });
 
   group('NotificationService – Reconcile Reminders', () {
-    test('cancels all reminders and clears timezone when notifications disabled', () async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(NotificationService.scheduledTimezoneKey, 'Asia/Jakarta');
-      await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
+    test(
+      'cancels all reminders and clears timezone when notifications disabled',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          NotificationService.scheduledTimezoneKey,
+          'Asia/Jakarta',
+        );
+        await service.scheduleAmReminder(const TimeOfDay(hour: 7, minute: 0));
 
-      await service.reconcileReminders(
-        isNotificationsEnabled: false,
-        amEnabled: true,
-        amTime: const TimeOfDay(hour: 7, minute: 0),
-        pmEnabled: true,
-        pmTime: const TimeOfDay(hour: 20, minute: 0),
-        prefs: prefs,
-      );
+        await service.reconcileReminders(
+          isNotificationsEnabled: false,
+          amEnabled: true,
+          amTime: const TimeOfDay(hour: 7, minute: 0),
+          pmEnabled: true,
+          pmTime: const TimeOfDay(hour: 20, minute: 0),
+          prefs: prefs,
+        );
 
-      expect(prefs.getString(NotificationService.scheduledTimezoneKey), isNull);
-      final pending = await service.getPendingNotificationRequests();
-      expect(pending.isEmpty, isTrue);
-    });
+        expect(
+          prefs.getString(NotificationService.scheduledTimezoneKey),
+          isNull,
+        );
+        final pending = await service.getPendingNotificationRequests();
+        expect(pending.isEmpty, isTrue);
+      },
+    );
 
     test('reschedules reminders when device timezone has changed', () async {
       final prefs = await SharedPreferences.getInstance();
@@ -354,13 +435,19 @@ void main() {
       );
 
       expect(fakePlugin.scheduledCalls.length, equals(2));
-      expect(prefs.getString(NotificationService.scheduledTimezoneKey), equals('Asia/Jakarta'));
+      expect(
+        prefs.getString(NotificationService.scheduledTimezoneKey),
+        equals('Asia/Jakarta'),
+      );
     });
 
     test('reschedules missing pending reminders when enabled', () async {
       final prefs = await SharedPreferences.getInstance();
       await service.configureLocalTimeZone('Asia/Jakarta');
-      await prefs.setString(NotificationService.scheduledTimezoneKey, 'Asia/Jakarta');
+      await prefs.setString(
+        NotificationService.scheduledTimezoneKey,
+        'Asia/Jakarta',
+      );
 
       fakePlugin.scheduledCalls.clear();
 
@@ -374,28 +461,40 @@ void main() {
       );
 
       expect(fakePlugin.scheduledCalls.length, equals(1));
-      expect(fakePlugin.scheduledCalls.first['id'], equals(NotificationService.amNotificationId));
-    });
-
-    test('cancels lingering pending reminders when reminder was disabled', () async {
-      final prefs = await SharedPreferences.getInstance();
-      await service.configureLocalTimeZone('Asia/Jakarta');
-      await prefs.setString(NotificationService.scheduledTimezoneKey, 'Asia/Jakarta');
-
-      await service.schedulePmReminder(const TimeOfDay(hour: 20, minute: 0));
-      expect((await service.getPendingNotificationRequests()).length, equals(1));
-
-      await service.reconcileReminders(
-        isNotificationsEnabled: true,
-        amEnabled: false,
-        amTime: const TimeOfDay(hour: 7, minute: 0),
-        pmEnabled: false,
-        pmTime: const TimeOfDay(hour: 20, minute: 0),
-        prefs: prefs,
+      expect(
+        fakePlugin.scheduledCalls.first['id'],
+        equals(NotificationService.amNotificationId),
       );
-
-      final pending = await service.getPendingNotificationRequests();
-      expect(pending.isEmpty, isTrue);
     });
+
+    test(
+      'cancels lingering pending reminders when reminder was disabled',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        await service.configureLocalTimeZone('Asia/Jakarta');
+        await prefs.setString(
+          NotificationService.scheduledTimezoneKey,
+          'Asia/Jakarta',
+        );
+
+        await service.schedulePmReminder(const TimeOfDay(hour: 20, minute: 0));
+        expect(
+          (await service.getPendingNotificationRequests()).length,
+          equals(1),
+        );
+
+        await service.reconcileReminders(
+          isNotificationsEnabled: true,
+          amEnabled: false,
+          amTime: const TimeOfDay(hour: 7, minute: 0),
+          pmEnabled: false,
+          pmTime: const TimeOfDay(hour: 20, minute: 0),
+          prefs: prefs,
+        );
+
+        final pending = await service.getPendingNotificationRequests();
+        expect(pending.isEmpty, isTrue);
+      },
+    );
   });
 }

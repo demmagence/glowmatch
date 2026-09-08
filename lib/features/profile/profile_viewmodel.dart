@@ -45,7 +45,7 @@ class ProfileViewModel extends ChangeNotifier {
     required this.authViewModel,
     NotificationService? notificationService,
   }) : notificationService =
-            notificationService ?? NotificationService.instance {
+           notificationService ?? NotificationService.instance {
     _load();
   }
 

@@ -68,9 +68,7 @@ Widget _buildProfileScreen() {
       ChangeNotifierProvider(create: (_) => AuthViewModel()),
       ChangeNotifierProvider(create: (_) => CurrencyViewModel()),
     ],
-    child: const MaterialApp(
-      home: ProfileScreen(),
-    ),
+    child: const MaterialApp(home: ProfileScreen()),
   );
 }
 
@@ -99,7 +97,9 @@ void main() {
     });
   });
 
-  testWidgets('ProfileScreen renders Routine Reminders and AM/PM rows', (tester) async {
+  testWidgets('ProfileScreen renders Routine Reminders and AM/PM rows', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -113,34 +113,37 @@ void main() {
     expect(find.text('🌙  PM Reminder'), findsOneWidget);
   });
 
-  testWidgets('ProfileScreen displays notification error banner when permission denied', (tester) async {
-    mockNotif.scheduleResult = const ScheduleResult.denied(
-      status: NotificationPermissionStatus.notificationDenied,
-      message: 'Notification permission is required for routine reminders.',
-    );
+  testWidgets(
+    'ProfileScreen displays notification error banner when permission denied',
+    (tester) async {
+      mockNotif.scheduleResult = const ScheduleResult.denied(
+        status: NotificationPermissionStatus.notificationDenied,
+        message: 'Notification permission is required for routine reminders.',
+      );
 
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(_buildProfileScreen());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_buildProfileScreen());
+      await tester.pumpAndSettle();
 
-    // Toggle AM switch off then back on to trigger denied scheduleResult
-    final amSwitch = find.widgetWithText(SwitchListTile, '🌅  AM Reminder');
-    expect(amSwitch, findsOneWidget);
+      // Toggle AM switch off then back on to trigger denied scheduleResult
+      final amSwitch = find.widgetWithText(SwitchListTile, '🌅  AM Reminder');
+      expect(amSwitch, findsOneWidget);
 
-    await tester.tap(amSwitch);
-    await tester.pumpAndSettle();
+      await tester.tap(amSwitch);
+      await tester.pumpAndSettle();
 
-    await tester.tap(amSwitch);
-    await tester.pumpAndSettle();
+      await tester.tap(amSwitch);
+      await tester.pumpAndSettle();
 
-    expect(
-      find.text('Notification permission is required for routine reminders.'),
-      findsOneWidget,
-    );
-    expect(find.byIcon(Icons.warning_amber_rounded), findsWidgets);
-  });
+      expect(
+        find.text('Notification permission is required for routine reminders.'),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.warning_amber_rounded), findsWidgets);
+    },
+  );
 }

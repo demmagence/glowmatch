@@ -24,20 +24,20 @@ class ScheduleResult {
   });
 
   const ScheduleResult.success()
-      : success = true,
-        status = NotificationPermissionStatus.granted,
-        errorMessage = null;
+    : success = true,
+      status = NotificationPermissionStatus.granted,
+      errorMessage = null;
 
   const ScheduleResult.denied({
     this.status = NotificationPermissionStatus.notificationDenied,
     String? message,
-  })  : success = false,
-        errorMessage = message;
+  }) : success = false,
+       errorMessage = message;
 
   const ScheduleResult.error(String message)
-      : success = false,
-        status = NotificationPermissionStatus.error,
-        errorMessage = message;
+    : success = false,
+      status = NotificationPermissionStatus.error,
+      errorMessage = message;
 }
 
 class NotificationService {
@@ -45,7 +45,7 @@ class NotificationService {
 
   @visibleForTesting
   NotificationService.internal({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   static NotificationService instance = NotificationService.internal();
 
@@ -143,8 +143,7 @@ class NotificationService {
           return NotificationPermissionStatus.notificationDenied;
         }
 
-        final canExact =
-            await android.canScheduleExactNotifications() ?? true;
+        final canExact = await android.canScheduleExactNotifications() ?? true;
         if (!canExact) {
           try {
             await android.requestExactAlarmsPermission();
@@ -166,7 +165,8 @@ class NotificationService {
             IOSFlutterLocalNotificationsPlugin
           >();
       if (ios != null) {
-        final granted = await ios.requestPermissions(
+        final granted =
+            await ios.requestPermissions(
               alert: true,
               badge: true,
               sound: true,
@@ -220,7 +220,8 @@ class NotificationService {
     await _cancelById(pmNotificationId);
   }
 
-  Future<List<PendingNotificationRequest>> getPendingNotificationRequests() async {
+  Future<List<PendingNotificationRequest>>
+  getPendingNotificationRequests() async {
     try {
       return await _plugin.pendingNotificationRequests();
     } catch (e) {
@@ -250,10 +251,7 @@ class NotificationService {
       final msg = permStatus == NotificationPermissionStatus.exactAlarmDenied
           ? 'Exact alarm permission is required for scheduled routine reminders.'
           : 'Notification permission is required to receive routine reminders.';
-      return ScheduleResult.denied(
-        status: permStatus,
-        message: msg,
-      );
+      return ScheduleResult.denied(status: permStatus, message: msg);
     }
 
     const androidDetails = AndroidNotificationDetails(

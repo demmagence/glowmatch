@@ -456,250 +456,258 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Material(
                       color: Colors.transparent,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                        SwitchListTile(
-                          title: Text(
-                            'Dark Mode',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black,
+                          SwitchListTile(
+                            title: Text(
+                              'Dark Mode',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Toggle app-wide dark theme',
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
+                              ),
+                            ),
+                            value: isDark,
+                            activeThumbColor: isDark
+                                ? Colors.pinkAccent
+                                : Colors.pink,
+                            activeTrackColor: isDark
+                                ? Colors.pinkAccent.withValues(alpha: 0.5)
+                                : Colors.pink.withValues(alpha: 0.5),
+                            onChanged: (value) {
+                              themeVm.toggleThemeMode(value);
+                            },
+                          ),
+                          Divider(
+                            color: isDark
+                                ? Colors.white24
+                                : Colors.grey.shade300,
+                            thickness: 1.0,
+                            height: 1,
+                          ),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 8.0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Language',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Choose your preferred language',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String?>(
+                                  initialValue: themeVm.locale?.languageCode,
+                                  dropdownColor: cardBg,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: borderColor,
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: borderColor,
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: isDark
+                                            ? Colors.pinkAccent
+                                            : Colors.pink,
+                                        width: 2.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: null,
+                                      child: Text('System Default'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'en',
+                                      child: Text('English'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'id',
+                                      child: Text('Bahasa Indonesia'),
+                                    ),
+                                  ],
+                                  onChanged: (val) {
+                                    themeVm.setLocale(val);
+                                  },
+                                ),
+                              ],
                             ),
                           ),
-                          subtitle: Text(
-                            'Toggle app-wide dark theme',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
+                          const SizedBox(height: 4),
+                          Divider(
+                            color: isDark
+                                ? Colors.white24
+                                : Colors.grey.shade300,
+                            thickness: 1.0,
+                            height: 1,
+                          ),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 8.0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Preferred Currency',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Choose your display and budget currency',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.grey.shade400
+                                        : Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String>(
+                                  initialValue: currencyVm.selectedCurrency,
+                                  dropdownColor: cardBg,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: borderColor,
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: borderColor,
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: isDark
+                                            ? Colors.pinkAccent
+                                            : Colors.pink,
+                                        width: 2.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'USD',
+                                      child: Text('USD - US Dollar (\$)'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'IDR',
+                                      child: Text(
+                                        'IDR - Indonesian Rupiah (Rp)',
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'EUR',
+                                      child: Text('EUR - Euro (€)'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'SGD',
+                                      child: Text(
+                                        'SGD - Singapore Dollar (S\$)',
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'MYR',
+                                      child: Text(
+                                        'MYR - Malaysian Ringgit (RM)',
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'JPY',
+                                      child: Text('JPY - Japanese Yen (¥)'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'GBP',
+                                      child: Text('GBP - British Pound (£)'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'AUD',
+                                      child: Text(
+                                        'AUD - Australian Dollar (A\$)',
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      currencyVm.setSelectedCurrency(val);
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                              ],
                             ),
                           ),
-                          value: isDark,
-                          activeThumbColor: isDark
-                              ? Colors.pinkAccent
-                              : Colors.pink,
-                          activeTrackColor: isDark
-                              ? Colors.pinkAccent.withValues(alpha: 0.5)
-                              : Colors.pink.withValues(alpha: 0.5),
-                          onChanged: (value) {
-                            themeVm.toggleThemeMode(value);
-                          },
-                        ),
-                        Divider(
-                          color: isDark ? Colors.white24 : Colors.grey.shade300,
-                          thickness: 1.0,
-                          height: 1,
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 8.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Language',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Choose your preferred language',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<String?>(
-                                initialValue: themeVm.locale?.languageCode,
-                                dropdownColor: cardBg,
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: borderColor,
-                                      width: 1.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: borderColor,
-                                      width: 1.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: isDark
-                                          ? Colors.pinkAccent
-                                          : Colors.pink,
-                                      width: 2.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: null,
-                                    child: Text('System Default'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'en',
-                                    child: Text('English'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'id',
-                                    child: Text('Bahasa Indonesia'),
-                                  ),
-                                ],
-                                onChanged: (val) {
-                                  themeVm.setLocale(val);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Divider(
-                          color: isDark ? Colors.white24 : Colors.grey.shade300,
-                          thickness: 1.0,
-                          height: 1,
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 8.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Preferred Currency',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Choose your display and budget currency',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade600,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<String>(
-                                initialValue: currencyVm.selectedCurrency,
-                                dropdownColor: cardBg,
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 10,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: borderColor,
-                                      width: 1.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: borderColor,
-                                      width: 1.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: isDark
-                                          ? Colors.pinkAccent
-                                          : Colors.pink,
-                                      width: 2.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'USD',
-                                    child: Text('USD - US Dollar (\$)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'IDR',
-                                    child: Text('IDR - Indonesian Rupiah (Rp)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'EUR',
-                                    child: Text('EUR - Euro (€)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'SGD',
-                                    child: Text('SGD - Singapore Dollar (S\$)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'MYR',
-                                    child: Text('MYR - Malaysian Ringgit (RM)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'JPY',
-                                    child: Text('JPY - Japanese Yen (¥)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'GBP',
-                                    child: Text('GBP - British Pound (£)'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'AUD',
-                                    child: Text(
-                                      'AUD - Australian Dollar (A\$)',
-                                    ),
-                                  ),
-                                ],
-                                onChanged: (val) {
-                                  if (val != null) {
-                                    currencyVm.setSelectedCurrency(val);
-                                  }
-                                },
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
                   // ── Notifications section ──────────────────────────────
                   Text(
@@ -732,272 +740,276 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         children: [
                           // Master toggle
-                        SwitchListTile(
-                          title: Text(
-                            'Routine Reminders',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          subtitle: Text(
-                            'Enable AM & PM routine notifications',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
-                            ),
-                          ),
-                          value: profileVm.isNotificationsEnabled,
-                          activeThumbColor: isDark
-                              ? Colors.pinkAccent
-                              : Colors.pink,
-                          activeTrackColor: isDark
-                              ? Colors.pinkAccent.withValues(alpha: 0.5)
-                              : Colors.pink.withValues(alpha: 0.5),
-                          onChanged: (value) {
-                            profileVm.toggleNotifications(value);
-                          },
-                        ),
-
-                        if (profileVm.notificationError != null) ...[
-                          Container(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 6,
-                            ),
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              border: Border.all(
-                                color: Colors.amber.shade800,
-                                width: 1.5,
+                          SwitchListTile(
+                            title: Text(
+                              'Routine Reminders',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black,
                               ),
-                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: Colors.amber.shade900,
-                                  size: 20,
+                            subtitle: Text(
+                              'Enable AM & PM routine notifications',
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
+                              ),
+                            ),
+                            value: profileVm.isNotificationsEnabled,
+                            activeThumbColor: isDark
+                                ? Colors.pinkAccent
+                                : Colors.pink,
+                            activeTrackColor: isDark
+                                ? Colors.pinkAccent.withValues(alpha: 0.5)
+                                : Colors.pink.withValues(alpha: 0.5),
+                            onChanged: (value) {
+                              profileVm.toggleNotifications(value);
+                            },
+                          ),
+
+                          if (profileVm.notificationError != null) ...[
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade100,
+                                border: Border.all(
+                                  color: Colors.amber.shade800,
+                                  width: 1.5,
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    profileVm.notificationError!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.amber.shade900,
-                                    ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: Colors.amber.shade900,
+                                    size: 20,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        if (profileVm.isNotificationsEnabled) ...[
-                          Divider(
-                            color: borderColor,
-                            thickness: 1.0,
-                            height: 1,
-                          ),
-
-                          // AM reminder row
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: SwitchListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    title: Text(
-                                      '🌅  AM Reminder',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      'Morning routine alert',
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      profileVm.notificationError!,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: isDark
-                                            ? Colors.grey.shade400
-                                            : Colors.grey.shade600,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.amber.shade900,
                                       ),
                                     ),
-                                    value: profileVm.amEnabled,
-                                    activeThumbColor: isDark
-                                        ? Colors.pinkAccent
-                                        : Colors.pink,
-                                    activeTrackColor: isDark
-                                        ? Colors.pinkAccent.withValues(
-                                            alpha: 0.5,
-                                          )
-                                        : Colors.pink.withValues(alpha: 0.5),
-                                    onChanged: (v) =>
-                                        profileVm.toggleAmReminder(v),
                                   ),
-                                ),
-                                GestureDetector(
-                                  onTap: profileVm.amEnabled
-                                      ? () async {
-                                          final picked = await showTimePicker(
-                                            context: context,
-                                            initialTime: profileVm.amTime,
-                                          );
-                                          if (picked != null) {
-                                            profileVm.setAmTime(picked);
-                                          }
-                                        }
-                                      : null,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: profileVm.amEnabled
-                                          ? (isDark
-                                                ? Colors.white12
-                                                : Colors.grey.shade100)
-                                          : Colors.transparent,
-                                      border: Border.all(
-                                        color: profileVm.amEnabled
-                                            ? borderColor
-                                            : Colors.transparent,
-                                        width: 1.2,
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          if (profileVm.isNotificationsEnabled) ...[
+                            Divider(
+                              color: borderColor,
+                              thickness: 1.0,
+                              height: 1,
+                            ),
+
+                            // AM reminder row
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: SwitchListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(
+                                        '🌅  AM Reminder',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
                                       ),
-                                      borderRadius: BorderRadius.circular(6),
+                                      subtitle: Text(
+                                        'Morning routine alert',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? Colors.grey.shade400
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      value: profileVm.amEnabled,
+                                      activeThumbColor: isDark
+                                          ? Colors.pinkAccent
+                                          : Colors.pink,
+                                      activeTrackColor: isDark
+                                          ? Colors.pinkAccent.withValues(
+                                              alpha: 0.5,
+                                            )
+                                          : Colors.pink.withValues(alpha: 0.5),
+                                      onChanged: (v) =>
+                                          profileVm.toggleAmReminder(v),
                                     ),
-                                    child: Text(
-                                      profileVm.amTime.format(context),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+                                  ),
+                                  GestureDetector(
+                                    onTap: profileVm.amEnabled
+                                        ? () async {
+                                            final picked = await showTimePicker(
+                                              context: context,
+                                              initialTime: profileVm.amTime,
+                                            );
+                                            if (picked != null) {
+                                              profileVm.setAmTime(picked);
+                                            }
+                                          }
+                                        : null,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
                                         color: profileVm.amEnabled
                                             ? (isDark
-                                                  ? Colors.white
-                                                  : Colors.black)
-                                            : (isDark
-                                                  ? Colors.grey.shade700
-                                                  : Colors.grey.shade400),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                              ],
-                            ),
-                          ),
-
-                          Divider(
-                            color: borderColor,
-                            thickness: 1.0,
-                            height: 1,
-                          ),
-
-                          // PM reminder row
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: SwitchListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    title: Text(
-                                      '🌙  PM Reminder',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      'Evening routine alert',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark
-                                            ? Colors.grey.shade400
-                                            : Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    value: profileVm.pmEnabled,
-                                    activeThumbColor: isDark
-                                        ? Colors.pinkAccent
-                                        : Colors.pink,
-                                    activeTrackColor: isDark
-                                        ? Colors.pinkAccent.withValues(
-                                            alpha: 0.5,
-                                          )
-                                        : Colors.pink.withValues(alpha: 0.5),
-                                    onChanged: (v) =>
-                                        profileVm.togglePmReminder(v),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: profileVm.pmEnabled
-                                      ? () async {
-                                          final picked = await showTimePicker(
-                                            context: context,
-                                            initialTime: profileVm.pmTime,
-                                          );
-                                          if (picked != null) {
-                                            profileVm.setPmTime(picked);
-                                          }
-                                        }
-                                      : null,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: profileVm.pmEnabled
-                                          ? (isDark
-                                                ? Colors.white12
-                                                : Colors.grey.shade100)
-                                          : Colors.transparent,
-                                      border: Border.all(
-                                        color: profileVm.pmEnabled
-                                            ? borderColor
+                                                  ? Colors.white12
+                                                  : Colors.grey.shade100)
                                             : Colors.transparent,
-                                        width: 1.2,
+                                        border: Border.all(
+                                          color: profileVm.amEnabled
+                                              ? borderColor
+                                              : Colors.transparent,
+                                          width: 1.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
-                                      borderRadius: BorderRadius.circular(6),
+                                      child: Text(
+                                        profileVm.amTime.format(context),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: profileVm.amEnabled
+                                              ? (isDark
+                                                    ? Colors.white
+                                                    : Colors.black)
+                                              : (isDark
+                                                    ? Colors.grey.shade700
+                                                    : Colors.grey.shade400),
+                                        ),
+                                      ),
                                     ),
-                                    child: Text(
-                                      profileVm.pmTime.format(context),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                              ),
+                            ),
+
+                            Divider(
+                              color: borderColor,
+                              thickness: 1.0,
+                              height: 1,
+                            ),
+
+                            // PM reminder row
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: SwitchListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(
+                                        '🌙  PM Reminder',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        'Evening routine alert',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? Colors.grey.shade400
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      value: profileVm.pmEnabled,
+                                      activeThumbColor: isDark
+                                          ? Colors.pinkAccent
+                                          : Colors.pink,
+                                      activeTrackColor: isDark
+                                          ? Colors.pinkAccent.withValues(
+                                              alpha: 0.5,
+                                            )
+                                          : Colors.pink.withValues(alpha: 0.5),
+                                      onChanged: (v) =>
+                                          profileVm.togglePmReminder(v),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: profileVm.pmEnabled
+                                        ? () async {
+                                            final picked = await showTimePicker(
+                                              context: context,
+                                              initialTime: profileVm.pmTime,
+                                            );
+                                            if (picked != null) {
+                                              profileVm.setPmTime(picked);
+                                            }
+                                          }
+                                        : null,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
                                         color: profileVm.pmEnabled
                                             ? (isDark
-                                                  ? Colors.white
-                                                  : Colors.black)
-                                            : (isDark
-                                                  ? Colors.grey.shade700
-                                                  : Colors.grey.shade400),
+                                                  ? Colors.white12
+                                                  : Colors.grey.shade100)
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: profileVm.pmEnabled
+                                              ? borderColor
+                                              : Colors.transparent,
+                                          width: 1.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        profileVm.pmTime.format(context),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: profileVm.pmEnabled
+                                              ? (isDark
+                                                    ? Colors.white
+                                                    : Colors.black)
+                                              : (isDark
+                                                    ? Colors.grey.shade700
+                                                    : Colors.grey.shade400),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
-                              ],
+                                  const SizedBox(width: 4),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
                   SizedBox(
                     width: double.infinity,

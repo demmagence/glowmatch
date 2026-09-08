@@ -137,15 +137,18 @@ void main() {
       expect(vm.isNotificationsEnabled, isTrue);
     });
 
-    test('toggles notifications off and persists, cancels all reminders', () async {
-      await vm.toggleNotifications(false);
+    test(
+      'toggles notifications off and persists, cancels all reminders',
+      () async {
+        await vm.toggleNotifications(false);
 
-      expect(vm.isNotificationsEnabled, isFalse);
-      expect(mockNotif.cancelAllCalls, equals(1));
+        expect(vm.isNotificationsEnabled, isFalse);
+        expect(mockNotif.cancelAllCalls, equals(1));
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool('notifications_enabled'), isFalse);
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('notifications_enabled'), isFalse);
+      },
+    );
 
     test('toggles notifications on and persists', () async {
       await vm.toggleNotifications(false);
@@ -230,7 +233,10 @@ void main() {
 
       await vm.toggleAmReminder(true);
 
-      expect(vm.notificationError, equals('Notification permission is required.'));
+      expect(
+        vm.notificationError,
+        equals('Notification permission is required.'),
+      );
     });
 
     test('surfaces exact alarm error when exact alarms are denied', () async {
@@ -241,7 +247,10 @@ void main() {
 
       await vm.togglePmReminder(true);
 
-      expect(vm.notificationError, equals('Exact alarm permission is required.'));
+      expect(
+        vm.notificationError,
+        equals('Exact alarm permission is required.'),
+      );
     });
 
     test('clearNotificationError resets error message', () async {
