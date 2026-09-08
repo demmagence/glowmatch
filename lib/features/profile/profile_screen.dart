@@ -339,7 +339,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                                      _obscureConfirmPassword =
+                                          !_obscureConfirmPassword;
                                     });
                                   },
                                 ),
@@ -455,9 +456,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -677,7 +676,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   DropdownMenuItem(
                                     value: 'AUD',
-                                    child: Text('AUD - Australian Dollar (A\$)'),
+                                    child: Text(
+                                      'AUD - Australian Dollar (A\$)',
+                                    ),
                                   ),
                                 ],
                                 onChanged: (val) {
@@ -741,8 +742,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           value: profileVm.isNotificationsEnabled,
-                          activeThumbColor:
-                              isDark ? Colors.pinkAccent : Colors.pink,
+                          activeThumbColor: isDark
+                              ? Colors.pinkAccent
+                              : Colors.pink,
                           activeTrackColor: isDark
                               ? Colors.pinkAccent.withValues(alpha: 0.5)
                               : Colors.pink.withValues(alpha: 0.5),
@@ -760,9 +762,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           // AM reminder row
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 4.0,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Row(
                               children: [
                                 Expanded(
@@ -791,8 +791,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ? Colors.pinkAccent
                                         : Colors.pink,
                                     activeTrackColor: isDark
-                                        ? Colors.pinkAccent
-                                              .withValues(alpha: 0.5)
+                                        ? Colors.pinkAccent.withValues(
+                                            alpha: 0.5,
+                                          )
                                         : Colors.pink.withValues(alpha: 0.5),
                                     onChanged: (v) =>
                                         profileVm.toggleAmReminder(v),
@@ -801,8 +802,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 GestureDetector(
                                   onTap: profileVm.amEnabled
                                       ? () async {
-                                          final picked =
-                                              await showTimePicker(
+                                          final picked = await showTimePicker(
                                             context: context,
                                             initialTime: profileVm.amTime,
                                           );
@@ -859,9 +859,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           // PM reminder row
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 4.0,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Row(
                               children: [
                                 Expanded(
@@ -890,8 +888,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ? Colors.pinkAccent
                                         : Colors.pink,
                                     activeTrackColor: isDark
-                                        ? Colors.pinkAccent
-                                              .withValues(alpha: 0.5)
+                                        ? Colors.pinkAccent.withValues(
+                                            alpha: 0.5,
+                                          )
                                         : Colors.pink.withValues(alpha: 0.5),
                                     onChanged: (v) =>
                                         profileVm.togglePmReminder(v),
@@ -900,8 +899,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 GestureDetector(
                                   onTap: profileVm.pmEnabled
                                       ? () async {
-                                          final picked =
-                                              await showTimePicker(
+                                          final picked = await showTimePicker(
                                             context: context,
                                             initialTime: profileVm.pmTime,
                                           );
@@ -1070,9 +1068,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // 2. Reset ViewModels state
                 if (context.mounted) {
-                  Provider.of<ShelfViewModel>(context, listen: false).clearState();
-                  Provider.of<JournalViewModel>(context, listen: false).clearState();
-                  Provider.of<RoutineViewModel>(context, listen: false).clearState();
+                  Provider.of<ShelfViewModel>(
+                    context,
+                    listen: false,
+                  ).clearState();
+                  Provider.of<JournalViewModel>(
+                    context,
+                    listen: false,
+                  ).clearState();
+                  Provider.of<RoutineViewModel>(
+                    context,
+                    listen: false,
+                  ).clearState();
                 }
 
                 // 3. Clear SharedPreferences seen onboarding flag

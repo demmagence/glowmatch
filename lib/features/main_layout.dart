@@ -106,19 +106,25 @@ class _MainLayoutState extends State<MainLayout> {
     return GestureDetector(
       onTap: () async {
         if (_isNavigating || _currentIndex == index) return;
-        
+
         setState(() {
           _currentIndex = index;
           _isNavigating = true;
         });
-        
+
         try {
           final auth = Provider.of<AuthViewModel>(context, listen: false);
           final userId = auth.userId;
           if (index == 0) {
-            await Provider.of<RoutineViewModel>(context, listen: false).init(userId);
+            await Provider.of<RoutineViewModel>(
+              context,
+              listen: false,
+            ).init(userId);
           } else if (index == 3) {
-            await Provider.of<JournalViewModel>(context, listen: false).fetchJournal(userId);
+            await Provider.of<JournalViewModel>(
+              context,
+              listen: false,
+            ).fetchJournal(userId);
           }
         } finally {
           if (mounted) {

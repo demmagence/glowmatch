@@ -15,19 +15,28 @@ void main() {
   });
 
   group('SupabaseService Routine Step Completions', () {
-    test('getRoutineStepCompletions returns empty initially when no logs', () async {
-      final logs = await svc.getRoutineStepCompletions('user-1', DateTime.now());
-      expect(logs, isEmpty);
-    });
+    test(
+      'getRoutineStepCompletions returns empty initially when no logs',
+      () async {
+        final logs = await svc.getRoutineStepCompletions(
+          'user-1',
+          DateTime.now(),
+        );
+        expect(logs, isEmpty);
+      },
+    );
 
-    test('insertRoutineStepCompletion and getRoutineStepCompletions work', () async {
-      final today = DateTime.now();
-      await svc.insertRoutineStepCompletion('user-1', 'step-1', today);
+    test(
+      'insertRoutineStepCompletion and getRoutineStepCompletions work',
+      () async {
+        final today = DateTime.now();
+        await svc.insertRoutineStepCompletion('user-1', 'step-1', today);
 
-      final logs = await svc.getRoutineStepCompletions('user-1', today);
-      expect(logs, hasLength(1));
-      expect(logs.first, equals('step-1'));
-    });
+        final logs = await svc.getRoutineStepCompletions('user-1', today);
+        expect(logs, hasLength(1));
+        expect(logs.first, equals('step-1'));
+      },
+    );
 
     test('deleteRoutineStepCompletion removes completed step log', () async {
       final today = DateTime.now();
@@ -67,20 +76,29 @@ void main() {
       await routineVm.toggleStep('r-1', shelfVm);
       expect(routineVm.completedStepIds, contains('r-1'));
 
-      final dbLogs = await svc.getRoutineStepCompletions('user-toggle', DateTime.now());
+      final dbLogs = await svc.getRoutineStepCompletions(
+        'user-toggle',
+        DateTime.now(),
+      );
       expect(dbLogs, contains('r-1'));
 
       // Toggle step r-1 again - should NOT uncheck it (no unchecking allowed)
       await routineVm.toggleStep('r-1', shelfVm);
       expect(routineVm.completedStepIds, contains('r-1'));
 
-      final dbLogsAfter = await svc.getRoutineStepCompletions('user-toggle', DateTime.now());
+      final dbLogsAfter = await svc.getRoutineStepCompletions(
+        'user-toggle',
+        DateTime.now(),
+      );
       expect(dbLogsAfter, contains('r-1'));
     });
 
     test('switching active routine AM/PM retains completion states', () async {
       final today = DateTime.now();
-      svc.setMockRoutineStepCompletions('user-switch', ['r-1', 'r-pm-2'], today);
+      svc.setMockRoutineStepCompletions('user-switch', [
+        'r-1',
+        'r-pm-2',
+      ], today);
 
       await routineVm.init('user-switch');
 
@@ -101,23 +119,26 @@ void main() {
       expect(routineVm.completedStepIds, isNot(contains('r-pm-2')));
     });
 
-    test('routine completion preserves checked states in RoutineViewModel', () async {
-      await routineVm.init('user-completion');
-      expect(routineVm.completedCount, equals(0));
+    test(
+      'routine completion preserves checked states in RoutineViewModel',
+      () async {
+        await routineVm.init('user-completion');
+        expect(routineVm.completedCount, equals(0));
 
-      // Toggle all steps in AM (r-1, r-2, r-3)
-      for (final step in routineVm.currentSteps) {
-        await routineVm.toggleStep(step.id, shelfVm);
-      }
+        // Toggle all steps in AM (r-1, r-2, r-3)
+        for (final step in routineVm.currentSteps) {
+          await routineVm.toggleStep(step.id, shelfVm);
+        }
 
-      // Finalize routine manually
-      await routineVm.completeRoutine('user-completion');
+        // Finalize routine manually
+        await routineVm.completeRoutine('user-completion');
 
-      // Verification: routine completed today
-      expect(routineVm.completedToday, isTrue);
+        // Verification: routine completed today
+        expect(routineVm.completedToday, isTrue);
 
-      // Verify checklist items are NOT cleared and remain in _completedStepIds
-      expect(routineVm.completedStepIds, containsAll(['r-1', 'r-2', 'r-3']));
-    });
+        // Verify checklist items are NOT cleared and remain in _completedStepIds
+        expect(routineVm.completedStepIds, containsAll(['r-1', 'r-2', 'r-3']));
+      },
+    );
   });
 }

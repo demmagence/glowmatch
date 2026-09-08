@@ -25,8 +25,18 @@ void main() {
       final date = vm.entries.first.loggedDate;
 
       final monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       final parts = date.split(' ');
       expect(parts.length, equals(2));

@@ -40,8 +40,7 @@ class ProfileViewModel extends ChangeNotifier {
   Future<void> _load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isNotificationsEnabled =
-          prefs.getBool('notifications_enabled') ?? true;
+      _isNotificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
       _amEnabled = prefs.getBool('am_reminder_enabled') ?? false;
       _pmEnabled = prefs.getBool('pm_reminder_enabled') ?? false;
 

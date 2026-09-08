@@ -14,23 +14,29 @@ void main() {
     test('initial state and supported list', () {
       expect(viewModel.selectedCurrency, equals('USD'));
       expect(viewModel.currencySymbol, equals('\$'));
-      expect(viewModel.supportedCurrencies, containsAll(['USD', 'IDR', 'EUR', 'SGD', 'MYR', 'JPY', 'GBP', 'AUD']));
+      expect(
+        viewModel.supportedCurrencies,
+        containsAll(['USD', 'IDR', 'EUR', 'SGD', 'MYR', 'JPY', 'GBP', 'AUD']),
+      );
     });
 
-    test('setSelectedCurrency updates preferences and currency symbol', () async {
-      bool notified = false;
-      viewModel.addListener(() {
-        notified = true;
-      });
+    test(
+      'setSelectedCurrency updates preferences and currency symbol',
+      () async {
+        bool notified = false;
+        viewModel.addListener(() {
+          notified = true;
+        });
 
-      await viewModel.setSelectedCurrency('EUR');
-      expect(viewModel.selectedCurrency, equals('EUR'));
-      expect(viewModel.currencySymbol, equals('€'));
-      expect(notified, isTrue);
+        await viewModel.setSelectedCurrency('EUR');
+        expect(viewModel.selectedCurrency, equals('EUR'));
+        expect(viewModel.currencySymbol, equals('€'));
+        expect(notified, isTrue);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('preferred_currency'), equals('EUR'));
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('preferred_currency'), equals('EUR'));
+      },
+    );
 
     test('formatPrice formats USD correctly', () {
       // 16400 IDR base -> should be 1 USD -> formatted as $1.00
@@ -54,11 +60,14 @@ void main() {
       expect(formatted, equals('¥$expectedJpy'));
     });
 
-    test('formatPriceWithoutSymbol formats values correctly without currency prefix', () async {
-      expect(viewModel.formatPriceWithoutSymbol(16400.0), equals('1.00'));
+    test(
+      'formatPriceWithoutSymbol formats values correctly without currency prefix',
+      () async {
+        expect(viewModel.formatPriceWithoutSymbol(16400.0), equals('1.00'));
 
-      await viewModel.setSelectedCurrency('IDR');
-      expect(viewModel.formatPriceWithoutSymbol(16400.0), equals('16400'));
-    });
+        await viewModel.setSelectedCurrency('IDR');
+        expect(viewModel.formatPriceWithoutSymbol(16400.0), equals('16400'));
+      },
+    );
   });
 }

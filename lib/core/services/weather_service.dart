@@ -85,10 +85,12 @@ class WeatherService {
             } else if (pm.locality != null && pm.locality!.isNotEmpty) {
               parts.add(pm.locality!);
             }
-            if (pm.subAdministrativeArea != null && pm.subAdministrativeArea!.isNotEmpty) {
+            if (pm.subAdministrativeArea != null &&
+                pm.subAdministrativeArea!.isNotEmpty) {
               parts.add(pm.subAdministrativeArea!);
             }
-            if (pm.administrativeArea != null && pm.administrativeArea!.isNotEmpty) {
+            if (pm.administrativeArea != null &&
+                pm.administrativeArea!.isNotEmpty) {
               parts.add(pm.administrativeArea!);
             }
             if (parts.isNotEmpty) {
@@ -96,7 +98,9 @@ class WeatherService {
             }
           }
         } catch (e) {
-          debugPrint('Geocoding failed: $e');
+          if (!e.toString().contains('MissingPluginException')) {
+            debugPrint('Geocoding failed: $e');
+          }
         }
 
         return WeatherData(
@@ -109,7 +113,9 @@ class WeatherService {
         return _mockFallback('API Error');
       }
     } catch (e) {
-      debugPrint('Weather fetch error: $e. Using fallback.');
+      if (!e.toString().contains('MissingPluginException')) {
+        debugPrint('Weather fetch error: $e. Using fallback.');
+      }
       return _mockFallback('Offline / Timeout');
     }
   }
