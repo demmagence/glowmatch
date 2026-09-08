@@ -11,11 +11,25 @@ serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Allow': 'POST' }, status: 405 }
+    )
+  }
+
   try {
     const { ingredients } = await req.json()
-    if (!ingredients || !Array.isArray(ingredients)) {
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Ingredients array is required in the body' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    if (ingredients.length > 200 || ingredients.some((value) => typeof value !== 'string' || value.trim().length === 0 || value.length > 200)) {
+      return new Response(
+        JSON.stringify({ error: 'Ingredients must contain 1-200 non-empty strings of at most 200 characters' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }

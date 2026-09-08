@@ -146,7 +146,9 @@ class WeatherService {
             }
           }
         } catch (e) {
-          debugPrint('Geocoding failed: $e');
+          if (!e.toString().contains('MissingPluginException')) {
+            debugPrint('Geocoding failed: $e');
+          }
         }
 
         return WeatherResult.success(
@@ -163,7 +165,9 @@ class WeatherService {
         );
       }
     } catch (e) {
-      debugPrint('Weather fetch error: $e');
+      if (!e.toString().contains('MissingPluginException')) {
+        debugPrint('Weather fetch error: $e');
+      }
       return WeatherResult.error(e.toString());
     }
   }

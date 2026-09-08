@@ -260,7 +260,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: 'Product Name',
                       hintText: 'e.g. Moisture Surge Intense',
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -284,7 +286,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: 'Brand',
                       hintText: 'e.g. Clinique',
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -312,7 +316,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: 'Category',
                       hintText: 'Select a category',
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -340,10 +346,7 @@ void showEditProductDialog(
                       return list.map((cat) {
                         return DropdownMenuItem(
                           value: cat,
-                          child: Text(
-                            cat,
-                            style: TextStyle(color: textColor),
-                          ),
+                          child: Text(cat, style: TextStyle(color: textColor)),
                         );
                       }).toList();
                     }(),
@@ -359,7 +362,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: 'Price (${currencyVm.selectedCurrency})',
                       hintText: 'e.g. 150000',
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -386,7 +391,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: 'Product Size',
                       hintText: 'e.g. 30ml, 50g',
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -410,7 +417,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: 'Ingredients',
                       hintText: 'e.g. Niacinamide, Hyaluronic Acid, Ceramide',
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -454,8 +463,14 @@ void showEditProductDialog(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
                     final matchingCategory = vm.categories.firstWhere(
-                      (c) => c.name.toLowerCase() == selectedCategory.toLowerCase(),
-                      orElse: () => SkincareCategory(id: '', name: selectedCategory, color: item.indicatorColor),
+                      (c) =>
+                          c.name.toLowerCase() ==
+                          selectedCategory.toLowerCase(),
+                      orElse: () => SkincareCategory(
+                        id: '',
+                        name: selectedCategory,
+                        color: item.indicatorColor,
+                      ),
                     );
                     String hexColor = matchingCategory.color;
 

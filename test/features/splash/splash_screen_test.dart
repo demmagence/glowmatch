@@ -16,9 +16,7 @@ import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
 
 Widget _buildSplash({required bool hasSeenOnboarding, String? mockUserId}) {
-  final Map<String, Object> values = {
-    'has_seen_onboarding': hasSeenOnboarding,
-  };
+  final Map<String, Object> values = {'has_seen_onboarding': hasSeenOnboarding};
   if (mockUserId != null) {
     values['mock_user_id'] = mockUserId;
     values['mock_user_email'] = 'test@example.com';
@@ -84,13 +82,17 @@ void main() {
       expect(find.text('Track Your Glow'), findsOneWidget);
     });
 
-    testWidgets('navigates to MainLayout for returning logged-in user', (tester) async {
+    testWidgets('navigates to MainLayout for returning logged-in user', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(_buildSplash(hasSeenOnboarding: true, mockUserId: 'mock-id-123'));
+      await tester.pumpWidget(
+        _buildSplash(hasSeenOnboarding: true, mockUserId: 'mock-id-123'),
+      );
       await tester.pump();
 
       await tester.pump(const Duration(seconds: 3));
@@ -102,7 +104,9 @@ void main() {
       expect(find.text('Shelf'), findsWidgets);
     });
 
-    testWidgets('navigates to SignInScreen for returning signed-out user', (tester) async {
+    testWidgets('navigates to SignInScreen for returning signed-out user', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);

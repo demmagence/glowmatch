@@ -38,11 +38,12 @@ class RoutineViewModel extends ChangeNotifier {
   List<StreakSegment> get streakSegments {
     if (_dailyCompletionLogs.isEmpty) return [];
 
-    final uniqueSortedDates = _dailyCompletionLogs
-        .map((d) => DateTime(d.year, d.month, d.day))
-        .toSet()
-        .toList()
-      ..sort((a, b) => a.compareTo(b));
+    final uniqueSortedDates =
+        _dailyCompletionLogs
+            .map((d) => DateTime(d.year, d.month, d.day))
+            .toSet()
+            .toList()
+          ..sort((a, b) => a.compareTo(b));
 
     if (uniqueSortedDates.isEmpty) return [];
 
@@ -58,22 +59,26 @@ class RoutineViewModel extends ChangeNotifier {
         segmentEnd = currentDate;
       } else if (diff > 1) {
         final length = segmentEnd.difference(segmentStart).inDays + 1;
-        segments.add(StreakSegment(
-          startDate: segmentStart,
-          endDate: segmentEnd,
-          length: length,
-        ));
+        segments.add(
+          StreakSegment(
+            startDate: segmentStart,
+            endDate: segmentEnd,
+            length: length,
+          ),
+        );
         segmentStart = currentDate;
         segmentEnd = currentDate;
       }
     }
 
     final lastLength = segmentEnd.difference(segmentStart).inDays + 1;
-    segments.add(StreakSegment(
-      startDate: segmentStart,
-      endDate: segmentEnd,
-      length: lastLength,
-    ));
+    segments.add(
+      StreakSegment(
+        startDate: segmentStart,
+        endDate: segmentEnd,
+        length: lastLength,
+      ),
+    );
 
     segments.sort((a, b) => b.endDate.compareTo(a.endDate));
     return segments;
@@ -86,7 +91,8 @@ class RoutineViewModel extends ChangeNotifier {
   bool get pmCompletedToday => _pmCompletedToday;
 
   String _getRoutinePrefsKey(String type, DateTime date) {
-    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     return 'completed_${type}_$dateStr';
   }
 
@@ -136,7 +142,9 @@ class RoutineViewModel extends ChangeNotifier {
   Future<void> loadStreakData(String userId) async {
     try {
       _streakData = await _supabaseService.getStreakData(userId);
-      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
+      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(
+        userId,
+      );
     } catch (e) {
       debugPrint('Error loading streak data: $e');
     }
@@ -161,7 +169,10 @@ class RoutineViewModel extends ChangeNotifier {
 
       _completedStepIds.clear();
       _todayCompletedStepIds.clear();
-      final todayCompletions = await _supabaseService.getRoutineStepCompletions(userId, DateTime.now());
+      final todayCompletions = await _supabaseService.getRoutineStepCompletions(
+        userId,
+        DateTime.now(),
+      );
       _todayCompletedStepIds.addAll(todayCompletions);
 
       final activeSteps = _activeRoutine == 'AM' ? _amSteps : _pmSteps;
@@ -201,7 +212,11 @@ class RoutineViewModel extends ChangeNotifier {
     _completedStepIds.add(stepId);
     _todayCompletedStepIds.add(stepId);
     if (_userId != null) {
-      await _supabaseService.insertRoutineStepCompletion(_userId!, stepId, DateTime.now());
+      await _supabaseService.insertRoutineStepCompletion(
+        _userId!,
+        stepId,
+        DateTime.now(),
+      );
     }
 
     final stepIdx = currentSteps.indexWhere((x) => x.id == stepId);
@@ -283,7 +298,11 @@ class RoutineViewModel extends ChangeNotifier {
     await reorderStepsDirect(userId, oldIndex, newIndex);
   }
 
-  Future<void> reorderStepsDirect(String userId, int oldIndex, int newIndex) async {
+  Future<void> reorderStepsDirect(
+    String userId,
+    int oldIndex,
+    int newIndex,
+  ) async {
     final steps = _activeRoutine == 'AM'
         ? List<RoutineStep>.from(_amSteps)
         : List<RoutineStep>.from(_pmSteps);
@@ -341,7 +360,9 @@ class RoutineViewModel extends ChangeNotifier {
       }
 
       _streakData = await _supabaseService.recordRoutineCompletion(userId);
-      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(userId);
+      _dailyCompletionLogs = await _supabaseService.getDailyCompletionLogs(
+        userId,
+      );
     } catch (e) {
       debugPrint('Error completing routine: $e');
       _errorMessage = e.toString();

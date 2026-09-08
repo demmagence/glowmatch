@@ -22,7 +22,9 @@ class JournalEntry {
       skinScore: json['skin_score'] as int? ?? 80,
       photoPath: json['photo_path'] as String?,
       notes: json['notes'] as String?,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
     );
   }
 

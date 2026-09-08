@@ -4,10 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class StreakMonthlyCalendar extends StatefulWidget {
   final Set<String> completedSet;
 
-  const StreakMonthlyCalendar({
-    super.key,
-    required this.completedSet,
-  });
+  const StreakMonthlyCalendar({super.key, required this.completedSet});
 
   @override
   State<StreakMonthlyCalendar> createState() => _StreakMonthlyCalendarState();
@@ -51,8 +48,18 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
 
   String _formatMonthYear(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
@@ -63,8 +70,18 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
 
   String _formatDateTooltip(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -136,18 +153,22 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
           // Weekday Headers
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekdayLabels.map((label) => Expanded(
-              child: Center(
-                child: Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
+            children: weekdayLabels
+                .map(
+                  (label) => Expanded(
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            )).toList(),
+                )
+                .toList(),
           ),
           const SizedBox(height: 6),
           // Calendar Grid
@@ -166,20 +187,27 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
                 return const SizedBox();
               }
               final day = index - offset + 1;
-              final cellDate = DateTime(_focusedMonth.year, _focusedMonth.month, day);
+              final cellDate = DateTime(
+                _focusedMonth.year,
+                _focusedMonth.month,
+                day,
+              );
               final key = _toDateKey(cellDate);
               final completed = widget.completedSet.contains(key);
 
               final cellColor = completed
                   ? const Color(0xFF64DD17)
-                  : (isDark ? const Color(0xFF424242) : const Color(0xFFE0E0E0));
+                  : (isDark
+                        ? const Color(0xFF424242)
+                        : const Color(0xFFE0E0E0));
 
               final cellTextColor = completed
                   ? Colors.black87
                   : (isDark ? Colors.white60 : Colors.black54);
 
               return Tooltip(
-                message: '${_formatDateTooltip(cellDate)}: ${completed ? 'Completed' : 'Missed'}',
+                message:
+                    '${_formatDateTooltip(cellDate)}: ${completed ? 'Completed' : 'Missed'}',
                 child: Container(
                   alignment: Alignment.center,
                   decoration: BoxDecoration(

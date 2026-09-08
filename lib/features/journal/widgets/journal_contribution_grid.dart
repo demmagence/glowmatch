@@ -4,13 +4,11 @@ import '../../../core/models/models.dart';
 class JournalContributionGrid extends StatefulWidget {
   final List<JournalEntry> entries;
 
-  const JournalContributionGrid({
-    super.key,
-    required this.entries,
-  });
+  const JournalContributionGrid({super.key, required this.entries});
 
   @override
-  State<JournalContributionGrid> createState() => _JournalContributionGridState();
+  State<JournalContributionGrid> createState() =>
+      _JournalContributionGridState();
 }
 
 class _JournalContributionGridState extends State<JournalContributionGrid> {
@@ -51,8 +49,18 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
 
   String _formatMonthYear(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[date.month - 1]} ${date.year}';
   }
@@ -94,7 +102,9 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
     final cardBg = isDark ? Colors.grey.shade900 : Colors.white;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : Colors.black;
 
     // Map entries to days for quick lookup
     final Map<String, int> entryCounts = {};
@@ -110,8 +120,18 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
     final totalGridItems = offset + totalDays;
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
 
     final weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -189,18 +209,22 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
             // Weekday Headers
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: weekdayLabels.map((label) => Expanded(
-                child: Center(
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+              children: weekdayLabels
+                  .map(
+                    (label) => Expanded(
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              )).toList(),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 8),
             // Monthly Calendar Grid
@@ -219,14 +243,21 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                   return const SizedBox();
                 }
                 final day = index - offset + 1;
-                final cellDate = DateTime(_focusedMonth.year, _focusedMonth.month, day);
+                final cellDate = DateTime(
+                  _focusedMonth.year,
+                  _focusedMonth.month,
+                  day,
+                );
                 final dateKey = _toDateKey(cellDate);
                 final count = entryCounts[dateKey] ?? 0;
                 final cellColor = _getCellColor(count, isDark);
                 final cellTextColor = _getCellTextColor(count, isDark);
 
-                final countText = count == 0 ? 'no entries' : (count == 1 ? '1 entry' : '$count entries');
-                final formattedDate = '${months[cellDate.month - 1]} ${cellDate.day}, ${cellDate.year}';
+                final countText = count == 0
+                    ? 'no entries'
+                    : (count == 1 ? '1 entry' : '$count entries');
+                final formattedDate =
+                    '${months[cellDate.month - 1]} ${cellDate.day}, ${cellDate.year}';
                 final tooltipMessage = '$countText on $formattedDate';
 
                 return Tooltip(
@@ -256,7 +287,10 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Text('Less', style: TextStyle(fontSize: 8, color: Colors.grey)),
+                const Text(
+                  'Less',
+                  style: TextStyle(fontSize: 8, color: Colors.grey),
+                ),
                 const SizedBox(width: 4),
                 _buildLegendCell(_getCellColor(0, isDark)),
                 const SizedBox(width: 2),
@@ -268,7 +302,10 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                 const SizedBox(width: 2),
                 _buildLegendCell(_getCellColor(4, isDark)),
                 const SizedBox(width: 4),
-                const Text('More', style: TextStyle(fontSize: 8, color: Colors.grey)),
+                const Text(
+                  'More',
+                  style: TextStyle(fontSize: 8, color: Colors.grey),
+                ),
               ],
             ),
           ],

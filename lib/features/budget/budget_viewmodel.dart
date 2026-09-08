@@ -101,7 +101,9 @@ class BudgetViewModel extends ChangeNotifier {
         : null;
 
     for (final item in _shelfItems) {
-      if (limitDate != null && item.createdAt != null && item.createdAt!.isBefore(limitDate)) {
+      if (limitDate != null &&
+          item.createdAt != null &&
+          item.createdAt!.isBefore(limitDate)) {
         continue;
       }
       final category = item.category;

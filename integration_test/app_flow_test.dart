@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/main.dart' as app;
+import 'staging_config.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -11,7 +12,15 @@ void main() {
   setUpAll(() async {
     final svc = SupabaseService();
     svc.resetForTesting();
-    await svc.initialize(url: 'YOUR_URL', anonKey: 'YOUR_KEY');
+    final config = StagingConfig.tryLoad();
+    if (config != null && config.isConfigured) {
+      await svc.initialize(url: config.url, anonKey: config.anonKey);
+    } else {
+      await svc.initialize(
+        url: 'https://staging.placeholder.supabase.co',
+        anonKey: 'placeholder-anon-key-local-test',
+      );
+    }
   });
 
   group('GlowMatch App Integration Tests', () {
@@ -36,28 +45,37 @@ void main() {
       expect(find.text('Morning Routine'), findsOneWidget);
     });
 
-    testWidgets('App launch to Splash to Home (returning user)', (
+    testWidgets(
+      'App launch to Splash to SignInScreen (returning unauthenticated user)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({'has_seen_onboarding': true});
+
+        await tester.pumpWidget(const app.GlowMatchApp());
+        await tester.pumpAndSettle();
+
+        expect(find.text('GlowMatch'), findsOneWidget);
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+
+        // Returning unauthenticated users must be routed to SignInScreen
+        expect(find.text('Sign In'), findsWidgets);
+        expect(find.text('Continue as Guest'), findsOneWidget);
+      },
+    );
+
+    testWidgets('Navigation through all bottom tabs after guest sign-in', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({'has_seen_onboarding': true});
 
       await tester.pumpWidget(const app.GlowMatchApp());
       await tester.pumpAndSettle();
-
-      expect(find.text('GlowMatch'), findsOneWidget);
-
       await tester.pump(const Duration(seconds: 2));
       await tester.pumpAndSettle();
 
-      expect(find.text('Morning Routine'), findsOneWidget);
-    });
-
-    testWidgets('Navigation through all bottom tabs', (tester) async {
-      SharedPreferences.setMockInitialValues({'has_seen_onboarding': true});
-
-      await tester.pumpWidget(const app.GlowMatchApp());
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Continue as Guest'), findsOneWidget);
+      await tester.tap(find.text('Continue as Guest'));
       await tester.pumpAndSettle();
 
       expect(find.text('Morning Routine'), findsOneWidget);

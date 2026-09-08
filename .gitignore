@@ -53,6 +53,19 @@ keys.json
 *.pem
 *.key
 
+# Keystores and Android signing credentials
+*.keystore
+*.jks
+**/android/key.properties
+key.properties
+local.properties
+
+# iOS signing and provisioning material
+*.mobileprovision
+*.p12
+*.cer
+ExportOptions.plist
+
 # Agent related
 .agents/
 .openspec/
