@@ -43,13 +43,14 @@ void showAddProductDialog(
         builder: (context, setDialogState) {
           Future<void> pickImage(ImageSource source) async {
             final isCamera = source == ImageSource.camera;
-            final permType =
-                isCamera ? AppPermissionType.camera : AppPermissionType.photos;
+            final permType = isCamera
+                ? AppPermissionType.camera
+                : AppPermissionType.photos;
 
             try {
               if (isCamera) {
-                final status =
-                    await PermissionService.instance.checkCameraPermission();
+                final status = await PermissionService.instance
+                    .checkCameraPermission();
                 if (status == AppPermissionStatus.permanentlyDenied) {
                   if (context.mounted) {
                     await PermissionRationaleDialog.show(
@@ -60,8 +61,8 @@ void showAddProductDialog(
                   }
                   return;
                 } else if (status == AppPermissionStatus.denied) {
-                  final reqStatus =
-                      await PermissionService.instance.requestCameraPermission();
+                  final reqStatus = await PermissionService.instance
+                      .requestCameraPermission();
                   if (reqStatus != AppPermissionStatus.granted) {
                     if (context.mounted) {
                       await PermissionRationaleDialog.show(
@@ -74,8 +75,8 @@ void showAddProductDialog(
                   }
                 }
               } else {
-                final status =
-                    await PermissionService.instance.checkPhotosPermission();
+                final status = await PermissionService.instance
+                    .checkPhotosPermission();
                 if (status == AppPermissionStatus.permanentlyDenied) {
                   if (context.mounted) {
                     await PermissionRationaleDialog.show(
@@ -86,8 +87,8 @@ void showAddProductDialog(
                   }
                   return;
                 } else if (status == AppPermissionStatus.denied) {
-                  final reqStatus =
-                      await PermissionService.instance.requestPhotosPermission();
+                  final reqStatus = await PermissionService.instance
+                      .requestPhotosPermission();
                   if (reqStatus != AppPermissionStatus.granted) {
                     if (context.mounted) {
                       await PermissionRationaleDialog.show(

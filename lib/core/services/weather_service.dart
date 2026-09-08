@@ -29,34 +29,28 @@ class WeatherResult {
   final WeatherStatus status;
   final String? message;
 
-  const WeatherResult({
-    this.data,
-    required this.status,
-    this.message,
-  });
+  const WeatherResult({this.data, required this.status, this.message});
 
   bool get isSuccess => status == WeatherStatus.success && data != null;
 
   factory WeatherResult.success(WeatherData data) =>
       WeatherResult(data: data, status: WeatherStatus.success);
 
-  factory WeatherResult.locationDisabled([String? message]) =>
-      WeatherResult(
-        status: WeatherStatus.locationDisabled,
-        message: message ?? 'Location services are disabled on your device.',
-      );
+  factory WeatherResult.locationDisabled([String? message]) => WeatherResult(
+    status: WeatherStatus.locationDisabled,
+    message: message ?? 'Location services are disabled on your device.',
+  );
 
-  factory WeatherResult.permissionDenied([String? message]) =>
-      WeatherResult(
-        status: WeatherStatus.permissionDenied,
-        message:
-            message ?? 'Location permission is needed to show local weather.',
-      );
+  factory WeatherResult.permissionDenied([String? message]) => WeatherResult(
+    status: WeatherStatus.permissionDenied,
+    message: message ?? 'Location permission is needed to show local weather.',
+  );
 
   factory WeatherResult.permissionPermanentlyDenied([String? message]) =>
       WeatherResult(
         status: WeatherStatus.permissionPermanentlyDenied,
-        message: message ??
+        message:
+            message ??
             'Location permission is permanently denied. Enable it in Settings.',
       );
 
@@ -100,8 +94,7 @@ class WeatherService {
         'https://api.open-meteo.com/v1/forecast?latitude=${position.latitude}&longitude=${position.longitude}&current=temperature_2m,weather_code',
       );
 
-      final response =
-          await http.get(url).timeout(const Duration(seconds: 4));
+      final response = await http.get(url).timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

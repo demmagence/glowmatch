@@ -67,11 +67,7 @@ class PermissionRationaleDialog extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: info.color, width: 2.0),
             ),
-            child: Icon(
-              info.icon,
-              size: 40,
-              color: info.color,
-            ),
+            child: Icon(info.icon, size: 40, color: info.color),
           ),
           const SizedBox(height: 16),
           Text(
@@ -130,7 +126,10 @@ class PermissionRationaleDialog extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(width: 12),

@@ -11,7 +11,10 @@ void main() {
       expect(AppPermissionType.values, contains(AppPermissionType.camera));
       expect(AppPermissionType.values, contains(AppPermissionType.photos));
       expect(AppPermissionType.values, contains(AppPermissionType.location));
-      expect(AppPermissionType.values, contains(AppPermissionType.notification));
+      expect(
+        AppPermissionType.values,
+        contains(AppPermissionType.notification),
+      );
     });
 
     test('AppPermissionStatus contains all required statuses', () {
@@ -64,29 +67,34 @@ void main() {
       expect(s1, equals(s2));
     });
 
-    test('Permission methods return without throwing in test environment', () async {
-      final service = PermissionService.instance;
+    test(
+      'Permission methods return without throwing in test environment',
+      () async {
+        final service = PermissionService.instance;
 
-      // These call underlying plugins which return safe fallbacks in test environment
-      final camStatus = await service.checkCameraPermission();
-      expect(camStatus, isA<AppPermissionStatus>());
+        // These call underlying plugins which return safe fallbacks in test environment
+        final camStatus = await service.checkCameraPermission();
+        expect(camStatus, isA<AppPermissionStatus>());
 
-      final photoStatus = await service.checkPhotoPermission();
-      expect(photoStatus, isA<AppPermissionStatus>());
+        final photoStatus = await service.checkPhotoPermission();
+        expect(photoStatus, isA<AppPermissionStatus>());
 
-      final photosStatus = await service.checkPhotosPermission();
-      expect(photosStatus, isA<AppPermissionStatus>());
+        final photosStatus = await service.checkPhotosPermission();
+        expect(photosStatus, isA<AppPermissionStatus>());
 
-      final locStatus = await service.checkLocationPermission();
-      expect(locStatus, isA<AppPermissionStatus>());
+        final locStatus = await service.checkLocationPermission();
+        expect(locStatus, isA<AppPermissionStatus>());
 
-      final notifStatus = await service.checkNotificationPermission();
-      expect(notifStatus, isA<AppPermissionStatus>());
-    });
+        final notifStatus = await service.checkNotificationPermission();
+        expect(notifStatus, isA<AppPermissionStatus>());
+      },
+    );
   });
 
   group('PermissionRationaleDialog widget tests', () {
-    testWidgets('renders camera permission rationale with retry button', (tester) async {
+    testWidgets('renders camera permission rationale with retry button', (
+      tester,
+    ) async {
       bool retryPressed = false;
 
       await tester.pumpWidget(
@@ -114,7 +122,9 @@ void main() {
       expect(retryPressed, isTrue);
     });
 
-    testWidgets('renders permanently denied dialog with Settings action', (tester) async {
+    testWidgets('renders permanently denied dialog with Settings action', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

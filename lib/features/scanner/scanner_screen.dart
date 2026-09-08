@@ -122,7 +122,8 @@ class _ScannerScreenState extends State<ScannerScreen>
       _cameraErrorMessage = null;
     });
     try {
-      final camStatus = await PermissionService.instance.checkCameraPermission();
+      final camStatus = await PermissionService.instance
+          .checkCameraPermission();
       if (camStatus == AppPermissionStatus.permanentlyDenied) {
         if (!mounted) return;
         setState(() {
@@ -132,7 +133,8 @@ class _ScannerScreenState extends State<ScannerScreen>
       }
 
       if (camStatus == AppPermissionStatus.denied) {
-        final reqStatus = await PermissionService.instance.requestCameraPermission();
+        final reqStatus = await PermissionService.instance
+            .requestCameraPermission();
         if (!mounted) return;
         if (reqStatus == AppPermissionStatus.permanentlyDenied) {
           setState(() {
@@ -190,7 +192,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       if (!mounted) return;
       if (e is CameraException &&
           (e.code == 'CameraAccessDenied' ||
-           e.code == 'CameraAccessDeniedWithoutPrompt')) {
+              e.code == 'CameraAccessDeniedWithoutPrompt')) {
         final status = await PermissionService.instance.checkCameraPermission();
         if (!mounted) return;
         setState(() {
@@ -275,7 +277,8 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   Future<void> _pickImageFromGallery() async {
     try {
-      final photoStatus = await PermissionService.instance.checkPhotosPermission();
+      final photoStatus = await PermissionService.instance
+          .checkPhotosPermission();
       if (photoStatus == AppPermissionStatus.permanentlyDenied) {
         if (!mounted) return;
         await PermissionRationaleDialog.show(
@@ -285,7 +288,8 @@ class _ScannerScreenState extends State<ScannerScreen>
         );
         return;
       } else if (photoStatus == AppPermissionStatus.denied) {
-        final reqStatus = await PermissionService.instance.requestPhotosPermission();
+        final reqStatus = await PermissionService.instance
+            .requestPhotosPermission();
         if (reqStatus == AppPermissionStatus.permanentlyDenied ||
             reqStatus == AppPermissionStatus.denied) {
           if (!mounted) return;
@@ -815,9 +819,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                 width: double.infinity,
                 height: 48,
                 child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white70,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white70),
                   icon: const Icon(Icons.photo_library_outlined),
                   label: const Text(
                     'PILIH DARI GALERI',

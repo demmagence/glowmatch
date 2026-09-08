@@ -49,14 +49,20 @@ void main() {
       expect(result.message, contains('Location permission is needed'));
     });
 
-    test('WeatherResult.permissionPermanentlyDenied creates truthful permanently denied state', () {
-      final result = WeatherResult.permissionPermanentlyDenied();
+    test(
+      'WeatherResult.permissionPermanentlyDenied creates truthful permanently denied state',
+      () {
+        final result = WeatherResult.permissionPermanentlyDenied();
 
-      expect(result.isSuccess, isFalse);
-      expect(result.status, equals(WeatherStatus.permissionPermanentlyDenied));
-      expect(result.data, isNull);
-      expect(result.message, contains('Settings'));
-    });
+        expect(result.isSuccess, isFalse);
+        expect(
+          result.status,
+          equals(WeatherStatus.permissionPermanentlyDenied),
+        );
+        expect(result.data, isNull);
+        expect(result.message, contains('Settings'));
+      },
+    );
 
     test('WeatherResult.error creates error state', () {
       final result = WeatherResult.error('Network failure');
@@ -75,18 +81,24 @@ void main() {
       service = WeatherService();
     });
 
-    test('fetchLocalWeatherResult does not throw and returns non-success result when platform channel is unmocked', () async {
-      final result = await service.fetchLocalWeatherResult();
+    test(
+      'fetchLocalWeatherResult does not throw and returns non-success result when platform channel is unmocked',
+      () async {
+        final result = await service.fetchLocalWeatherResult();
 
-      expect(result.isSuccess, isFalse);
-      expect(result.data, isNull);
-      expect(result.status, isNot(WeatherStatus.success));
-    });
+        expect(result.isSuccess, isFalse);
+        expect(result.data, isNull);
+        expect(result.status, isNot(WeatherStatus.success));
+      },
+    );
 
-    test('fetchLocalWeather returns null (not misleading mock data) when location is unavailable', () async {
-      final result = await service.fetchLocalWeather();
+    test(
+      'fetchLocalWeather returns null (not misleading mock data) when location is unavailable',
+      () async {
+        final result = await service.fetchLocalWeather();
 
-      expect(result, isNull);
-    });
+        expect(result, isNull);
+      },
+    );
   });
 }

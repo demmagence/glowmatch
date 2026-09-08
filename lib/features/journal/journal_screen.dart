@@ -34,7 +34,9 @@ class _JournalScreenState extends State<JournalScreen> {
     ImageSource source,
   ) async {
     final isCamera = source == ImageSource.camera;
-    final permType = isCamera ? AppPermissionType.camera : AppPermissionType.photos;
+    final permType = isCamera
+        ? AppPermissionType.camera
+        : AppPermissionType.photos;
 
     try {
       if (isCamera) {
@@ -49,7 +51,8 @@ class _JournalScreenState extends State<JournalScreen> {
           }
           return;
         } else if (status == AppPermissionStatus.denied) {
-          final reqStatus = await PermissionService.instance.requestCameraPermission();
+          final reqStatus = await PermissionService.instance
+              .requestCameraPermission();
           if (reqStatus != AppPermissionStatus.granted) {
             if (context.mounted) {
               await PermissionRationaleDialog.show(
@@ -73,7 +76,8 @@ class _JournalScreenState extends State<JournalScreen> {
           }
           return;
         } else if (status == AppPermissionStatus.denied) {
-          final reqStatus = await PermissionService.instance.requestPhotosPermission();
+          final reqStatus = await PermissionService.instance
+              .requestPhotosPermission();
           if (reqStatus != AppPermissionStatus.granted) {
             if (context.mounted) {
               await PermissionRationaleDialog.show(

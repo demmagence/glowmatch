@@ -93,14 +93,15 @@ class HomeScreen extends StatelessWidget {
                       weather != null
                           ? Icons.wb_sunny_outlined
                           : (routineVm.weatherResult?.status ==
-                                      WeatherStatus.permissionPermanentlyDenied ||
-                                  routineVm.weatherResult?.status ==
-                                      WeatherStatus.permissionDenied
-                              ? Icons.location_off_outlined
-                              : (routineVm.weatherResult?.status ==
-                                      WeatherStatus.locationDisabled
-                                  ? Icons.gps_off_outlined
-                                  : Icons.cloud_outlined)),
+                                        WeatherStatus
+                                            .permissionPermanentlyDenied ||
+                                    routineVm.weatherResult?.status ==
+                                        WeatherStatus.permissionDenied
+                                ? Icons.location_off_outlined
+                                : (routineVm.weatherResult?.status ==
+                                          WeatherStatus.locationDisabled
+                                      ? Icons.gps_off_outlined
+                                      : Icons.cloud_outlined)),
                       size: 16,
                       color: Colors.grey,
                     ),
@@ -112,8 +113,10 @@ class HomeScreen extends StatelessWidget {
                             final status = routineVm.weatherResult?.status;
                             if (status ==
                                 WeatherStatus.permissionPermanentlyDenied) {
-                              await PermissionService.instance.openAppSettings();
-                            } else if (status == WeatherStatus.locationDisabled) {
+                              await PermissionService.instance
+                                  .openAppSettings();
+                            } else if (status ==
+                                WeatherStatus.locationDisabled) {
                               await PermissionService.instance
                                   .openLocationSettings();
                             } else {
@@ -125,25 +128,28 @@ class HomeScreen extends StatelessWidget {
                           weather != null
                               ? weather.locationName
                               : (routineVm.weatherResult?.status ==
-                                      WeatherStatus.locationDisabled
-                                  ? 'Location disabled • Tap to turn on'
-                                  : (routineVm.weatherResult?.status ==
-                                          WeatherStatus.permissionDenied
-                                      ? 'Enable location for local weather'
-                                      : (routineVm.weatherResult?.status ==
-                                              WeatherStatus
-                                                  .permissionPermanentlyDenied
-                                          ? 'Location blocked • Tap for Settings'
+                                        WeatherStatus.locationDisabled
+                                    ? 'Location disabled • Tap to turn on'
+                                    : (routineVm.weatherResult?.status ==
+                                              WeatherStatus.permissionDenied
+                                          ? 'Enable location for local weather'
                                           : (routineVm.weatherResult?.status ==
-                                                  WeatherStatus.error
-                                              ? 'Weather unavailable • Tap to retry'
-                                              : 'Checking weather...')))),
+                                                    WeatherStatus
+                                                        .permissionPermanentlyDenied
+                                                ? 'Location blocked • Tap for Settings'
+                                                : (routineVm
+                                                              .weatherResult
+                                                              ?.status ==
+                                                          WeatherStatus.error
+                                                      ? 'Weather unavailable • Tap to retry'
+                                                      : 'Checking weather...')))),
                           style: TextStyle(
                             fontSize: 14,
                             color: subtextColor,
                             fontWeight: FontWeight.w500,
-                            decoration:
-                                weather == null ? TextDecoration.underline : null,
+                            decoration: weather == null
+                                ? TextDecoration.underline
+                                : null,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
