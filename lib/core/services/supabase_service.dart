@@ -30,11 +30,13 @@ class SupabaseService {
     required String url,
     required String anonKey,
   }) async {
-    // Initialize SQLite database cache first
-    try {
-      await DatabaseHelper().database;
-    } catch (e) {
-      debugPrint('Failed to initialize SQLite database cache: $e');
+    // Initialize SQLite database cache first if not using in-memory fallback
+    if (!DatabaseHelper().useInMemoryFallback) {
+      try {
+        await DatabaseHelper().database;
+      } catch (e) {
+        debugPrint('Failed to initialize SQLite database cache: $e');
+      }
     }
 
     if (url.isEmpty ||

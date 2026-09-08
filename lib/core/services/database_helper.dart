@@ -12,6 +12,7 @@ class DatabaseHelper {
   factory DatabaseHelper() => _mockInstance ?? _instance;
 
   bool _useInMemoryFallback = false;
+  bool get useInMemoryFallback => _useInMemoryFallback;
   final List<Map<String, dynamic>> _fallbackShelf = [];
   final List<Map<String, dynamic>> _fallbackJournal = [];
   final List<Map<String, dynamic>> _fallbackSyncQueue = [];
@@ -145,9 +146,11 @@ class DatabaseHelper {
       _database = await _initDatabase();
       return _database!;
     } catch (e) {
-      debugPrint(
-        'DatabaseHelper: database initialization failed, enabling in-memory fallback: $e',
-      );
+      if (!_useInMemoryFallback) {
+        debugPrint(
+          'DatabaseHelper: database initialization failed, enabling in-memory fallback: $e',
+        );
+      }
       _useInMemoryFallback = true;
       _seedFallbackData();
       rethrow;

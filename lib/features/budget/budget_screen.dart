@@ -63,11 +63,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
     final currencyVm = Provider.of<CurrencyViewModel>(context);
     final shelfVm = Provider.of<ShelfViewModel>(context, listen: false);
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
-    
+
     // Sync price controller if currency changes
     if (_previousCurrency != currencyVm.selectedCurrency) {
       _previousCurrency = currencyVm.selectedCurrency;
-      _priceController.text = currencyVm.formatPriceWithoutSymbol(budgetVm.productPrice);
+      _priceController.text = currencyVm.formatPriceWithoutSymbol(
+        budgetVm.productPrice,
+      );
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -84,119 +86,121 @@ class _BudgetScreenState extends State<BudgetScreen> {
           onRefresh: () => shelfVm.fetchShelf(authVm.userId),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const GlowMatchHeader(),
-              const SizedBox(height: 24),
-              Text(
-                'TOTAL SPEND IN PERIOD',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: subtextColor,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const GlowMatchHeader(),
+                const SizedBox(height: 24),
+                Text(
+                  'TOTAL SPEND IN PERIOD',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: subtextColor,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              Text(
-                currencyVm.formatPrice(budgetVm.totalMonthlySpend),
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.w900,
-                  color: textColor,
-                  letterSpacing: -1,
+                Text(
+                  currencyVm.formatPrice(budgetVm.totalMonthlySpend),
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w900,
+                    color: textColor,
+                    letterSpacing: -1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: borderColor, width: 2),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildPeriodToggleItem(
-                        context,
-                        label: '30 Days',
-                        isActive: budgetVm.selectedPeriodDays == 30,
-                        onTap: () => budgetVm.setPeriodDays(30),
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: borderColor, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildPeriodToggleItem(
+                          context,
+                          label: '30 Days',
+                          isActive: budgetVm.selectedPeriodDays == 30,
+                          onTap: () => budgetVm.setPeriodDays(30),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: _buildPeriodToggleItem(
-                        context,
-                        label: '90 Days',
-                        isActive: budgetVm.selectedPeriodDays == 90,
-                        onTap: () => budgetVm.setPeriodDays(90),
+                      Expanded(
+                        child: _buildPeriodToggleItem(
+                          context,
+                          label: '90 Days',
+                          isActive: budgetVm.selectedPeriodDays == 90,
+                          onTap: () => budgetVm.setPeriodDays(90),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: _buildPeriodToggleItem(
-                        context,
-                        label: 'All Time',
-                        isActive: budgetVm.selectedPeriodDays == 0,
-                        onTap: () => budgetVm.setPeriodDays(0),
+                      Expanded(
+                        child: _buildPeriodToggleItem(
+                          context,
+                          label: 'All Time',
+                          isActive: budgetVm.selectedPeriodDays == 0,
+                          onTap: () => budgetVm.setPeriodDays(0),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 28),
+                const SizedBox(height: 28),
 
-              AllocationCard(isDark: isDark),
-              const SizedBox(height: 24),
+                AllocationCard(isDark: isDark),
+                const SizedBox(height: 24),
 
-              SpendingHistoryCard(isDark: isDark, budgetVm: budgetVm),
-              const SizedBox(height: 24),
+                SpendingHistoryCard(isDark: isDark, budgetVm: budgetVm),
+                const SizedBox(height: 24),
 
-
-              CalculatorCard(
-                isDark: isDark,
-                selectedProductId: _selectedProductId,
-                priceController: _priceController,
-                usesController: _usesController,
-                onProductChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedProductId = val;
-                    });
-                    if (val != 'custom') {
-                      final prod = budgetVm.shelfItems.firstWhere(
-                        (x) => x.id == val,
-                      );
-                      _syncControllersWithProduct(prod, budgetVm, currencyVm);
+                CalculatorCard(
+                  isDark: isDark,
+                  selectedProductId: _selectedProductId,
+                  priceController: _priceController,
+                  usesController: _usesController,
+                  onProductChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _selectedProductId = val;
+                      });
+                      if (val != 'custom') {
+                        final prod = budgetVm.shelfItems.firstWhere(
+                          (x) => x.id == val,
+                        );
+                        _syncControllersWithProduct(prod, budgetVm, currencyVm);
+                      }
                     }
-                  }
-                },
-                onPriceChanged: (val) {
-                  setState(() {
-                    _selectedProductId = 'custom';
-                  });
-                  final parsed = double.tryParse(val);
-                  if (parsed != null) {
-                    budgetVm.updateCalculator(
-                      price: currencyVm.convertToIDR(parsed),
-                    );
-                  }
-                },
-                onUsesChanged: (val) {
-                  setState(() {
-                    _selectedProductId = 'custom';
-                  });
-                  final parsed = int.tryParse(val);
-                  if (parsed != null) budgetVm.updateCalculator(uses: parsed);
-                },
-              ),
-            ],
+                  },
+                  onPriceChanged: (val) {
+                    setState(() {
+                      _selectedProductId = 'custom';
+                    });
+                    final parsed = double.tryParse(val);
+                    if (parsed != null) {
+                      budgetVm.updateCalculator(
+                        price: currencyVm.convertToIDR(parsed),
+                      );
+                    }
+                  },
+                  onUsesChanged: (val) {
+                    setState(() {
+                      _selectedProductId = 'custom';
+                    });
+                    final parsed = int.tryParse(val);
+                    if (parsed != null) budgetVm.updateCalculator(uses: parsed);
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -211,7 +215,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final activeColor = isDark ? Colors.white : Colors.black;
     final activeTextColor = isDark ? Colors.black : Colors.white;
-    final inactiveTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final inactiveTextColor = isDark
+        ? Colors.grey.shade400
+        : Colors.grey.shade600;
 
     return GestureDetector(
       onTap: onTap,
@@ -235,4 +241,3 @@ class _BudgetScreenState extends State<BudgetScreen> {
     );
   }
 }
-

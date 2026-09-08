@@ -89,7 +89,6 @@ void main() {
       () async {
         final authVm = AuthViewModel();
         await Future.delayed(const Duration(milliseconds: 50));
-
         final result = await authVm.signUp('new@glowmatch.com', 'password123');
 
         expect(result, SignUpResult.signedIn);

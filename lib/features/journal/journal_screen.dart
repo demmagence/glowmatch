@@ -117,11 +117,7 @@ class _JournalScreenState extends State<JournalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: const [
-                    Expanded(child: GlowMatchHeader()),
-                  ],
-                ),
+                Row(children: const [Expanded(child: GlowMatchHeader())]),
                 const SizedBox(height: 8),
                 if (journalVm.isLoading)
                   const Center(
