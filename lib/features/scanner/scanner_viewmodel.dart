@@ -108,7 +108,9 @@ class ScannerViewModel extends ChangeNotifier {
   Size get imageSize => _imageSize;
 
   ScannerViewModel({TextRecognizer? textRecognizer})
-      : _textRecognizer = textRecognizer ?? TextRecognizer(script: TextRecognitionScript.latin) {
+    : _textRecognizer =
+          textRecognizer ??
+          TextRecognizer(script: TextRecognitionScript.latin) {
     loadScanHistory();
   }
 
@@ -123,8 +125,9 @@ class ScannerViewModel extends ChangeNotifier {
     if (_isDetecting || _isProcessing) return;
     _isDetecting = true;
     try {
-      final RecognizedText result =
-          await _textRecognizer.processImage(inputImage);
+      final RecognizedText result = await _textRecognizer.processImage(
+        inputImage,
+      );
       _detectedBlocks = result.blocks;
       _imageSize = imageSize;
       notifyListeners();
@@ -142,7 +145,9 @@ class ScannerViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final inputImage = InputImage.fromFilePath(filePath);
-      final RecognizedText result = await _textRecognizer.processImage(inputImage);
+      final RecognizedText result = await _textRecognizer.processImage(
+        inputImage,
+      );
       return result.blocks;
     } catch (e) {
       debugPrint('detectBlocksInImage error: $e');
@@ -231,7 +236,9 @@ class ScannerViewModel extends ChangeNotifier {
       final trimmed = part.trim();
       if (trimmed.isNotEmpty && trimmed.length > 1) {
         final lowerPart = trimmed.toLowerCase();
-        final matchesCurated = _curatedIngredients.any((kw) => lowerPart.contains(kw));
+        final matchesCurated = _curatedIngredients.any(
+          (kw) => lowerPart.contains(kw),
+        );
         if (matchesCurated) {
           result.add(trimmed);
         }
@@ -298,7 +305,8 @@ class ScannerViewModel extends ChangeNotifier {
         detectedIngredients: [],
         safetyRating: 'No ingredients detected',
         skinTypeSuitability: 'N/A',
-        recommendations: 'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
+        recommendations:
+            'No skincare ingredients detected. Try scanning an ingredient list on a product label.',
         isSafe: true,
         ingredientSafetyLevels: {},
         ingredientDetails: {},

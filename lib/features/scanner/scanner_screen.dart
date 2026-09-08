@@ -10,12 +10,7 @@ import 'scanner_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:math' show min;
 
-enum CameraState {
-  loading,
-  initialized,
-  permissionDenied,
-  error,
-}
+enum CameraState { loading, initialized, permissionDenied, error }
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -90,8 +85,8 @@ class _ScannerScreenState extends State<ScannerScreen>
         ? (sensorAngle + deviceAngle) % 360
         : (sensorAngle - deviceAngle + 360) % 360;
 
-    return InputImageRotationValue.fromRawValue(angle)
-        ?? InputImageRotation.rotation90deg;
+    return InputImageRotationValue.fromRawValue(angle) ??
+        InputImageRotation.rotation90deg;
   }
 
   Future<void> _initializeCamera() async {
@@ -137,7 +132,7 @@ class _ScannerScreenState extends State<ScannerScreen>
       setState(() {
         if (e is CameraException &&
             (e.code == 'CameraAccessDenied' ||
-             e.code == 'CameraAccessDeniedWithoutPrompt')) {
+                e.code == 'CameraAccessDeniedWithoutPrompt')) {
           _cameraState = CameraState.permissionDenied;
         } else {
           _cameraState = CameraState.error;
@@ -148,7 +143,9 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   void _startImageStream() {
-    if (_isStreaming || _cameraController == null || _cameraState != CameraState.initialized) {
+    if (_isStreaming ||
+        _cameraController == null ||
+        _cameraState != CameraState.initialized) {
       return;
     }
     setState(() => _isStreaming = true);
@@ -190,7 +187,9 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   Future<void> _toggleFlash() async {
-    if (_cameraState != CameraState.initialized || _cameraController == null) return;
+    if (_cameraState != CameraState.initialized || _cameraController == null) {
+      return;
+    }
     try {
       await _cameraController!.setFlashMode(
         _isFlashOn ? FlashMode.off : FlashMode.torch,
@@ -256,7 +255,11 @@ class _ScannerScreenState extends State<ScannerScreen>
     Size imgSize,
     ScannerViewModel vm,
   ) {
-    if (vm.isProcessing || _uploadedImageBlocks.isEmpty || imgSize == Size.zero) return;
+    if (vm.isProcessing ||
+        _uploadedImageBlocks.isEmpty ||
+        imgSize == Size.zero) {
+      return;
+    }
 
     double scale = min(
       containerSize.width / imgSize.width,
@@ -295,7 +298,8 @@ class _ScannerScreenState extends State<ScannerScreen>
     if (imgSize == Size.zero) return;
 
     final rotation = _getRotation();
-    final isRotated = rotation == InputImageRotation.rotation90deg ||
+    final isRotated =
+        rotation == InputImageRotation.rotation90deg ||
         rotation == InputImageRotation.rotation270deg;
 
     // After rotation, display dimensions swap if rotated 90/270
@@ -320,7 +324,9 @@ class _ScannerScreenState extends State<ScannerScreen>
           if (result != null) {
             _showResultSheet(context, result, vm).then((_) {
               // Restart stream after sheet dismissed if it was stopped
-              if (mounted && _cameraState == CameraState.initialized && !_isStreaming) {
+              if (mounted &&
+                  _cameraState == CameraState.initialized &&
+                  !_isStreaming) {
                 _startImageStream();
               }
             });
@@ -344,7 +350,14 @@ class _ScannerScreenState extends State<ScannerScreen>
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.black,
-      drawer: _buildHistoryDrawer(context, vm, isDark, textColor, bgColor, borderColor),
+      drawer: _buildHistoryDrawer(
+        context,
+        vm,
+        isDark,
+        textColor,
+        bgColor,
+        borderColor,
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -381,28 +394,30 @@ class _ScannerScreenState extends State<ScannerScreen>
                     );
                   },
                 )
-              : (_cameraState == CameraState.initialized && _cameraController != null
-                  ? LayoutBuilder(
-                      builder: (context, constraints) {
-                        final camRatio =
-                            _cameraController!.value.aspectRatio; // w/h
-                        final screenRatio =
-                            constraints.maxWidth / constraints.maxHeight;
-                        // ponytail: cover-fit — scale to fill, never downscale
-                        final scale = (camRatio < screenRatio
-                                ? screenRatio / camRatio
-                                : camRatio / screenRatio)
-                            .clamp(1.0, double.infinity);
-                        return Transform.scale(
-                          scale: scale,
-                          child: AspectRatio(
-                            aspectRatio: camRatio,
-                            child: CameraPreview(_cameraController!),
-                          ),
-                        );
-                      },
-                    )
-                  : _buildCameraStateView(context)),
+              : (_cameraState == CameraState.initialized &&
+                        _cameraController != null
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          final camRatio =
+                              _cameraController!.value.aspectRatio; // w/h
+                          final screenRatio =
+                              constraints.maxWidth / constraints.maxHeight;
+                          // ponytail: cover-fit — scale to fill, never downscale
+                          final scale =
+                              (camRatio < screenRatio
+                                      ? screenRatio / camRatio
+                                      : camRatio / screenRatio)
+                                  .clamp(1.0, double.infinity);
+                          return Transform.scale(
+                            scale: scale,
+                            child: AspectRatio(
+                              aspectRatio: camRatio,
+                              child: CameraPreview(_cameraController!),
+                            ),
+                          );
+                        },
+                      )
+                    : _buildCameraStateView(context)),
 
           // ── Bounding box overlay + tap detector for live camera ─────────
           if (_pickedImage == null && _cameraState == CameraState.initialized)
@@ -456,7 +471,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _circleBtn(
-                        icon: _pickedImage != null ? Icons.arrow_back : Icons.close,
+                        icon: _pickedImage != null
+                            ? Icons.arrow_back
+                            : Icons.close,
                         onTap: () {
                           if (_pickedImage != null) {
                             _clearPickedImage();
@@ -516,15 +533,18 @@ class _ScannerScreenState extends State<ScannerScreen>
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     child: Container(
-                      key: ValueKey(_pickedImage != null
-                          ? _uploadedImageBlocks.length
-                          : vm.detectedBlocks.length),
+                      key: ValueKey(
+                        _pickedImage != null
+                            ? _uploadedImageBlocks.length
+                            : vm.detectedBlocks.length,
+                      ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: (_pickedImage != null
+                        color:
+                            (_pickedImage != null
                                 ? _uploadedImageBlocks.isNotEmpty
                                 : vm.detectedBlocks.isNotEmpty)
                             ? Colors.yellow.withValues(alpha: 0.92)
@@ -755,9 +775,7 @@ class _ScannerScreenState extends State<ScannerScreen>
           DrawerHeader(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
-              border: Border(
-                bottom: BorderSide(color: borderColor, width: 2),
-              ),
+              border: Border(bottom: BorderSide(color: borderColor, width: 2)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1075,22 +1093,25 @@ class _ScannerScreenState extends State<ScannerScreen>
                           Color textChipColor;
                           String emoji = '🟢 ';
                           if (level == 'Avoid') {
-                            chipColor = Colors.red.shade100
-                                .withValues(alpha: isDark ? 0.2 : 0.9);
+                            chipColor = Colors.red.shade100.withValues(
+                              alpha: isDark ? 0.2 : 0.9,
+                            );
                             textChipColor = isDark
                                 ? Colors.red.shade300
                                 : Colors.red.shade800;
                             emoji = '🔴 ';
                           } else if (level == 'Caution') {
-                            chipColor = Colors.amber.shade100
-                                .withValues(alpha: isDark ? 0.2 : 0.9);
+                            chipColor = Colors.amber.shade100.withValues(
+                              alpha: isDark ? 0.2 : 0.9,
+                            );
                             textChipColor = isDark
                                 ? Colors.amber.shade300
                                 : Colors.amber.shade800;
                             emoji = '🟡 ';
                           } else {
-                            chipColor = Colors.green.shade100
-                                .withValues(alpha: isDark ? 0.2 : 0.9);
+                            chipColor = Colors.green.shade100.withValues(
+                              alpha: isDark ? 0.2 : 0.9,
+                            );
                             textChipColor = isDark
                                 ? Colors.green.shade300
                                 : Colors.green.shade800;
@@ -1130,8 +1151,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                         final detailColor = level == 'Avoid'
                             ? Colors.red
                             : (level == 'Caution'
-                                ? Colors.amber
-                                : Colors.green);
+                                  ? Colors.amber
+                                  : Colors.green);
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           elevation: 0,
@@ -1233,10 +1254,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isDark ? Colors.white : Colors.black,
-                          foregroundColor:
-                              isDark ? Colors.black : Colors.white,
+                          backgroundColor: isDark ? Colors.white : Colors.black,
+                          foregroundColor: isDark ? Colors.black : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4),
                             side: BorderSide(color: borderColor, width: 2),
@@ -1279,7 +1298,8 @@ class _TextBlockOverlayPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (blocks.isEmpty || imageSize == Size.zero) return;
 
-    final isRotated = rotation == InputImageRotation.rotation90deg ||
+    final isRotated =
+        rotation == InputImageRotation.rotation90deg ||
         rotation == InputImageRotation.rotation270deg;
 
     final displayW = isRotated ? imageSize.height : imageSize.width;
@@ -1328,7 +1348,10 @@ class _StaticImageOverlayPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (blocks.isEmpty || imageSize == Size.zero) return;
 
-    double scale = min(size.width / imageSize.width, size.height / imageSize.height);
+    double scale = min(
+      size.width / imageSize.width,
+      size.height / imageSize.height,
+    );
     double displayW = imageSize.width * scale;
     double displayH = imageSize.height * scale;
     double offsetX = (size.width - displayW) / 2;

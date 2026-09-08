@@ -25,7 +25,7 @@ class SpendingHistoryCard extends StatelessWidget {
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
     final currencyVm = Provider.of<CurrencyViewModel>(context);
-    
+
     final historyInSelectedCurrency = budgetVm.spendingHistory
         .map((val) => currencyVm.convertFromIDR(val))
         .toList();

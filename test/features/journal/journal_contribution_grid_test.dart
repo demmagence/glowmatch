@@ -34,54 +34,57 @@ void main() {
     expect(serialized['created_at'], now.toIso8601String());
   });
 
-  testWidgets('JournalContributionGrid renders month labels and contribution cells', (tester) async {
-    final now = DateTime.now();
-    final entries = [
-      JournalEntry(
-        id: 'j-1',
-        loggedDate: 'Today',
-        skinScore: 84,
-        photoPath: 'assets/skin_today.png',
-        notes: 'Redness is gone',
-        createdAt: now,
-      ),
-      JournalEntry(
-        id: 'j-2',
-        loggedDate: 'Yesterday',
-        skinScore: 80,
-        photoPath: 'assets/skin_yesterday.png',
-        notes: 'Dry skin',
-        createdAt: now.subtract(const Duration(days: 1)),
-      ),
-    ];
+  testWidgets(
+    'JournalContributionGrid renders month labels and contribution cells',
+    (tester) async {
+      final now = DateTime.now();
+      final entries = [
+        JournalEntry(
+          id: 'j-1',
+          loggedDate: 'Today',
+          skinScore: 84,
+          photoPath: 'assets/skin_today.png',
+          notes: 'Redness is gone',
+          createdAt: now,
+        ),
+        JournalEntry(
+          id: 'j-2',
+          loggedDate: 'Yesterday',
+          skinScore: 80,
+          photoPath: 'assets/skin_yesterday.png',
+          notes: 'Dry skin',
+          createdAt: now.subtract(const Duration(days: 1)),
+        ),
+      ];
 
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'),
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: JournalContributionGrid(entries: entries),
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: JournalContributionGrid(entries: entries),
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    // Verify title is rendered
-    expect(find.text('Glow Activity'), findsOneWidget);
+      // Verify title is rendered
+      expect(find.text('Glow Activity'), findsOneWidget);
 
-    // Verify weekday labels are rendered
-    expect(find.text('M'), findsOneWidget);
-    expect(find.text('W'), findsOneWidget);
-    expect(find.text('F'), findsOneWidget);
+      // Verify weekday labels are rendered
+      expect(find.text('M'), findsOneWidget);
+      expect(find.text('W'), findsOneWidget);
+      expect(find.text('F'), findsOneWidget);
 
-    // Verify parent scrollable grid exists
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
+      // Verify parent scrollable grid exists
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
 
-    // Verify tooltip cells exist (which correspond to number of days in the month)
-    final tooltipFinder = find.byType(Tooltip);
-    final count = tester.widgetList(tooltipFinder).length;
-    expect(count >= 28 && count <= 31, isTrue);
-  });
+      // Verify tooltip cells exist (which correspond to number of days in the month)
+      final tooltipFinder = find.byType(Tooltip);
+      final count = tester.widgetList(tooltipFinder).length;
+      expect(count >= 28 && count <= 31, isTrue);
+    },
+  );
 }

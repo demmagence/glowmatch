@@ -6,10 +6,7 @@ import 'package:glowmatch/l10n/app_localizations.dart';
 class StreakMonthlyCalendar extends StatefulWidget {
   final Set<String> completedSet;
 
-  const StreakMonthlyCalendar({
-    super.key,
-    required this.completedSet,
-  });
+  const StreakMonthlyCalendar({super.key, required this.completedSet});
 
   @override
   State<StreakMonthlyCalendar> createState() => _StreakMonthlyCalendarState();
@@ -136,18 +133,22 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
           // Weekday Headers
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekdayLabels.map((label) => Expanded(
-              child: Center(
-                child: Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
+            children: weekdayLabels
+                .map(
+                  (label) => Expanded(
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            )).toList(),
+                )
+                .toList(),
           ),
           const SizedBox(height: 6),
           // Calendar Grid
@@ -166,20 +167,27 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
                 return const SizedBox();
               }
               final day = index - offset + 1;
-              final cellDate = DateTime(_focusedMonth.year, _focusedMonth.month, day);
+              final cellDate = DateTime(
+                _focusedMonth.year,
+                _focusedMonth.month,
+                day,
+              );
               final key = _toDateKey(cellDate);
               final completed = widget.completedSet.contains(key);
 
               final cellColor = completed
                   ? const Color(0xFF64DD17)
-                  : (isDark ? const Color(0xFF424242) : const Color(0xFFE0E0E0));
+                  : (isDark
+                        ? const Color(0xFF424242)
+                        : const Color(0xFFE0E0E0));
 
               final cellTextColor = completed
                   ? Colors.black87
                   : (isDark ? Colors.white60 : Colors.black54);
 
               return Tooltip(
-                message: '${_formatDateTooltip(cellDate, locale)}: ${completed ? l10n.completed : l10n.missed}',
+                message:
+                    '${_formatDateTooltip(cellDate, locale)}: ${completed ? l10n.completed : l10n.missed}',
                 child: Container(
                   alignment: Alignment.center,
                   decoration: BoxDecoration(

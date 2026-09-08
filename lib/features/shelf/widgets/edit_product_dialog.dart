@@ -186,7 +186,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.productName,
                       hintText: l10n.productNameHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -210,7 +212,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.brand,
                       hintText: l10n.brandHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -238,7 +242,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.category,
                       hintText: l10n.selectCategoryHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -266,10 +272,7 @@ void showEditProductDialog(
                       return list.map((cat) {
                         return DropdownMenuItem(
                           value: cat,
-                          child: Text(
-                            cat,
-                            style: TextStyle(color: textColor),
-                          ),
+                          child: Text(cat, style: TextStyle(color: textColor)),
                         );
                       }).toList();
                     }(),
@@ -285,7 +288,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.priceWithCurrency(currencyVm.selectedCurrency),
                       hintText: l10n.priceHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -312,7 +317,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.productSize,
                       hintText: l10n.productSizeHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -336,7 +343,9 @@ void showEditProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.ingredients,
                       hintText: l10n.ingredientsHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -380,8 +389,14 @@ void showEditProductDialog(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
                     final matchingCategory = vm.categories.firstWhere(
-                      (c) => c.name.toLowerCase() == selectedCategory.toLowerCase(),
-                      orElse: () => SkincareCategory(id: '', name: selectedCategory, color: item.indicatorColor),
+                      (c) =>
+                          c.name.toLowerCase() ==
+                          selectedCategory.toLowerCase(),
+                      orElse: () => SkincareCategory(
+                        id: '',
+                        name: selectedCategory,
+                        color: item.indicatorColor,
+                      ),
                     );
                     String hexColor = matchingCategory.color;
 

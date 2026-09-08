@@ -30,7 +30,7 @@ GlowMatch is a cross-platform skincare management application built with Flutter
 Separate AM and PM skincare routines with ordered steps. Steps can be linked to products on the shelf. Location-based weather data (via Open-Meteo) is displayed to inform routine adjustments (e.g., SPF reminders on high-temperature days). Routine completion is tracked with a streak system that persists to Supabase.
 
 ### Ingredient Scanner
-On-device OCR text recognition powered by Google ML Kit extracts ingredient lists from product labels. Extracted text is analyzed for safety, skin type suitability, and recommendations using the Gemini API (`gemini-3.1-flash-lite`). If the Gemini API key is not configured, a local dictionary-based fallback analysis runs automatically.
+On-device OCR text recognition powered by Google ML Kit extracts ingredient lists from product labels. In online mode, extracted text is sent through an authenticated Supabase Edge Function and analyzed with Gemini. If Supabase is not configured or the function is unavailable, a local dictionary-based fallback analysis runs automatically.
 
 ### Skincare Shelf
 A searchable product inventory with category-based filtering. Tracks product name, brand, category, price, estimated total uses, and remaining uses. Product photos can be uploaded to Supabase Storage (`product-photos` bucket). Low-stock indicators are displayed when remaining uses fall below threshold.
@@ -153,7 +153,10 @@ glowmatch/
       scanner/                          # Scanner viewmodel tests
       shelf/                            # Shelf screen tests
   supabase/
-    migrations/                         # SQL migration scripts
+    migrations/                         # Ordered SQL migration scripts
+    functions/                          # Supabase Edge Functions
+    tests/                              # pgTAP schema and policy tests
+    config.toml                         # Reproducible local Supabase configuration
   secrets.example.json                  # Environment variable template
   pubspec.yaml                          # Dart/Flutter dependencies
   analysis_options.yaml                 # Lint rules (flutter_lints)
@@ -166,7 +169,7 @@ glowmatch/
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (Dart SDK >= 3.11.0)
 - Android Studio or Xcode (for platform-specific builds)
 - A Supabase project (optional; the app runs in offline mock mode without one)
-- A Gemini API key (optional; ingredient analysis falls back to local dictionary matching)
+- A Gemini API key configured as a Supabase Edge Function secret for online ingredient analysis
 
 ---
 
@@ -190,9 +193,7 @@ glowmatch/
     ```json
     {
       "SUPABASE_URL": "https://<project-id>.supabase.co",
-      "SUPABASE_ANON_KEY": "<your-anon-key>",
-      "GEMINI_API_KEY": "<your-gemini-api-key>",
-      "GEMINI_MODEL": "gemini-3.1-flash-lite"
+      "SUPABASE_ANON_KEY": "<your-anon-key>"
     }
     ```
 
@@ -212,7 +213,7 @@ glowmatch/
 flutter run --dart-define-from-file=secrets.json
 ```
 
-The `--dart-define-from-file` flag injects environment variables at compile time. The application reads `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `GEMINI_API_KEY`, and `GEMINI_MODEL` from this file.
+The `--dart-define-from-file` flag injects environment variables at compile time. The application reads `SUPABASE_URL` and `SUPABASE_ANON_KEY` from this file. `GEMINI_API_KEY` belongs only in the Edge Function environment and must never be bundled with the application.
 
 ---
 
@@ -230,7 +231,27 @@ Tests are organized to mirror the `lib/` directory structure under `test/`. The 
 
 ## Supabase Configuration
 
-If using Supabase for cloud persistence, execute the migration scripts in your project's SQL Editor in order:
+The repository includes a Supabase CLI project that provisions the complete backend. Install Docker Desktop and use Supabase CLI 2.116.0 or newer.
+
+Start and validate a clean local environment:
+
+```bash
+npx supabase start
+npx supabase db reset
+npx supabase test db
+```
+
+For a hosted project, link the repository, configure the function secret, apply migrations, and deploy the Edge Function:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npx supabase secrets set GEMINI_API_KEY=<key>
+npx supabase db push
+npx supabase functions deploy analyze-ingredients
+```
+
+Migrations are applied in timestamp order:
 
 1. **Initial schema and RLS** -- `supabase/migrations/20260612000000_init_schema_and_rls.sql`
    - Creates `skincare_shelf`, `routines`, and `journal_entries` tables
@@ -243,7 +264,22 @@ If using Supabase for cloud persistence, execute the migration scripts in your p
 3. **Product photos bucket** -- `supabase/migrations/20260613000001_create_product_photos_bucket.sql`
    - Creates the `product-photos` storage bucket with per-user folder policies
 
-All migrations are idempotent and safe to re-run.
+4. **Product size** -- `supabase/migrations/20260621143300_add_product_size_to_shelf.sql`
+   - Adds `product_size` to shelf records
+
+5. **Skincare categories** -- `supabase/migrations/20260621144800_create_skincare_categories.sql`
+   - Creates default and user-owned categories with RLS
+
+6. **Daily completion log** -- `supabase/migrations/20260622080000_create_daily_completion_log.sql`
+   - Stores one completed routine event per user and calendar day
+
+7. **Routine step completions** -- `supabase/migrations/20260622090000_create_routine_step_completions.sql`
+   - Persists per-step daily completion state
+
+8. **Schema and storage hardening** -- `supabase/migrations/20260907000000_harden_schema_and_storage.sql`
+   - Adds required ownership, validation constraints, indexes, category uniqueness, and private storage buckets
+
+Migration history is managed by Supabase CLI. Validate changes with a fresh `db reset`; do not re-run individual migration files manually against production.
 
 ### Database Schema
 
@@ -253,6 +289,9 @@ All migrations are idempotent and safe to re-run.
 | `routines` | AM/PM routine steps with ordering and optional shelf item linkage |
 | `journal_entries` | Daily skin condition logs (score, photo, notes) |
 | `user_streaks` | Routine completion streak tracking (current, longest, total) |
+| `skincare_categories` | Default and user-owned shelf categories |
+| `daily_completion_log` | One routine-completion event per user and day |
+| `routine_step_completions` | Per-step completion state by user and day |
 
 ### Storage Buckets
 
@@ -261,7 +300,11 @@ All migrations are idempotent and safe to re-run.
 | `journal-photos` | Skin progress journal photo uploads |
 | `product-photos` | Shelf product photo uploads |
 
-Both buckets enforce per-user folder isolation via RLS policies on `storage.objects`.
+Both buckets are private and enforce per-user folder isolation through RLS on `storage.objects`. The application uses expiring signed URLs to display authorized images.
+
+### Edge Function
+
+`analyze-ingredients` accepts authenticated `POST` requests containing an `ingredients` string array. JWT verification is enabled in `supabase/config.toml`. Configure `GEMINI_API_KEY` with `supabase secrets set`; never place it in `secrets.json` or another client-side file.
 
 ---
 
@@ -271,14 +314,18 @@ Both buckets enforce per-user folder isolation via RLS policies on `storage.obje
 | :--- | :--- | :--- |
 | `SUPABASE_URL` | No | Supabase project URL. Defaults to offline mock mode if unset or placeholder. |
 | `SUPABASE_ANON_KEY` | No | Supabase anonymous key. Defaults to offline mock mode if unset or placeholder. |
-| `GEMINI_API_KEY` | No | Google Gemini API key for ingredient analysis. Falls back to local analysis if unset. |
-| `GEMINI_MODEL` | No | Gemini model identifier. Defaults to `gemini-3.1-flash-lite`. |
 
 ---
 
 ## Offline Mode
 
 GlowMatch is designed to function without any external services. When Supabase credentials are absent or invalid, `SupabaseService` operates with in-memory mock data that is pre-seeded with sample products, routines, and journal entries. When the Gemini API key is absent, the ingredient scanner uses a local dictionary-based analysis engine.
+
+### Sync recovery and conflicts
+
+Authenticated changes are stored in a durable SQLite queue before upload. Network and transient server failures use bounded exponential retry delays. Permission, validation, and constraint failures remain available with their error details until `SyncService.retryFailed(userId)` is invoked after the underlying problem is corrected.
+
+Conflict resolution is deterministic: a queued local insert, update, or delete takes precedence over a newly fetched Supabase row until that operation succeeds. Inserts use an idempotent upsert so reconnects and application restarts do not create duplicates.
 
 ---
 

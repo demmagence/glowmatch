@@ -168,7 +168,8 @@ class _ShelfScreenState extends State<ShelfScreen> {
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ManageCategoriesScreen(),
+                            builder: (context) =>
+                                const ManageCategoriesScreen(),
                           ),
                         ),
                         icon: const Icon(Icons.category, size: 16),

@@ -51,11 +51,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
       return;
     }
 
-    vm.addCustomCategory(
-      userId: userId,
-      name: name,
-      colorHex: _selectedColor,
-    );
+    vm.addCustomCategory(userId: userId, name: name, colorHex: _selectedColor);
     _nameController.clear();
     FocusScope.of(context).unfocus();
   }
@@ -98,7 +94,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     decoration: InputDecoration(
                       labelText: l10n.categoryNameLabel,
                       labelStyle: TextStyle(
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade700,
                       ),
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
@@ -137,7 +135,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? borderColor : Colors.transparent,
+                              color: isSelected
+                                  ? borderColor
+                                  : Colors.transparent,
                               width: 3,
                             ),
                           ),
@@ -152,7 +152,10 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     l10n.cancel,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 ElevatedButton(
@@ -191,7 +194,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     SkincareCategory category,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final inUseCount = vm.shelfItems.where((x) => x.category == category.name).length;
+    final inUseCount = vm.shelfItems
+        .where((x) => x.category == category.name)
+        .length;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black;
@@ -237,7 +242,11 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 vm.deleteCustomCategory(category.id);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.categoryDeletedSnackbar(category.name))),
+                  SnackBar(
+                    content: Text(
+                      l10n.categoryDeletedSnackbar(category.name),
+                    ),
+                  ),
                 );
               },
               child: Text(l10n.delete),
@@ -283,7 +292,11 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 color: bg,
                 border: Border.all(color: borderColor, width: 2),
                 boxShadow: [
-                  BoxShadow(color: shadow, offset: const Offset(4, 4), blurRadius: 0),
+                  BoxShadow(
+                    color: shadow,
+                    offset: const Offset(4, 4),
+                    blurRadius: 0,
+                  ),
                 ],
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -305,7 +318,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     decoration: InputDecoration(
                       hintText: l10n.categoryNameHint,
                       hintStyle: TextStyle(
-                        color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                        color: isDark
+                            ? Colors.grey.shade600
+                            : Colors.grey.shade400,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: borderColor, width: 1.5),
@@ -342,7 +357,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? borderColor : Colors.transparent,
+                              color: isSelected
+                                  ? borderColor
+                                  : Colors.transparent,
                               width: 3,
                             ),
                           ),
@@ -393,7 +410,10 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 final color = Color(int.parse(category.color));
 
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: cardBg,
                     border: Border.all(color: borderColor, width: 1.5),
@@ -422,9 +442,14 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                       const Spacer(),
                       if (category.isDefault)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -442,12 +467,17 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                             IconButton(
                               icon: const Icon(Icons.edit, size: 20),
                               color: isDark ? Colors.white70 : Colors.black54,
-                              onPressed: () => _showEditDialog(context, vm, category),
+                              onPressed: () =>
+                                  _showEditDialog(context, vm, category),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, size: 20),
                               color: Colors.red,
-                              onPressed: () => _deleteCategoryWithWarning(context, vm, category),
+                              onPressed: () => _deleteCategoryWithWarning(
+                                context,
+                                vm,
+                                category,
+                              ),
                             ),
                           ],
                         ),

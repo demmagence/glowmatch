@@ -6,13 +6,11 @@ import '../../../core/models/models.dart';
 class JournalContributionGrid extends StatefulWidget {
   final List<JournalEntry> entries;
 
-  const JournalContributionGrid({
-    super.key,
-    required this.entries,
-  });
+  const JournalContributionGrid({super.key, required this.entries});
 
   @override
-  State<JournalContributionGrid> createState() => _JournalContributionGridState();
+  State<JournalContributionGrid> createState() =>
+      _JournalContributionGridState();
 }
 
 class _JournalContributionGridState extends State<JournalContributionGrid> {
@@ -94,7 +92,9 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
     final cardBg = isDark ? Colors.grey.shade900 : Colors.white;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : Colors.black;
 
     // Map entries to days for quick lookup
     final Map<String, int> entryCounts = {};
@@ -188,18 +188,22 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
             // Weekday Headers
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: weekdayLabels.map((label) => Expanded(
-                child: Center(
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+              children: weekdayLabels
+                  .map(
+                    (label) => Expanded(
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              )).toList(),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 8),
             // Monthly Calendar Grid
@@ -218,7 +222,11 @@ class _JournalContributionGridState extends State<JournalContributionGrid> {
                   return const SizedBox();
                 }
                 final day = index - offset + 1;
-                final cellDate = DateTime(_focusedMonth.year, _focusedMonth.month, day);
+                final cellDate = DateTime(
+                  _focusedMonth.year,
+                  _focusedMonth.month,
+                  day,
+                );
                 final dateKey = _toDateKey(cellDate);
                 final count = entryCounts[dateKey] ?? 0;
                 final cellColor = _getCellColor(count, isDark);

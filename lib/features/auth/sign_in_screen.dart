@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
 import '../main_layout.dart';
 import 'sign_up_screen.dart';
+import 'forgot_password_screen.dart';
 import '../../l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -41,7 +42,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
     try {
-      await authVm.signIn(_emailController.text.trim(), _passwordController.text);
+      await authVm.signIn(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -50,7 +54,8 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } catch (e) {
       setState(() {
-        _localError = authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
+        _localError =
+            authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
       });
     }
   }
@@ -71,7 +76,8 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } catch (e) {
       setState(() {
-        _localError = authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
+        _localError =
+            authVm.errorMessage ?? e.toString().replaceAll('Exception: ', '');
       });
     }
   }
@@ -82,7 +88,9 @@ class _SignInScreenState extends State<SignInScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
-    final shadowColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black;
+    final shadowColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black;
     final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
@@ -90,7 +98,10 @@ class _SignInScreenState extends State<SignInScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
@@ -140,7 +151,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFCDD2),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.shade900, width: 3),
+                        border: Border.all(
+                          color: Colors.red.shade900,
+                          width: 3,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: shadowColor,
@@ -151,7 +165,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: Color(0xFFC62828)),
+                          const Icon(
+                            Icons.error_outline,
+                            color: Color(0xFFC62828),
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -202,24 +219,40 @@ class _SignInScreenState extends State<SignInScreen> {
                           style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: 'e.g. skin@glowmatch.com',
-                            hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
+                            hintStyle: TextStyle(
+                              color: textColor.withValues(alpha: 0.4),
+                            ),
                             filled: true,
-                            fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
+                            fillColor: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade50,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor.withValues(alpha: 0.5), width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor, width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
@@ -249,28 +282,46 @@ class _SignInScreenState extends State<SignInScreen> {
                           style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: l10n.passwordHint,
-                            hintStyle: TextStyle(color: textColor.withValues(alpha: 0.4)),
+                            hintStyle: TextStyle(
+                              color: textColor.withValues(alpha: 0.4),
+                            ),
                             filled: true,
-                            fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
+                            fillColor: isDark
+                                ? Colors.black26
+                                : Colors.grey.shade50,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor.withValues(alpha: 0.5), width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor.withValues(alpha: 0.5),
+                                width: 2,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: borderColor, width: 2),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
                                 color: textColor,
                               ),
                               onPressed: () {
@@ -286,6 +337,19 @@ class _SignInScreenState extends State<SignInScreen> {
                             }
                             return null;
                           },
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            key: const Key('forgotPasswordButton'),
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            ),
+                            child: const Text('Forgot password?'),
+                          ),
                         ),
                       ],
                     ),
@@ -342,13 +406,17 @@ class _SignInScreenState extends State<SignInScreen> {
                     children: [
                       Text(
                         "Don't have an account? ",
-                        style: TextStyle(color: textColor.withValues(alpha: 0.7)),
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.7),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const SignUpScreen(),
+                            ),
                           );
                         },
                         child: Text(

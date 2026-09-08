@@ -21,7 +21,9 @@ void showAddProductDialog(
   final ingredientsController = TextEditingController(
     text: preFilledIngredients != null ? preFilledIngredients.join(', ') : '',
   );
-  String selectedCategory = vm.categories.isNotEmpty ? vm.categories.first.name : 'Serum';
+  String selectedCategory = vm.categories.isNotEmpty
+      ? vm.categories.first.name
+      : 'Serum';
   String? localImagePath;
 
   final ImagePicker picker = ImagePicker();
@@ -179,7 +181,9 @@ void showAddProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.productName,
                       hintText: l10n.productNameHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -203,7 +207,9 @@ void showAddProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.brand,
                       hintText: l10n.brandHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -231,7 +237,9 @@ void showAddProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.category,
                       hintText: l10n.selectCategoryHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -256,7 +264,7 @@ void showAddProductDialog(
                                 'Serum',
                                 style: TextStyle(color: textColor),
                               ),
-                            )
+                            ),
                           ]
                         : vm.categories.map((cat) {
                             return DropdownMenuItem(
@@ -279,7 +287,9 @@ void showAddProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.priceWithCurrency(currencyVm.selectedCurrency),
                       hintText: l10n.priceHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -306,7 +316,9 @@ void showAddProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.productSize,
                       hintText: l10n.productSizeHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -330,7 +342,9 @@ void showAddProductDialog(
                     decoration: InputDecoration(
                       labelText: l10n.ingredients,
                       hintText: l10n.ingredientsHint,
-                      hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38,
+                      ),
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -374,8 +388,14 @@ void showAddProductDialog(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
                     final matchingCategory = vm.categories.firstWhere(
-                      (c) => c.name.toLowerCase() == selectedCategory.toLowerCase(),
-                      orElse: () => SkincareCategory(id: '', name: selectedCategory, color: '0xFFE040FB'),
+                      (c) =>
+                          c.name.toLowerCase() ==
+                          selectedCategory.toLowerCase(),
+                      orElse: () => SkincareCategory(
+                        id: '',
+                        name: selectedCategory,
+                        color: '0xFFE040FB',
+                      ),
                     );
                     String hexColor = matchingCategory.color;
 

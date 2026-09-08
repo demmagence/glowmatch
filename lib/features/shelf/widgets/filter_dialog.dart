@@ -12,10 +12,7 @@ void showFilterDialog(BuildContext context, ShelfViewModel vm) {
   showDialog(
     context: context,
     builder: (context) {
-      final categories = [
-        'All',
-        ...vm.categories.map((e) => e.name),
-      ];
+      final categories = ['All', ...vm.categories.map((e) => e.name)];
       return SimpleDialog(
         backgroundColor: dialogBg,
         shape: RoundedRectangleBorder(
