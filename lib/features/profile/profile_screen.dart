@@ -5,6 +5,7 @@ import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/viewmodels/theme_viewmodel.dart';
 import '../../core/viewmodels/currency_viewmodel.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/services/permission_service.dart';
 import '../shelf/shelf_viewmodel.dart';
 import '../journal/journal_viewmodel.dart';
 import '../home/routine_viewmodel.dart';
@@ -798,6 +799,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                         color: Colors.amber.shade900,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: () => PermissionService.instance
+                                        .openAppSettings(),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.shade900,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Text(
+                                        'Settings',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ),

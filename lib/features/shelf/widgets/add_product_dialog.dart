@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
+import '../../../core/services/permission_service.dart';
+import '../../../core/widgets/permission_rationale_dialog.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
 import '../shelf_viewmodel.dart';
 
@@ -39,7 +42,66 @@ void showAddProductDialog(
       return StatefulBuilder(
         builder: (context, setDialogState) {
           Future<void> pickImage(ImageSource source) async {
+            final isCamera = source == ImageSource.camera;
+            final permType = isCamera
+                ? AppPermissionType.camera
+                : AppPermissionType.photos;
+
             try {
+              if (isCamera) {
+                final status = await PermissionService.instance
+                    .checkCameraPermission();
+                if (status == AppPermissionStatus.permanentlyDenied) {
+                  if (context.mounted) {
+                    await PermissionRationaleDialog.show(
+                      context,
+                      permissionType: permType,
+                      status: status,
+                    );
+                  }
+                  return;
+                } else if (status == AppPermissionStatus.denied) {
+                  final reqStatus = await PermissionService.instance
+                      .requestCameraPermission();
+                  if (reqStatus != AppPermissionStatus.granted) {
+                    if (context.mounted) {
+                      await PermissionRationaleDialog.show(
+                        context,
+                        permissionType: permType,
+                        status: reqStatus,
+                      );
+                    }
+                    return;
+                  }
+                }
+              } else {
+                final status = await PermissionService.instance
+                    .checkPhotosPermission();
+                if (status == AppPermissionStatus.permanentlyDenied) {
+                  if (context.mounted) {
+                    await PermissionRationaleDialog.show(
+                      context,
+                      permissionType: permType,
+                      status: status,
+                    );
+                  }
+                  return;
+                } else if (status == AppPermissionStatus.denied) {
+                  final reqStatus = await PermissionService.instance
+                      .requestPhotosPermission();
+                  if (reqStatus != AppPermissionStatus.granted) {
+                    if (context.mounted) {
+                      await PermissionRationaleDialog.show(
+                        context,
+                        permissionType: permType,
+                        status: reqStatus,
+                      );
+                    }
+                    return;
+                  }
+                }
+              }
+
               final XFile? image = await picker.pickImage(
                 source: source,
                 imageQuality: 85,
@@ -50,6 +112,21 @@ void showAddProductDialog(
                 setDialogState(() {
                   localImagePath = image.path;
                 });
+              }
+            } on PlatformException catch (e) {
+              debugPrint('Error picking image platform exception: $e');
+              if (!context.mounted) return;
+              final msg = (e.message ?? '').toLowerCase();
+              final code = e.code.toLowerCase();
+              if (code.contains('denied') ||
+                  code.contains('access') ||
+                  msg.contains('permission') ||
+                  msg.contains('access')) {
+                await PermissionRationaleDialog.show(
+                  context,
+                  permissionType: permType,
+                  status: AppPermissionStatus.permanentlyDenied,
+                );
               }
             } catch (e) {
               debugPrint('Error picking image: $e');
