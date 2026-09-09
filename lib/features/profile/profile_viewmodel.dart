@@ -5,6 +5,7 @@ import '../../core/services/notification_service.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   final AuthViewModel authViewModel;
+  final NotificationService notificationService;
 
   // ── notification master toggle ──────────────────────────────────────────
   bool _isNotificationsEnabled = true;
@@ -24,6 +25,15 @@ class ProfileViewModel extends ChangeNotifier {
   TimeOfDay _pmTime = const TimeOfDay(hour: 20, minute: 0);
   TimeOfDay get pmTime => _pmTime;
 
+  // ── notification error state ────────────────────────────────────────────
+  String? _notificationError;
+  String? get notificationError => _notificationError;
+
+  void clearNotificationError() {
+    _notificationError = null;
+    notifyListeners();
+  }
+
   // ── account linking ─────────────────────────────────────────────────────
   bool _isSubmittingLink = false;
   bool get isSubmittingLink => _isSubmittingLink;
@@ -31,7 +41,11 @@ class ProfileViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  ProfileViewModel({required this.authViewModel}) {
+  ProfileViewModel({
+    required this.authViewModel,
+    NotificationService? notificationService,
+  }) : notificationService =
+           notificationService ?? NotificationService.instance {
     _load();
   }
 
@@ -54,15 +68,15 @@ class ProfileViewModel extends ChangeNotifier {
 
       notifyListeners();
 
-      // Re-apply schedules after restart
-      final svc = NotificationService.instance;
-      await svc.init();
-      if (_isNotificationsEnabled && _amEnabled) {
-        await svc.scheduleAmReminder(_amTime);
-      }
-      if (_isNotificationsEnabled && _pmEnabled) {
-        await svc.schedulePmReminder(_pmTime);
-      }
+      // Re-apply schedules after restart and reconcile timezone shifts
+      await notificationService.reconcileReminders(
+        isNotificationsEnabled: _isNotificationsEnabled,
+        amEnabled: _amEnabled,
+        amTime: _amTime,
+        pmEnabled: _pmEnabled,
+        pmTime: _pmTime,
+        prefs: prefs,
+      );
     } catch (_) {}
   }
 
@@ -83,72 +97,90 @@ class ProfileViewModel extends ChangeNotifier {
 
   Future<void> toggleNotifications(bool value) async {
     _isNotificationsEnabled = value;
+    _notificationError = null;
     notifyListeners();
 
-    final svc = NotificationService.instance;
-    await svc.init();
-
     if (!value) {
-      await svc.cancelAmReminder();
-      await svc.cancelPmReminder();
+      await notificationService.cancelAllReminders();
     } else {
-      if (_amEnabled) await svc.scheduleAmReminder(_amTime);
-      if (_pmEnabled) await svc.schedulePmReminder(_pmTime);
+      if (_amEnabled) {
+        final res = await notificationService.scheduleAmReminder(_amTime);
+        if (!res.success) {
+          _notificationError = res.errorMessage;
+        }
+      }
+      if (_pmEnabled) {
+        final res = await notificationService.schedulePmReminder(_pmTime);
+        if (!res.success) {
+          _notificationError = res.errorMessage;
+        }
+      }
     }
+    notifyListeners();
     await _save();
   }
 
   Future<void> toggleAmReminder(bool value) async {
     _amEnabled = value;
+    _notificationError = null;
     notifyListeners();
 
-    final svc = NotificationService.instance;
-    await svc.init();
-
     if (value && _isNotificationsEnabled) {
-      await svc.scheduleAmReminder(_amTime);
+      final res = await notificationService.scheduleAmReminder(_amTime);
+      if (!res.success) {
+        _notificationError = res.errorMessage;
+      }
     } else {
-      await svc.cancelAmReminder();
+      await notificationService.cancelAmReminder();
     }
+    notifyListeners();
     await _save();
   }
 
   Future<void> setAmTime(TimeOfDay time) async {
     _amTime = time;
+    _notificationError = null;
     notifyListeners();
 
     if (_amEnabled && _isNotificationsEnabled) {
-      final svc = NotificationService.instance;
-      await svc.init();
-      await svc.scheduleAmReminder(time);
+      final res = await notificationService.scheduleAmReminder(time);
+      if (!res.success) {
+        _notificationError = res.errorMessage;
+      }
     }
+    notifyListeners();
     await _save();
   }
 
   Future<void> togglePmReminder(bool value) async {
     _pmEnabled = value;
+    _notificationError = null;
     notifyListeners();
 
-    final svc = NotificationService.instance;
-    await svc.init();
-
     if (value && _isNotificationsEnabled) {
-      await svc.schedulePmReminder(_pmTime);
+      final res = await notificationService.schedulePmReminder(_pmTime);
+      if (!res.success) {
+        _notificationError = res.errorMessage;
+      }
     } else {
-      await svc.cancelPmReminder();
+      await notificationService.cancelPmReminder();
     }
+    notifyListeners();
     await _save();
   }
 
   Future<void> setPmTime(TimeOfDay time) async {
     _pmTime = time;
+    _notificationError = null;
     notifyListeners();
 
     if (_pmEnabled && _isNotificationsEnabled) {
-      final svc = NotificationService.instance;
-      await svc.init();
-      await svc.schedulePmReminder(time);
+      final res = await notificationService.schedulePmReminder(time);
+      if (!res.success) {
+        _notificationError = res.errorMessage;
+      }
     }
+    notifyListeners();
     await _save();
   }
 

@@ -23,6 +23,7 @@ dependencies:
   fl_chart: ^0.66.0
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
+  flutter_timezone: ^5.1.0
   intl: ^0.20.2
   sqflite: ^2.3.0
   path: ^1.9.0
