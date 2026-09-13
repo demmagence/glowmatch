@@ -6,6 +6,7 @@ import 'package:glowmatch/core/viewmodels/auth_viewmodel.dart';
 import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
 import 'package:glowmatch/core/viewmodels/theme_viewmodel.dart';
 import 'package:glowmatch/features/profile/profile_screen.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -68,7 +69,12 @@ Widget _buildProfileScreen() {
       ChangeNotifierProvider(create: (_) => AuthViewModel()),
       ChangeNotifierProvider(create: (_) => CurrencyViewModel()),
     ],
-    child: const MaterialApp(home: ProfileScreen()),
+    child: const MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: Locale('en'),
+      home: ProfileScreen(),
+    ),
   );
 }
 

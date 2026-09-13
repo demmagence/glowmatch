@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../../core/models/models.dart';
 
 class JournalCompareScreen extends StatelessWidget {
@@ -46,6 +47,7 @@ class JournalCompareScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -70,7 +72,7 @@ class JournalCompareScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'COMPARE GLOW',
+          l10n.compareGlow,
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 20,
@@ -90,7 +92,7 @@ class JournalCompareScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'BEFORE',
+                        l10n.beforeUpper,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
@@ -113,7 +115,7 @@ class JournalCompareScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'AFTER',
+                        l10n.afterUpper,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
@@ -155,7 +157,7 @@ class JournalCompareScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'PROGRESS DETAILS',
+                    l10n.progressDetails,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
@@ -169,7 +171,7 @@ class JournalCompareScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _buildDateNoteColumn(
-                          'Before',
+                          l10n.beforeUpper,
                           earlier.loggedDate,
                           earlier.notes,
                           textColor,
@@ -179,7 +181,7 @@ class JournalCompareScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _buildDateNoteColumn(
-                          'After',
+                          l10n.afterUpper,
                           later.loggedDate,
                           later.notes,
                           textColor,
@@ -208,9 +210,9 @@ class JournalCompareScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'CLOSE COMPARISON',
-                  style: TextStyle(
+                child: Text(
+                  l10n.closeComparison,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,

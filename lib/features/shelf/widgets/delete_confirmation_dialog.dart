@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/models.dart';
+import '../../../l10n/app_localizations.dart';
 import '../shelf_viewmodel.dart';
 
 void showDeleteConfirmation(
@@ -7,6 +8,7 @@ void showDeleteConfirmation(
   ShelfItem item,
   ShelfViewModel shelfVm,
 ) {
+  final l10n = AppLocalizations.of(context)!;
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final dialogBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
   final borderColor = isDark ? Colors.white : Colors.black;
@@ -22,11 +24,11 @@ void showDeleteConfirmation(
           side: BorderSide(color: borderColor, width: 2),
         ),
         title: Text(
-          'Delete Product?',
+          l10n.deleteProductTitle,
           style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
         ),
         content: Text(
-          'Are you sure you want to delete ${item.name} from your shelf?',
+          l10n.deleteProductConfirm(item.name),
           style: TextStyle(
             color: isDark ? Colors.grey.shade300 : Colors.black87,
           ),
@@ -35,7 +37,7 @@ void showDeleteConfirmation(
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              l10n.cancel,
               style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
             ),
           ),
@@ -45,14 +47,17 @@ void showDeleteConfirmation(
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Deleted ${item.name}'),
+                  content: Text(l10n.deletedProductSnackbar(item.name)),
                   backgroundColor: isDark ? Colors.grey.shade900 : Colors.black,
                 ),
               );
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.delete,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

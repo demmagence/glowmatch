@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import 'budget_viewmodel.dart';
 import '../../core/models/models.dart';
 import '../../core/widgets/glowmatch_header.dart';
@@ -59,6 +60,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final budgetVm = Provider.of<BudgetViewModel>(context);
     final currencyVm = Provider.of<CurrencyViewModel>(context);
     final shelfVm = Provider.of<ShelfViewModel>(context, listen: false);
@@ -81,7 +83,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: LoadingOverlay(
         isLoading: budgetVm.isLoading,
-        message: 'Calculating budget...',
+        message: l10n.calculatingBudget,
         child: RefreshIndicator(
           onRefresh: () => shelfVm.fetchShelf(authVm.userId),
           child: SingleChildScrollView(
@@ -96,7 +98,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 const GlowMatchHeader(),
                 const SizedBox(height: 24),
                 Text(
-                  'TOTAL SPEND IN PERIOD',
+                  l10n.totalSpendInPeriod,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -129,7 +131,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       Expanded(
                         child: _buildPeriodToggleItem(
                           context,
-                          label: '30 Days',
+                          label: l10n.period30Days,
                           isActive: budgetVm.selectedPeriodDays == 30,
                           onTap: () => budgetVm.setPeriodDays(30),
                         ),
@@ -137,7 +139,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       Expanded(
                         child: _buildPeriodToggleItem(
                           context,
-                          label: '90 Days',
+                          label: l10n.period90Days,
                           isActive: budgetVm.selectedPeriodDays == 90,
                           onTap: () => budgetVm.setPeriodDays(90),
                         ),
@@ -145,7 +147,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       Expanded(
                         child: _buildPeriodToggleItem(
                           context,
-                          label: 'All Time',
+                          label: l10n.periodAllTime,
                           isActive: budgetVm.selectedPeriodDays == 0,
                           onTap: () => budgetVm.setPeriodDays(0),
                         ),

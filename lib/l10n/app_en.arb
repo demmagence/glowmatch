@@ -3,5 +3,388 @@
   "appTitle": "GlowMatch",
   "@appTitle": {
     "description": "The title of the application"
-  }
+  },
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "close": "Close",
+  "confirm": "Confirm",
+  "retry": "Retry",
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success",
+  "all": "All",
+  "add": "Add",
+  "edit": "Edit",
+
+  "navHome": "Home",
+  "navBudget": "Budget",
+  "navScan": "Scan",
+  "navJournal": "Journal",
+  "navShelf": "Shelf",
+
+  "onboardingTitle1": "Track Your Glow",
+  "onboardingDesc1": "Log your AM & PM skincare routines and maintain a visual skin progress journal.",
+  "onboardingTitle2": "Scan Ingredients",
+  "onboardingDesc2": "Use AI to scan product ingredients via OCR and check their safety and compatibility.",
+  "onboardingTitle3": "Smart Budget",
+  "onboardingDesc3": "Keep track of your skincare spending and analyze cost-per-apply efficiency.",
+  "skip": "Skip",
+  "next": "Next",
+  "getStarted": "Get Started",
+
+  "signInTitle": "Sign In",
+  "signInSubtitle": "Welcome back! Sign in to sync your routines.",
+  "signUpTitle": "Sign Up",
+  "signUpSubtitle": "Create an account to backup your shelf & progress.",
+  "emailLabel": "Email Address",
+  "emailHint": "you@example.com",
+  "passwordLabel": "Password",
+  "passwordHint": "••••••••",
+  "confirmPasswordLabel": "Confirm Password",
+  "signInButton": "Sign In",
+  "signUpButton": "Sign Up",
+  "continueAsGuest": "Continue as Guest",
+  "dontHaveAccount": "Don't have an account? Sign Up",
+  "alreadyHaveAccount": "Already have an account? Sign In",
+  "orDivider": "OR",
+  "emailValidationError": "Please enter a valid email address",
+  "passwordLengthError": "Password must be at least 6 characters",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "forgotPassword": "Forgot Password?",
+
+  "morningRoutine": "Morning Routine",
+  "eveningRoutine": "Evening Routine",
+  "steps": "Steps",
+  "stepsCompleted": "{completed}/{total} Completed",
+  "@stepsCompleted": {
+    "placeholders": {
+      "completed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "noRoutineSteps": "No routine steps yet. Tap below to add your first step!",
+  "deleteStepTitle": "Delete Step?",
+  "deleteStepMessage": "Remove \"{stepName}\" from your {routineName} routine?",
+  "@deleteStepMessage": {
+    "placeholders": {
+      "stepName": { "type": "String" },
+      "routineName": { "type": "String" }
+    }
+  },
+  "deleteStepWarning": "Are you sure you want to delete this step? Remaining steps will be renumbered.",
+  "completePreviousStepsOrder": "Please complete previous steps in order.",
+  "usedOneApply": "Used 1 apply of {productName}!",
+  "@usedOneApply": {
+    "placeholders": {
+      "productName": { "type": "String" }
+    }
+  },
+  "stepNumber": "Step {number}",
+  "@stepNumber": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+  "customStep": "Custom Step",
+  "clickToAdd": "Click to add",
+  "completedForToday": "Completed for Today",
+  "completeRoutine": "Complete Routine",
+  "routineCompletedToast": "Routine Completed! Consistency score updated.",
+  "milestone7DaysToast": "🎉 7 Day Milestone! Awesome dedication!",
+  "milestone14DaysToast": "🎉 14 Day Milestone! You are unstoppable!",
+  "milestone30DaysToast": "🎉 30 Day Milestone! You are a skincare master!",
+  "dayStreakBadge": "{count} Day Streak",
+  "@dayStreakBadge": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "startRoutineMotivation": "Start your routine today to begin your glowing skin streak! 🔥",
+  "milestone30Motivation": "👑 30+ Day Milestone! Skincare Master status unlocked!",
+  "milestone14Motivation": "🌟 14 Day Milestone! Your skin barrier is thanking you!",
+  "milestone7Motivation": "🏆 7 Day Milestone! You are building a solid skincare habit!",
+  "keepItUpMotivation": "✨ Keep it up! Consistency is the key to glowing skin.",
+  "addRoutineStep": "Add Routine Step",
+  "editRoutineStep": "Edit Routine Step",
+  "stepNameLabel": "Step Name (e.g., Toner)",
+  "stepNameSimpleLabel": "Step Name",
+  "instructionsLabel": "Instructions (e.g., Apply with pad)",
+  "instructionsSimpleLabel": "Instructions",
+  "linkShelfProductOptional": "Link Shelf Product (Optional)",
+  "linkShelfProduct": "Link Shelf Product",
+  "selectProductHint": "Select product",
+  "noneOption": "None",
+  "streakHistoryAndStats": "Streak History & Stats",
+  "currentStreak": "Current Streak",
+  "longestStreak": "Longest Streak",
+  "totalCompleted": "Total Completed",
+  "streakDaysCount": "{count} Days",
+  "@streakDaysCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "streakHistory": "Streak History",
+  "noStreakHistoryYet": "No streak history yet. Complete your first routine!",
+  "completed": "Completed",
+  "missed": "Missed",
+  "skincareMasterMilestone": "👑 Skincare Master Milestone!",
+  "unstoppableBarrierMilestone": "🌟 Unstoppable barrier milestone!",
+  "solidHabitMilestone": "🏆 Solid habit milestone!",
+  "visualCalendar": "Visual Calendar",
+
+  "totalSpendInPeriod": "TOTAL SPEND IN PERIOD",
+  "period30Days": "30 Days",
+  "period90Days": "90 Days",
+  "periodAllTime": "All Time",
+  "calculatingBudget": "Calculating budget...",
+  "allocation": "ALLOCATION",
+  "noActiveProductsAllocation": "No active products on your shelf to calculate allocations.",
+  "categoriesCount": "Categories",
+  "costPerApplyCalculator": "COST-PER-APPLY CALCULATOR",
+  "selectProductFromShelf": "Select Product from Shelf",
+  "customValuesNoProduct": "Custom values (no product)",
+  "productPrice": "Product Price",
+  "estimatedUses": "Estimated Uses",
+  "efficiencyMetric": "EFFICIENCY METRIC",
+  "perApplication": "/ application",
+  "spendingHistory": "SPENDING HISTORY (LAST 6 MONTHS)",
+  "setMonthlyBudgetLimit": "Set Monthly Budget Limit",
+  "budgetLimit": "Budget Limit ({currency})",
+  "@budgetLimit": {
+    "placeholders": {
+      "currency": { "type": "String" }
+    }
+  },
+
+  "myShelf": "My Shelf",
+  "shelfSubtitle": "Your skincare inventory & usage tracker.",
+  "searchProducts": "Search products...",
+  "filter": "FILTER",
+  "filterByCategory": "Filter by Category",
+  "categories": "Categories",
+  "tapToAddSkincare": "tap to add new skincare",
+  "addSkincareProduct": "Add Skincare Product",
+  "editSkincareProduct": "Edit Skincare Product",
+  "productImage": "Product Image",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "productName": "Product Name",
+  "productNameHint": "e.g. Moisture Surge Intense",
+  "brand": "Brand",
+  "brandHint": "e.g. Clinique",
+  "category": "Category",
+  "selectCategoryHint": "Select a category",
+  "priceWithCurrency": "Price ({currency})",
+  "@priceWithCurrency": {
+    "placeholders": {
+      "currency": { "type": "String" }
+    }
+  },
+  "priceHint": "e.g. 150000",
+  "productSize": "Product Size",
+  "productSizeHint": "e.g. 30ml, 50g",
+  "ingredients": "Ingredients",
+  "ingredientsHint": "e.g. Niacinamide, Hyaluronic Acid, Ceramide",
+  "addProduct": "Add Product",
+  "saveChanges": "Save Changes",
+  "deleteProductTitle": "Delete Product?",
+  "deleteProductConfirm": "Are you sure you want to delete {name} from your shelf?",
+  "@deleteProductConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "deletedProductSnackbar": "Deleted {name}",
+  "@deletedProductSnackbar": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "productDetailPrice": "PRICE",
+  "productDetailUsesRemaining": "USES REMAINING",
+  "productDetailCostPerUse": "COST PER USE",
+  "productDetailSize": "PRODUCT SIZE",
+  "productDetailDateAdded": "DATE ADDED",
+  "productDetailIngredients": "INGREDIENTS",
+  "noIngredientsListed": "No ingredients listed.",
+  "editProductUpper": "EDIT PRODUCT",
+  "deleteProductUpper": "DELETE PRODUCT",
+  "manageCategoriesTitle": "Manage Categories",
+  "createNewCategory": "Create New Category",
+  "categoryNameHint": "Category Name (e.g. Essence)",
+  "categoryNameLabel": "Category Name",
+  "chooseCategoryColor": "Choose Category Color",
+  "addCategoryUpper": "ADD CATEGORY",
+  "allCategories": "All Categories",
+  "defaultBadge": "DEFAULT",
+  "renameCategory": "Rename Category",
+  "chooseColor": "Choose Color",
+  "categoryAlreadyExists": "Category name already exists!",
+  "deleteCategoryTitle": "Delete Category",
+  "deleteCategoryWarningInUse": "Warning: There are {count} product(s) currently using \"{categoryName}\". Deleting this category will reassign them to the default category \"Serum\". Are you sure you want to delete?",
+  "@deleteCategoryWarningInUse": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "categoryName": { "type": "String" }
+    }
+  },
+  "deleteCategoryWarningSimple": "Are you sure you want to delete the category \"{categoryName}\"?",
+  "@deleteCategoryWarningSimple": {
+    "placeholders": {
+      "categoryName": { "type": "String" }
+    }
+  },
+  "categoryDeletedSnackbar": "Category \"{categoryName}\" deleted.",
+  "@categoryDeletedSnackbar": {
+    "placeholders": {
+      "categoryName": { "type": "String" }
+    }
+  },
+
+  "journal": "Journal",
+  "journalSubtitle": "Track your glow progress.",
+  "uploadingGlow": "Uploading your glow...",
+  "compareModeTooltip": "Compare Mode",
+  "cancelCompareTooltip": "Cancel Compare",
+  "selectedComparisonCount": "Selected: {count}/2 entries",
+  "@selectedComparisonCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "compare": "Compare",
+  "compareMaxLimitError": "You can only select up to 2 entries for comparison.",
+  "glowActivity": "Glow Activity",
+  "less": "Less",
+  "more": "More",
+  "thisWeek": "THIS WEEK",
+  "lastWeek": "LAST WEEK",
+  "weeksAgo": "{count} WEEKS AGO",
+  "@weeksAgo": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "addPhoto": "Add Photo",
+  "scoreLabel": "Score: {score}",
+  "@scoreLabel": {
+    "placeholders": {
+      "score": { "type": "int" }
+    }
+  },
+  "addProgressPhoto": "ADD PROGRESS PHOTO",
+  "chooseCaptureGlow": "Choose how to capture your glow.",
+  "takePhoto": "Take Photo",
+  "useCameraNow": "Use camera right now",
+  "chooseFromGallery": "Choose from Gallery",
+  "pickExistingPhoto": "Pick an existing photo",
+  "addProgressNote": "Add Progress Note",
+  "skinFeelHint": "How does your skin feel today? (optional)",
+  "logProgress": "Log Progress",
+  "skinLogUploaded": "📸 Skin log uploaded! Score updated.",
+  "uploadFailed": "Upload failed. Try again.",
+  "compareGlow": "COMPARE GLOW",
+  "beforeUpper": "BEFORE",
+  "afterUpper": "AFTER",
+  "progressDetails": "PROGRESS DETAILS",
+  "closeComparison": "CLOSE COMPARISON",
+  "logEntry": "LOG ENTRY",
+  "notesUpper": "NOTES",
+  "noNotesLogged": "No notes logged for this entry.",
+  "deleteLogEntry": "DELETE LOG ENTRY",
+  "deleteEntryDialogTitle": "Delete Entry?",
+  "deleteEntryConfirmMessage": "Are you sure you want to permanently delete this progress log?",
+  "entryDeletedSnackbar": "🗑️ Entry deleted.",
+
+  "scannerTitle": "Skin Scanner",
+  "scanIngredientsUpper": "SCAN INGREDIENTS",
+  "scanHistoryUpper": "SCAN HISTORY",
+  "alignIngredientsInFrame": "Align ingredient list within the frame",
+  "cameraInitializing": "Initializing Camera...",
+  "cameraPermissionRequired": "Camera Permission Required",
+  "cameraPermissionDesc": "Please grant camera permission in your device settings to scan ingredient labels.",
+  "openSettings": "Open Settings",
+  "analyzingIngredients": "Analyzing Ingredients...",
+  "clearAllScanHistoryTitle": "Clear all scan history?",
+  "clearAllScanHistoryDesc": "Are you sure you want to delete all saved scan history? This action cannot be undone.",
+  "clearHistoryButton": "Clear History",
+  "historyClearedSnackbar": "Scan history cleared.",
+  "noScanHistoryTitle": "No scan history yet",
+  "noScanHistoryDesc": "Your analyzed ingredients will appear here.",
+  "analyzedOnDate": "Analyzed on {date}",
+  "@analyzedOnDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "detectedIngredientsCount": "Detected Ingredients ({count})",
+  "@detectedIngredientsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "safetyScore": "Safety Score: {score}/100",
+  "@safetyScore": {
+    "placeholders": {
+      "score": { "type": "int" }
+    }
+  },
+  "skinSuitability": "Skin Suitability:",
+  "recommendations": "Recommendations:",
+  "scanAgain": "SCAN AGAIN",
+  "statusLevel": "Status: {level}",
+  "@statusLevel": {
+    "placeholders": {
+      "level": { "type": "String" }
+    }
+  },
+  "galleryTooltip": "Pick from Gallery",
+  "textBlocksDetectedTap": "{count} text blocks detected — TAP to analyze",
+  "@textBlocksDetectedTap": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "detectingText": "Detecting text...",
+  "noCameraAvailable": "No Camera Available",
+  "noCameraDesc": "GlowMatch cannot detect a physical camera on this device or simulator.",
+  "scanAnalysisUpper": "SCAN ANALYSIS",
+  "noIngredientsFoundMessage": "No ingredients found.\nTry tapping a text block containing an ingredients list.",
+  "ingredientInteractionsUpper": "INGREDIENT INTERACTIONS",
+  "safetyAndDescription": "Safety & Ingredient Description:",
+  "pastProductScans": "Past product scans",
+  "noDetailAvailable": "No detail available.",
+  "imageScanner": "IMAGE SCANNER",
+
+  "profileAndSettings": "Profile & Settings",
+  "guestUser": "Guest User",
+  "securedUser": "Secured User",
+  "guestAccountWarning": "Guest Account (Data is temporary)",
+  "secureYourAccount": "Secure Your Account",
+  "secureAccountDesc": "Link an email and password to avoid losing your skincare shelf and routines.",
+  "linkEmailAccount": "Link Email Account",
+  "accountSecuredSuccess": "Account successfully secured!",
+  "appSettings": "App Settings",
+  "darkMode": "Dark Mode",
+  "darkModeDesc": "Toggle app-wide dark theme",
+  "language": "Language",
+  "languageDesc": "Choose your preferred language",
+  "systemDefault": "System Default",
+  "english": "English",
+  "indonesian": "Bahasa Indonesia",
+  "preferredCurrency": "Preferred Currency",
+  "preferredCurrencyDesc": "Choose your display and budget currency",
+  "notifications": "Notifications",
+  "routineReminders": "Routine Reminders",
+  "routineRemindersDesc": "Enable AM & PM routine notifications",
+  "amReminder": "🌅  AM Reminder",
+  "amReminderDesc": "Morning routine alert",
+  "pmReminder": "🌙  PM Reminder",
+  "pmReminderDesc": "Evening routine alert",
+  "signOut": "Sign Out",
+  "confirmSignOut": "Confirm Sign Out",
+  "confirmSignOutGuest": "Warning: You are currently using a Guest account. Signing out will permanently delete your skincare shelf and routines. Are you sure you want to sign out?",
+  "confirmSignOutUser": "Are you sure you want to sign out of your account?"
 }

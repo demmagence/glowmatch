@@ -5,6 +5,7 @@ import '../../core/viewmodels/auth_viewmodel.dart';
 import '../../core/widgets/glowmatch_header.dart';
 import '../../core/widgets/neobrutalist_card.dart';
 import '../../core/widgets/error_state_widget.dart';
+import '../../l10n/app_localizations.dart';
 import 'widgets/skeleton_card.dart';
 import 'widgets/product_card.dart';
 import 'widgets/filter_dialog.dart';
@@ -90,7 +91,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
         onChanged: (val) => shelfVm.setSearchQuery(val),
         style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
         decoration: InputDecoration(
-          hintText: 'Search products by name or brand...',
+          hintText: AppLocalizations.of(context)!.searchProducts,
           hintStyle: TextStyle(
             color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
             fontWeight: FontWeight.w500,
@@ -119,6 +120,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
   Widget build(BuildContext context) {
     final shelfVm = Provider.of<ShelfViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
 
@@ -142,7 +144,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'My Shelf',
+                    l10n.myShelf,
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -171,9 +173,9 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.category, size: 16),
-                        label: const Text(
-                          'CATEGORIES',
-                          style: TextStyle(
+                        label: Text(
+                          l10n.categories.toUpperCase(),
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -193,9 +195,9 @@ class _ShelfScreenState extends State<ShelfScreen> {
                           ),
                         ),
                         onPressed: () => showFilterDialog(context, shelfVm),
-                        child: const Text(
-                          'FILTER',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.filter,
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.2,
@@ -258,7 +260,7 @@ class _ShelfScreenState extends State<ShelfScreen> {
                                 horizontal: 12.0,
                               ),
                               child: Text(
-                                'tekan untuk tambah skincare baru',
+                                l10n.tapToAddSkincare,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 12,

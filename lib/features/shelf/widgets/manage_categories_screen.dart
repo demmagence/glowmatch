@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/models.dart';
 import '../../../core/viewmodels/auth_viewmodel.dart';
+import '../../../l10n/app_localizations.dart';
 import '../shelf_viewmodel.dart';
 
 class ManageCategoriesScreen extends StatefulWidget {
@@ -43,9 +44,10 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
       (c) => c.name.toLowerCase() == name.toLowerCase(),
     );
     if (exists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Category name already exists!')),
-      );
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.categoryAlreadyExists)));
       return;
     }
 
@@ -59,6 +61,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     ShelfViewModel vm,
     SkincareCategory category,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final editController = TextEditingController(text: category.name);
     String editColor = category.color;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -78,7 +81,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 side: BorderSide(color: borderColor, width: 2),
               ),
               title: Text(
-                'Rename Category',
+                l10n.renameCategory,
                 style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
               ),
               content: Column(
@@ -89,7 +92,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     controller: editController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      labelText: 'Category Name',
+                      labelText: l10n.categoryNameLabel,
                       labelStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade400
@@ -109,7 +112,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Choose Color',
+                    l10n.chooseColor,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -148,7 +151,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Cancel',
+                    l10n.cancel,
                     style: TextStyle(
                       color: textColor,
                       fontWeight: FontWeight.bold,
@@ -175,7 +178,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text('Save'),
+                  child: Text(l10n.save),
                 ),
               ],
             );
@@ -190,6 +193,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     ShelfViewModel vm,
     SkincareCategory category,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final inUseCount = vm.shelfItems
         .where((x) => x.category == category.name)
         .length;
@@ -208,20 +212,20 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
             side: BorderSide(color: borderColor, width: 2),
           ),
           title: Text(
-            'Delete Category',
+            l10n.deleteCategoryTitle,
             style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
           ),
           content: Text(
             inUseCount > 0
-                ? 'Warning: There are $inUseCount product(s) currently using "${category.name}". Deleting this category will reassign them to the default category "Serum". Are you sure you want to delete?'
-                : 'Are you sure you want to delete the category "${category.name}"?',
+                ? l10n.deleteCategoryWarningInUse(inUseCount, category.name)
+                : l10n.deleteCategoryWarningSimple(category.name),
             style: TextStyle(color: textColor),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                l10n.cancel,
                 style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
               ),
             ),
@@ -239,11 +243,11 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Category "${category.name}" deleted.'),
+                    content: Text(l10n.categoryDeletedSnackbar(category.name)),
                   ),
                 );
               },
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
           ],
         );
@@ -255,6 +259,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   Widget build(BuildContext context) {
     final vm = Provider.of<ShelfViewModel>(context);
     final authVm = Provider.of<AuthViewModel>(context);
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -264,9 +269,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Manage Categories',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.manageCategoriesTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
@@ -297,7 +302,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Create New Category',
+                    l10n.createNewCategory,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -309,7 +314,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                     controller: _nameController,
                     style: TextStyle(color: textColor),
                     decoration: InputDecoration(
-                      hintText: 'Category Name (e.g. Essence)',
+                      hintText: l10n.categoryNameHint,
                       hintStyle: TextStyle(
                         color: isDark
                             ? Colors.grey.shade600
@@ -327,7 +332,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Choose Category Color',
+                    l10n.chooseCategoryColor,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -374,9 +379,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                         ),
                       ),
                       onPressed: () => _addCategory(authVm.userId, vm),
-                      child: const Text(
-                        'ADD CATEGORY',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(
+                        l10n.addCategoryUpper,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -385,7 +390,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'All Categories',
+              l10n.allCategories,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -446,7 +451,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'DEFAULT',
+                            l10n.defaultBadge,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,

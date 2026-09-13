@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
@@ -11,6 +12,7 @@ class AllocationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final budgetVm = Provider.of<BudgetViewModel>(context);
     final currencyVm = Provider.of<CurrencyViewModel>(context);
     final hasAllocations = budgetVm.allocations.isNotEmpty;
@@ -24,7 +26,7 @@ class AllocationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ALLOCATION',
+            l10n.allocation,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -46,7 +48,7 @@ class AllocationCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No active products on your shelf to calculate allocations.',
+                      l10n.noActiveProductsAllocation,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: subtextColor, fontSize: 13),
                     ),
@@ -77,7 +79,7 @@ class AllocationCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Categories',
+                          l10n.categoriesCount,
                           style: TextStyle(
                             fontSize: 12,
                             color: subtextColor,

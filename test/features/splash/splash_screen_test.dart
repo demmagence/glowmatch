@@ -14,6 +14,7 @@ import 'package:glowmatch/features/scanner/scanner_viewmodel.dart';
 import 'package:glowmatch/features/journal/journal_viewmodel.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 
 Widget _buildSplash({required bool hasSeenOnboarding, String? mockUserId}) {
   final Map<String, Object> values = {'has_seen_onboarding': hasSeenOnboarding};
@@ -37,7 +38,12 @@ Widget _buildSplash({required bool hasSeenOnboarding, String? mockUserId}) {
       ChangeNotifierProvider(create: (_) => ScannerViewModel()),
       ChangeNotifierProvider(create: (_) => JournalViewModel()),
     ],
-    child: const MaterialApp(home: SplashScreen()),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const SplashScreen(),
+    ),
   );
 }
 

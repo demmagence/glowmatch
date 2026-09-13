@@ -77,4 +77,49 @@ void main() {
       expect(notifyCount, greaterThanOrEqualTo(1));
     });
   });
+
+  group('ThemeViewModel Locale Management', () {
+    test('defaults to null locale (system default) on first launch', () {
+      expect(vm.locale, isNull);
+    });
+
+    test(
+      'setLocale with languageCode updates locale and persists to SharedPreferences',
+      () async {
+        int notifyCount = 0;
+        vm.addListener(() => notifyCount++);
+
+        await vm.setLocale('id');
+
+        expect(vm.locale, equals(const Locale('id')));
+        expect(notifyCount, greaterThanOrEqualTo(1));
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('locale_code'), equals('id'));
+      },
+    );
+
+    test(
+      'setLocale(null) resets locale to system default and clears SharedPreferences',
+      () async {
+        await vm.setLocale('en');
+        expect(vm.locale, equals(const Locale('en')));
+
+        await vm.setLocale(null);
+        expect(vm.locale, isNull);
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.containsKey('locale_code'), isFalse);
+      },
+    );
+
+    test('loads saved locale from SharedPreferences on construction', () async {
+      SharedPreferences.setMockInitialValues({'locale_code': 'id'});
+      final vm2 = ThemeViewModel();
+
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(vm2.locale, equals(const Locale('id')));
+    });
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/sign_in_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -13,23 +14,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, String>> _onboardingData = [
+  List<Map<String, String>> _getOnboardingData(AppLocalizations l10n) => [
     {
-      'title': 'Track Your Glow',
-      'description':
-          'Log your AM & PM skincare routines and maintain a visual skin progress journal.',
+      'title': l10n.onboardingTitle1,
+      'description': l10n.onboardingDesc1,
       'icon': 'event_note',
     },
     {
-      'title': 'Scan Ingredients',
-      'description':
-          'Use AI to scan product ingredients via OCR and check their safety and compatibility.',
+      'title': l10n.onboardingTitle2,
+      'description': l10n.onboardingDesc2,
       'icon': 'center_focus_strong',
     },
     {
-      'title': 'Smart Budget',
-      'description':
-          'Keep track of your skincare spending and analyze cost-per-apply efficiency.',
+      'title': l10n.onboardingTitle3,
+      'description': l10n.onboardingDesc3,
       'icon': 'account_balance_wallet',
     },
   ];
@@ -45,8 +43,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  void _nextPage() {
-    if (_currentPage < _onboardingData.length - 1) {
+  void _nextPage(int totalPages) {
+    if (_currentPage < totalPages - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -77,6 +75,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final onboardingData = _getOnboardingData(l10n);
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final borderColor = isDark ? Colors.white : Colors.black;
@@ -98,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: TextButton(
                 onPressed: _completeOnboarding,
                 child: Text(
-                  'Skip',
+                  l10n.skip,
                   style: TextStyle(
                     color: textColor,
                     fontWeight: FontWeight.bold,
@@ -115,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     _currentPage = page;
                   });
                 },
-                itemCount: _onboardingData.length,
+                itemCount: onboardingData.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.all(40.0),
@@ -138,14 +139,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ],
                           ),
                           child: Icon(
-                            _getIconData(_onboardingData[index]['icon']!),
+                            _getIconData(onboardingData[index]['icon']!),
                             size: 100,
                             color: textColor,
                           ),
                         ),
                         const SizedBox(height: 60),
                         Text(
-                          _onboardingData[index]['title']!,
+                          onboardingData[index]['title']!,
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
@@ -155,7 +156,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          _onboardingData[index]['description']!,
+                          onboardingData[index]['description']!,
                           style: TextStyle(
                             fontSize: 16,
                             color: textColor,
@@ -179,7 +180,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Row(
                     children: List.generate(
-                      _onboardingData.length,
+                      onboardingData.length,
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.only(right: 8),
@@ -196,7 +197,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _nextPage,
+                    onTap: () => _nextPage(onboardingData.length),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
@@ -215,9 +216,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ],
                       ),
                       child: Text(
-                        _currentPage == _onboardingData.length - 1
-                            ? 'Get Started'
-                            : 'Next',
+                        _currentPage == onboardingData.length - 1
+                            ? l10n.getStarted
+                            : l10n.next,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,

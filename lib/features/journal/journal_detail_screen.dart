@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../../core/models/models.dart';
 import 'journal_viewmodel.dart';
 import '../../core/viewmodels/auth_viewmodel.dart';
@@ -12,6 +13,7 @@ class JournalDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
     final journalVm = Provider.of<JournalViewModel>(context, listen: false);
 
@@ -29,9 +31,9 @@ class JournalDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'LOG ENTRY',
-          style: TextStyle(
+        title: Text(
+          l10n.logEntry,
+          style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 20,
             color: Colors.black,
@@ -101,13 +103,14 @@ class JournalDetailScreen extends StatelessWidget {
 
                 Row(
                   children: [
-                    const Text(
-                      'Score: ',
-                      style: TextStyle(
+                    Text(
+                      l10n.scoreLabel(0).split(':').first,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -133,9 +136,9 @@ class JournalDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            const Text(
-              'NOTES',
-              style: TextStyle(
+            Text(
+              l10n.notesUpper,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.5,
@@ -152,7 +155,7 @@ class JournalDetailScreen extends StatelessWidget {
               ),
               child: Text(
                 (entry.notes == null || entry.notes!.isEmpty)
-                    ? 'No notes logged for this entry.'
+                    ? l10n.noNotesLogged
                     : entry.notes!,
                 style: const TextStyle(
                   fontSize: 14,
@@ -179,14 +182,14 @@ class JournalDetailScreen extends StatelessWidget {
                 ),
                 onPressed: () =>
                     _confirmDelete(context, authVm.userId, journalVm),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.delete_outline, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.delete_outline, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      'DELETE LOG ENTRY',
-                      style: TextStyle(
+                      l10n.deleteLogEntry,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
@@ -215,6 +218,7 @@ class JournalDetailScreen extends StatelessWidget {
     String userId,
     JournalViewModel vm,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -223,19 +227,17 @@ class JournalDetailScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             side: const BorderSide(color: Colors.black, width: 2),
           ),
-          title: const Text(
-            'Delete Entry?',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: Text(
+            l10n.deleteEntryDialogTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          content: const Text(
-            'Are you sure you want to permanently delete this progress log?',
-          ),
+          content: Text(l10n.deleteEntryConfirmMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.black),
+              child: Text(
+                l10n.cancel,
+                style: const TextStyle(color: Colors.black),
               ),
             ),
             ElevatedButton(
@@ -253,16 +255,16 @@ class JournalDetailScreen extends StatelessWidget {
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🗑️ Entry deleted.'),
+                    SnackBar(
+                      content: Text(l10n.entryDeletedSnackbar),
                       backgroundColor: Colors.black,
                     ),
                   );
                 }
               },
-              child: const Text(
-                'Delete',
-                style: TextStyle(
+              child: Text(
+                l10n.delete,
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),

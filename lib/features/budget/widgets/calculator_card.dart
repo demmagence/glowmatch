@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/widgets/neobrutalist_card.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
@@ -26,6 +27,7 @@ class CalculatorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final budgetVm = Provider.of<BudgetViewModel>(context);
     final currencyVm = Provider.of<CurrencyViewModel>(context);
     final textColor = isDark ? Colors.white : Colors.black;
@@ -41,7 +43,7 @@ class CalculatorCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'COST-PER-APPLY CALCULATOR',
+                l10n.costPerApplyCalculator,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -55,7 +57,7 @@ class CalculatorCard extends StatelessWidget {
           const SizedBox(height: 20),
 
           Text(
-            'Select Product from Shelf',
+            l10n.selectProductFromShelf,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -89,7 +91,7 @@ class CalculatorCard extends StatelessWidget {
               DropdownMenuItem<String>(
                 value: 'custom',
                 child: Text(
-                  'Custom values (no product)',
+                  l10n.customValuesNoProduct,
                   style: TextStyle(
                     fontStyle: FontStyle.italic,
                     color: textColor,
@@ -111,7 +113,7 @@ class CalculatorCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           Text(
-            'Product Price',
+            l10n.productPrice,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -148,7 +150,7 @@ class CalculatorCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           Text(
-            'Estimated Uses',
+            l10n.estimatedUses,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -191,7 +193,7 @@ class CalculatorCard extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                'EFFICIENCY METRIC',
+                l10n.efficiencyMetric,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -211,7 +213,7 @@ class CalculatorCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '/ application',
+                    l10n.perApplication,
                     style: TextStyle(
                       fontSize: 11,
                       color: subtextColor,

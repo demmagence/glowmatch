@@ -13,6 +13,7 @@ import 'package:glowmatch/features/scanner/scanner_viewmodel.dart';
 import 'package:glowmatch/features/journal/journal_viewmodel.dart';
 import 'package:glowmatch/core/services/supabase_service.dart';
 import 'package:glowmatch/core/viewmodels/currency_viewmodel.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 
 Widget _buildOnboarding() {
   return MultiProvider(
@@ -30,7 +31,12 @@ Widget _buildOnboarding() {
       ChangeNotifierProvider(create: (_) => ScannerViewModel()),
       ChangeNotifierProvider(create: (_) => JournalViewModel()),
     ],
-    child: const MaterialApp(home: OnboardingScreen()),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const OnboardingScreen(),
+    ),
   );
 }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../budget_viewmodel.dart';
 import '../../../core/viewmodels/currency_viewmodel.dart';
 
 void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
+  final l10n = AppLocalizations.of(context)!;
   final currencyVm = Provider.of<CurrencyViewModel>(context, listen: false);
   final controller = TextEditingController(
     text: currencyVm.formatPriceWithoutSymbol(budgetVm.budgetLimit),
@@ -25,7 +27,7 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
           side: BorderSide(color: borderColor, width: 2),
         ),
         title: Text(
-          'Set Monthly Budget Limit',
+          l10n.setMonthlyBudgetLimit,
           style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
         ),
         content: TextField(
@@ -33,7 +35,7 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
           style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: 'Budget Limit (${currencyVm.selectedCurrency})',
+            labelText: l10n.budgetLimit(currencyVm.selectedCurrency),
             labelStyle: TextStyle(
               color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
             ),
@@ -55,7 +57,7 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              l10n.cancel,
               style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
             ),
           ),
@@ -76,9 +78,9 @@ void showEditLimitDialog(BuildContext context, BudgetViewModel budgetVm) {
                 Navigator.pop(context);
               }
             },
-            child: const Text(
-              'Save',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.save,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],

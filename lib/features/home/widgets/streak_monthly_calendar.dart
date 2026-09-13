@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 
 class StreakMonthlyCalendar extends StatefulWidget {
   final Set<String> completedSet;
@@ -46,55 +48,33 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
     return firstDay.weekday % 7;
   }
 
-  String _formatMonthYear(DateTime date) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${months[date.month - 1]} ${date.year}';
+  String _formatMonthYear(DateTime date, String locale) {
+    return DateFormat.yMMMM(locale).format(date);
   }
 
   String _toDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  String _formatDateTooltip(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  String _formatDateTooltip(DateTime date, String locale) {
+    return DateFormat.yMMMd(locale).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final totalDays = _daysInMonth(_focusedMonth);
     final offset = _firstDayWeekdayOffset(_focusedMonth);
     final totalGridItems = offset + totalDays;
 
-    final weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    final firstDayOfWeek = DateTime(2023, 1, 1); // Sunday
+    final weekdayLabels = List.generate(7, (i) {
+      final d = firstDayOfWeek.add(Duration(days: i));
+      return DateFormat.E(locale).format(d).substring(0, 1).toUpperCase();
+    });
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -113,7 +93,7 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Visual Calendar',
+                l10n.visualCalendar,
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -131,7 +111,7 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _formatMonthYear(_focusedMonth),
+                    _formatMonthYear(_focusedMonth, locale),
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -207,7 +187,7 @@ class _StreakMonthlyCalendarState extends State<StreakMonthlyCalendar> {
 
               return Tooltip(
                 message:
-                    '${_formatDateTooltip(cellDate)}: ${completed ? 'Completed' : 'Missed'}',
+                    '${_formatDateTooltip(cellDate, locale)}: ${completed ? l10n.completed : l10n.missed}',
                 child: Container(
                   alignment: Alignment.center,
                   decoration: BoxDecoration(

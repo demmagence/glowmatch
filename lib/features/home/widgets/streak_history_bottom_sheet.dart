@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../routine_viewmodel.dart';
 import 'streak_monthly_calendar.dart';
 
@@ -16,26 +18,14 @@ class StreakHistoryBottomSheet extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  String _formatDate(DateTime date, String locale) {
+    return DateFormat.yMMMd(locale).format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final routineVm = Provider.of<RoutineViewModel>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -95,7 +85,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Streak History & Stats',
+                  l10n.streakHistoryAndStats,
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -133,8 +123,10 @@ class StreakHistoryBottomSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: _buildStatCard(
-                    'Current Streak',
-                    '${routineVm.streakData?.currentStreak ?? 0} Days',
+                    l10n.currentStreak,
+                    l10n.streakDaysCount(
+                      routineVm.streakData?.currentStreak ?? 0,
+                    ),
                     '🔥',
                     context,
                   ),
@@ -142,8 +134,10 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _buildStatCard(
-                    'Longest Streak',
-                    '${routineVm.streakData?.longestStreak ?? 0} Days',
+                    l10n.longestStreak,
+                    l10n.streakDaysCount(
+                      routineVm.streakData?.longestStreak ?? 0,
+                    ),
                     '👑',
                     context,
                   ),
@@ -151,7 +145,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _buildStatCard(
-                    'Total Completed',
+                    l10n.totalCompleted,
                     '${routineVm.streakData?.totalCompletions ?? 0}',
                     '🏆',
                     context,
@@ -189,7 +183,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                     children: [
                       _buildLegendItem(
                         const Color(0xFF64DD17),
-                        'Completed',
+                        l10n.completed,
                         context,
                       ),
                       const SizedBox(width: 16),
@@ -197,7 +191,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                         isDark
                             ? const Color(0xFF424242)
                             : const Color(0xFFE0E0E0),
-                        'Missed',
+                        l10n.missed,
                         context,
                       ),
                     ],
@@ -209,7 +203,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
 
             // Historical Streak List Section
             Text(
-              'Streak History',
+              l10n.streakHistory,
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -235,7 +229,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                       : const Color(0xFFFAFAFA),
                 ),
                 child: Text(
-                  'No streak history yet. Complete your first routine!',
+                  l10n.noStreakHistoryYet,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: subtextColor,
@@ -287,7 +281,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            '${segment.length} Day${segment.length > 1 ? 's' : ''}',
+                            l10n.streakDaysCount(segment.length),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w900,
                               color: isMilestone ? Colors.black : textColor,
@@ -301,7 +295,7 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${_formatDate(segment.startDate)} - ${_formatDate(segment.endDate)}',
+                                '${_formatDate(segment.startDate, locale)} - ${_formatDate(segment.endDate, locale)}',
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -312,10 +306,10 @@ class StreakHistoryBottomSheet extends StatelessWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   segment.length >= 30
-                                      ? '👑 Skincare Master Milestone!'
+                                      ? l10n.skincareMasterMilestone
                                       : segment.length >= 14
-                                      ? '🌟 Unstoppable barrier milestone!'
-                                      : '🏆 Solid habit milestone!',
+                                      ? l10n.unstoppableBarrierMilestone
+                                      : l10n.solidHabitMilestone,
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: isDark

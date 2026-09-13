@@ -8,6 +8,8 @@ import 'package:glowmatch/features/home/home_screen.dart';
 import 'package:glowmatch/features/home/routine_viewmodel.dart';
 import 'package:glowmatch/features/shelf/shelf_viewmodel.dart';
 
+import 'package:glowmatch/l10n/app_localizations.dart';
+
 Widget _buildHome(RoutineViewModel routineVm) {
   return MultiProvider(
     providers: [
@@ -15,7 +17,12 @@ Widget _buildHome(RoutineViewModel routineVm) {
       ChangeNotifierProvider<ShelfViewModel>(create: (_) => ShelfViewModel()),
       ChangeNotifierProvider<RoutineViewModel>.value(value: routineVm),
     ],
-    child: const MaterialApp(home: HomeScreen()),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const HomeScreen(),
+    ),
   );
 }
 
@@ -26,7 +33,13 @@ Widget _buildHomeDark(RoutineViewModel routineVm) {
       ChangeNotifierProvider<ShelfViewModel>(create: (_) => ShelfViewModel()),
       ChangeNotifierProvider<RoutineViewModel>.value(value: routineVm),
     ],
-    child: MaterialApp(theme: ThemeData.dark(), home: const HomeScreen()),
+    child: MaterialApp(
+      theme: ThemeData.dark(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: const HomeScreen(),
+    ),
   );
 }
 

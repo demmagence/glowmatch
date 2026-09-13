@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:glowmatch/l10n/app_localizations.dart';
 import '../journal_viewmodel.dart';
 
 void showAddProgressNoteDialog({
@@ -8,6 +9,7 @@ void showAddProgressNoteDialog({
   required JournalViewModel vm,
   required String pickedPath,
 }) {
+  final l10n = AppLocalizations.of(context)!;
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final textColor = isDark ? Colors.white : Colors.black;
   final subtextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -24,7 +26,7 @@ void showAddProgressNoteDialog({
           side: BorderSide(color: borderColor, width: 2),
         ),
         title: Text(
-          'Add Progress Note',
+          l10n.addProgressNote,
           style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
         ),
         content: SingleChildScrollView(
@@ -49,7 +51,7 @@ void showAddProgressNoteDialog({
                 maxLines: 3,
                 style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
-                  hintText: 'How does your skin feel today? (optional)',
+                  hintText: l10n.skinFeelHint,
                   hintStyle: TextStyle(color: subtextColor, fontSize: 13),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
@@ -71,7 +73,7 @@ void showAddProgressNoteDialog({
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Cancel', style: TextStyle(color: textColor)),
+            child: Text(l10n.cancel, style: TextStyle(color: textColor)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -97,7 +99,7 @@ void showAddProgressNoteDialog({
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '📸 Skin log uploaded! Score updated.',
+                        l10n.skinLogUploaded,
                         style: TextStyle(
                           color: isDark ? Colors.black : Colors.white,
                         ),
@@ -109,7 +111,7 @@ void showAddProgressNoteDialog({
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Upload failed. Try again.',
+                        l10n.uploadFailed,
                         style: TextStyle(
                           color: isDark ? Colors.black : Colors.white,
                         ),
@@ -120,9 +122,9 @@ void showAddProgressNoteDialog({
                 }
               }
             },
-            child: const Text(
-              'Log Progress',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.logProgress,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],
